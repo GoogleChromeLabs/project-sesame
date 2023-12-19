@@ -20,10 +20,15 @@
   </head>
   <body class="mdc-typography">
     <mwc-top-app-bar-fixed>
-      <span slot="title">{{title}}</span>
+      <span slot="title"><a href="/">{{title}}</a></span>
       <mwc-icon-button id="code" icon="code" slot="actionItems"></mwc-icon-button>
     </mwc-top-app-bar-fixed>
     <mwc-linear-progress id="progress"></mwc-linear-progress>
+    <script>
+      document.querySelector('#code').addEventListener('click', e => {
+        location.href = 'https://github.com/agektmr/project-sesame';
+      });
+    </script>
     <script src="https://unpkg.com/material-components-web@13.0.0/dist/material-components-web.min.js"></script>
     {{{body}}}
   </body>

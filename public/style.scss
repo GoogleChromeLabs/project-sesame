@@ -65,6 +65,13 @@ h3 {
   padding: 0 16px;
 }
 
+mwc-top-app-bar-fixed {
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
 mwc-list {
   width: 400px;
   mwc-list-item {

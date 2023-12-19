@@ -58,7 +58,7 @@ app.use(session({
   }
 }));
 
-const RP_NAME = 'Passkeys Demo';
+const RP_NAME = 'Project Sesame';
 
 app.use((req, res, next) => {
   process.env.HOSTNAME = req.hostname;
@@ -82,14 +82,27 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/one-button', (req, res) => {
+app.get('/passkey-form-autofill', (req, res) => {
   // Check session
   if (req.session.username) {
     // If username is known, redirect to `/reauth`.
     return res.redirect(307, '/reauth');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('one-button.html', {
+  return res.render('passkey-form-autofill.html', {
+    project_name: process.env.PROJECT_NAME,
+    title: RP_NAME,
+  });
+});
+
+app.get('/passkey-one-button', (req, res) => {
+  // Check session
+  if (req.session.username) {
+    // If username is known, redirect to `/reauth`.
+    return res.redirect(307, '/reauth');
+  }
+  // If the user is not signed in, show `index.html` with id/password form.
+  return res.render('passkey-one-button.html', {
     project_name: process.env.PROJECT_NAME,
     title: RP_NAME,
   });

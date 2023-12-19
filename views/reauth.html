@@ -25,11 +25,7 @@
     <script type="module">
       import { $, _fetch } from '/client.js';
       new mdc.textField.MDCTextField($('.mdc-text-field'));
-      
-      $('#code').addEventListener('click', e => {
-        location.href = 'https://github.com/GoogleChromeLabs/passkeys-demo';
-      });
-      
+
       const form = $('#form');
       form.addEventListener('submit', e => {
         e.preventDefault();
