@@ -16,6 +16,7 @@
  */
 
 // init project
+import npm_package from './package.json' assert { type: 'json' };
 import path from 'path';
 import url from 'url';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -58,13 +59,14 @@ app.use(session({
   }
 }));
 
-const RP_NAME = 'Project Sesame';
-
 app.use((req, res, next) => {
   process.env.HOSTNAME = req.hostname;
   const protocol = process.env.NODE_ENV === 'localhost' ? 'http' : 'https';
   process.env.ORIGIN = `${protocol}://${req.headers.host}`;
-  process.env.RP_NAME = RP_NAME;
+  process.env.RP_NAME = 'Project Sesame';
+  app.locals.project_name = process.env.PROJECT_NAME;
+  app.locals.title = process.env.RP_NAME;
+  app.locals.repository_url = npm_package.repository.url;
   req.schema = 'https';
   return next();
 });
@@ -76,10 +78,7 @@ app.get('/', (req, res) => {
     return res.redirect(307, '/reauth');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('index.html', {
-    project_name: process.env.PROJECT_NAME,
-    title: RP_NAME,
-  });
+  return res.render('index.html');
 });
 
 app.get('/passkey-form-autofill', (req, res) => {
@@ -89,10 +88,7 @@ app.get('/passkey-form-autofill', (req, res) => {
     return res.redirect(307, '/reauth');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('passkey-form-autofill.html', {
-    project_name: process.env.PROJECT_NAME,
-    title: RP_NAME,
-  });
+  return res.render('passkey-form-autofill.html');
 });
 
 app.get('/passkey-one-button', (req, res) => {
@@ -102,10 +98,7 @@ app.get('/passkey-one-button', (req, res) => {
     return res.redirect(307, '/reauth');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('passkey-one-button.html', {
-    project_name: process.env.PROJECT_NAME,
-    title: RP_NAME,
-  });
+  return res.render('passkey-one-button.html');
 });
 
 app.get('/reauth', (req, res) => {
@@ -119,8 +112,6 @@ app.get('/reauth', (req, res) => {
   // Make XHR POST to `/signin`
   res.render('reauth.html', {
     username: username,
-    project_name: process.env.PROJECT_NAME,
-    title: RP_NAME,
   });
 });
 
@@ -133,8 +124,6 @@ app.get('/home', (req, res) => {
   // `home.html` shows sign-out link
   return res.render('home.html', {
     displayName: req.session.username,
-    project_name: process.env.PROJECT_NAME,
-    title: RP_NAME,
   });
 });
 
