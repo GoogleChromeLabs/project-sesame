@@ -1,12 +1,12 @@
-# passkeys-demo
+# project-sesame
 
-passkeys-demo is a demo web application developers can have a look and try themselves to learn how to develop a similar experience.
+project-sesame is a demo web application developers can try identity and authentication features to learn how to develop similar experiences.
 
 ## How to run locally
 
 ### Prerequisite
 
-* node.js 18
+* node.js 18+
 * gcloud
 * java 11+
 
