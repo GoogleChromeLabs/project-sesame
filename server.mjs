@@ -25,8 +25,7 @@ import session from 'express-session';
 import hbs from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { getFirestore } from 'firebase-admin/firestore';
-import { FirestoreStore } from '@google-cloud/connect-firestore';
+import { SessionStore } from './libs/db.mjs';
 import { auth } from './libs/auth.mjs';
 
 const views = path.join(__dirname, 'views');
@@ -43,14 +42,11 @@ app.use(useragent.express());
 app.use(express.static('public'));
 app.use(express.static('dist'));
 app.use(session({
-  secret: 'secret', // You should specify a real secret here
+  secret: process.env.SECRET,
   resave: true,
   saveUninitialized: false,
   proxy: true,
-  store: new FirestoreStore({
-    dataset: getFirestore(),
-    kind: 'express-sessions',
-  }),
+  store: SessionStore,
   cookie:{
     path: '/',
     httpOnly: true,
@@ -63,9 +59,7 @@ app.use((req, res, next) => {
   process.env.HOSTNAME = req.hostname;
   const protocol = process.env.NODE_ENV === 'localhost' ? 'http' : 'https';
   process.env.ORIGIN = `${protocol}://${req.headers.host}`;
-  process.env.RP_NAME = 'Project Sesame';
-  app.locals.project_name = process.env.PROJECT_NAME;
-  app.locals.title = process.env.RP_NAME;
+  app.locals.title = process.env.PROJECT_NAME;
   app.locals.repository_url = npm_package.repository.url;
   req.schema = 'https';
   return next();

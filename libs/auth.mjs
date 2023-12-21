@@ -236,7 +236,7 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (req, res) => {
 
     // Use SimpleWebAuthn's handy function to create registration options.
     const options = await generateRegistrationOptions({
-      rpName: process.env.RP_NAME,
+      rpName: process.env.PROJECT_NAME,
       rpID: process.env.HOSTNAME,
       userID: user.id,
       userName: user.username,

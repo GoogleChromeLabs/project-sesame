@@ -1,15 +1,16 @@
 {
-  "name": "passkeys-demo",
+  "name": "project-sesame",
   "version": "1.0.0",
-  "description": "Passkeys Demo",
+  "description": "Project Sesame",
   "main": "server.mjs",
   "type": "module",
   "scripts": {
     "build": "webpack",
     "dev": "NODE_ENV=localhost node server.mjs",
     "start": "node server.mjs",
-    "deploy": "npm run build && gcloud app deploy --project passkeys-demo app.yaml",
-    "emulator": "firebase emulators:start --only firestore --project passkeys-demo --import=./.data --export-on-exit"
+    "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
+    "deploy:prod": "",
+    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit"
   },
   "dependencies": {
     "@google-cloud/connect-firestore": "^3.0.0",

@@ -14,25 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-// import path from 'path';
-// import url from 'url';
-// import dotenv from 'dotenv';
+import path from 'path';
+import url from 'url';
+import dotenv from 'dotenv';
 import firebaseJson from '../firebase.json' assert { type: 'json' };
-// const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-// dotenv.config({ path: path.join(__dirname, ".env") });
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 import { getFirestore } from 'firebase-admin/firestore';
+import { FirestoreStore } from '@google-cloud/connect-firestore';
 import { initializeApp } from 'firebase-admin/app';
 
 if (process.env.NODE_ENV === 'localhost') {
   process.env.DOMAIN = 'http://localhost:8080';
-  process.env.GOOGLE_CLOUD_PROJECT = 'passkeys-demo';
   process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;
-} else if (process.env.NODE_ENV === 'development') {
-  process.env.DOMAIN = 'https://passkeys-demo.appspot.com';
 }
 
 initializeApp();
-const store = getFirestore();
+const store = getFirestore(process.env.FIRESTORE_DATABASENAME);
 store.settings({ ignoreUndefinedProperties: true });
 
 /**
@@ -114,3 +112,8 @@ export const Credentials = {
     return ref.delete();
   }
 }
+
+export const SessionStore = new FirestoreStore({
+  dataset: store,
+  kind: process.env.SESSION_COLLECTION,
+});
