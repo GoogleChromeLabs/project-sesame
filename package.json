@@ -9,7 +9,8 @@
     "dev": "NODE_ENV=localhost node server.mjs",
     "start": "node server.mjs",
     "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
-    "deploy:prod": "",
+    "deploy:prod": "npm run build && gcloud app deploy app.yaml --project=google.com:project-sesame",
+    "logs": "gcloud app logs tail --project=google.com:project-sesame",
     "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit"
   },
   "dependencies": {
