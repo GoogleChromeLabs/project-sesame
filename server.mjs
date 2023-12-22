@@ -70,8 +70,8 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   // Check session
   if (req.session.username) {
-    // If username is known, redirect to `/reauth`.
-    return res.redirect(307, '/reauth');
+    // If username is known, redirect to `/password`.
+    return res.redirect(307, '/password');
   }
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('index.html');
@@ -80,8 +80,8 @@ app.get('/', (req, res) => {
 app.get('/passkey-form-autofill', (req, res) => {
   // Check session
   if (req.session.username) {
-    // If username is known, redirect to `/reauth`.
-    return res.redirect(307, '/reauth');
+    // If username is known, redirect to `/password`.
+    return res.redirect(307, '/password');
   }
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('passkey-form-autofill.html');
@@ -90,14 +90,14 @@ app.get('/passkey-form-autofill', (req, res) => {
 app.get('/passkey-one-button', (req, res) => {
   // Check session
   if (req.session.username) {
-    // If username is known, redirect to `/reauth`.
-    return res.redirect(307, '/reauth');
+    // If username is known, redirect to `/password`.
+    return res.redirect(307, '/password');
   }
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('passkey-one-button.html');
 });
 
-app.get('/reauth', (req, res) => {
+app.get('/password', (req, res) => {
   const username = req.session.username;
   if (!username) {
     res.redirect(302, '/');
@@ -106,7 +106,7 @@ app.get('/reauth', (req, res) => {
   // Show `reauth.html`.
   // User is supposed to enter a password (which will be ignored)
   // Make XHR POST to `/signin`
-  res.render('reauth.html', {
+  res.render('password.html', {
     username: username,
   });
 });

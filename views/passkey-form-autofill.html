@@ -43,7 +43,7 @@
         form.forEach((v, k) => cred[k] = v);
         _fetch(s.target.action, cred)
         .then(user => {
-          location.href = '/reauth';
+          location.href = '/password';
         }).catch(e => {
           loading.stop();
           console.error(e.message);
