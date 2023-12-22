@@ -96,7 +96,7 @@ export const loading = new Loading();
  */
 export async function registerCredential() {
   // Fetch passkey creation options from the server.
-  const options = await _fetch('/auth/registerRequest');
+  const options = await _fetch('/webauthn/registerRequest');
 
   // Base64URL decode some values
   options.user.id = base64url.decode(options.user.id);
@@ -143,7 +143,7 @@ export async function registerCredential() {
   };
 
   // Send the result to the server and return the promise.
-  return await _fetch('/auth/registerResponse', credential);
+  return await _fetch('/webauthn/registerResponse', credential);
 };
 
 /**
@@ -153,7 +153,7 @@ export async function registerCredential() {
  */
 export async function authenticate(conditional = false) {
   // Fetch passkey request options from the server.
-  const options = await _fetch('/auth/signinRequest');
+  const options = await _fetch('/webauthn/signinRequest');
 
   // Base64URL decode the challenge
   options.challenge = base64url.decode(options.challenge);
@@ -188,7 +188,7 @@ export async function authenticate(conditional = false) {
   };
 
   // Send the result to the server and return the promise.
-  return await _fetch(`/auth/signinResponse`, credential);
+  return await _fetch(`/webauthn/signinResponse`, credential);
 };
 
 /**
@@ -198,7 +198,7 @@ export async function authenticate(conditional = false) {
  * @returns a promise that resolves with a server response.
  */
 export async function updateCredential(credId, newName) {
-  return _fetch(`/auth/renameKey`, { credId, newName });
+  return _fetch(`/webauthn/renameKey`, { credId, newName });
 }
 
 /**
@@ -207,5 +207,5 @@ export async function updateCredential(credId, newName) {
  * @returns a promise that resolves with a server response.
  */
 export async function unregisterCredential(credId) {
-  return _fetch(`/auth/removeKey?credId=${encodeURIComponent(credId)}`);
+  return _fetch(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
 };

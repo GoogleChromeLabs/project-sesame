@@ -16,7 +16,7 @@
  */
 import express from 'express';
 const router = express.Router();
-import crypto from 'crypto';
+// import crypto from 'crypto';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -24,32 +24,10 @@ import {
   verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { Users, Credentials } from './db.mjs';
+import { Users, Credentials } from '../libs/db.mjs';
+import { csrfCheck, sessionCheck } from '../libs/common.mjs';
 
 router.use(express.json());
-
-function csrfCheck(req, res, next) {
-  if (req.header('X-Requested-With') != 'XMLHttpRequest') {
-    return res.status(400).json({ error: 'invalid access.' });
-  }
-  next();
-};
-
-/**
- * Checks CSRF protection using custom header `X-Requested-With`
- * If the session doesn't contain `signed-in`, consider the user is not authenticated.
- **/
-async function sessionCheck(req, res, next) {
-  if (!req.session['signed-in'] || !req.session.username) {
-    return res.status(401).json({ error: 'not signed in.' });
-  }
-  const user = await Users.findByUsername(req.session.username);
-  if (!user) {
-    return res.status(401).json({ error: 'user not found.' });    
-  }
-  res.locals.user = user;
-  next();
-};
 
 /**
  * Get the expected origin that the user agent is claiming to be at. If the
@@ -87,92 +65,6 @@ function getOrigin(userAgent) {
   
   return origin;
 }
-
-/**
- * Check username, create a new account if it doesn't exist.
- * Set a `username` in the session.
- **/
-router.post('/username', async (req, res) => {
-  const { username } = req.body;
-
-  try {
-     // Only check username, no need to check password as this is a mock
-    if (username && /^[a-zA-Z0-9@\.\-_]+$/.test(username)) {
-      // See if account already exists
-      let user = await Users.findByUsername(username);
-      // If user entry is not created yet, create one
-      if (!user) {
-        user = {
-          id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
-          username,
-          displayName: username,
-        };
-        await Users.update(user);
-      }
-      // Set username in the session
-      req.session.username = username;
-
-      return res.json(user);
-    } else {
-      throw new Error('Invalid username');
-    }
-  } catch (e) {
-    console.error(e);
-    return res.status(400).send({ error: e.message });
-  }
-});
-
-/**
- * Verifies user credential and let the user sign-in.
- * No preceding registration required.
- * This only checks if `username` is not empty string and ignores the password.
- **/
-router.post('/password', async (req, res) => {
-  if (!req.body.password) {
-    return res.status(401).json({ error: 'Enter at least one random letter.' });
-  }
-  const user = await Users.findByUsername(req.session.username);
-
-  if (!user) {
-    return res.status(401).json({ error: 'Enter username first.' });
-  }
-
-  req.session['signed-in'] = 'yes';
-  return res.json(user);
-});
-
-/**
- * Response with user information.
- */
-router.post('/userinfo', csrfCheck, sessionCheck, (req, res) => {
-  const { user } = res.locals;
-  return res.json(user);
-});
-
-/**
- * Update the user's display name.
- */
-router.post('/updateDisplayName', csrfCheck, sessionCheck, async (req, res) => {
-  const { newName } = req.body;
-  if (newName) {
-    const { user } = res.locals;
-    user.displayName = newName;
-    await Users.update(user);
-    return res.json(user);
-  } else {
-    return res.status(400);
-  }
-});
-
-/**
- * Sign out the user.
- */
-router.get('/signout', (req, res) => {
-  // Remove the session
-  req.session.destroy()
-  // Redirect to `/`
-  return res.redirect(307, '/');
-});
 
 /**
  * Respond with a list of stored credentials.
@@ -409,4 +301,4 @@ router.post('/signinResponse', csrfCheck, async (req, res) => {
   }
 });
 
-export { router as auth };
+export { router as webauthn };

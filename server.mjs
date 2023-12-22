@@ -26,7 +26,9 @@ import hbs from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
 import { SessionStore } from './libs/db.mjs';
-import { auth } from './libs/auth.mjs';
+import { auth } from './middlewares/auth.mjs';
+import { webauthn } from './middlewares/webauthn.mjs';
+import { wellKnown } from './middlewares/well-known.mjs';
 
 const views = path.join(__dirname, 'views');
 app.set('view engine', 'html');
@@ -121,42 +123,9 @@ app.get('/home', (req, res) => {
   });
 });
 
-app.get('/.well-known/assetlinks.json', (req, res) => {
-  const assetlinks = [];
-  const relation = [
-    'delegate_permission/common.handle_all_urls',
-    'delegate_permission/common.get_login_creds',
-  ];
-  assetlinks.push({
-    relation: relation,
-    target: {
-      namespace: 'web',
-      site: process.env.ORIGIN,
-    },
-  });
-  if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
-    const package_names = process.env.ANDROID_PACKAGENAME.split(",").map(name => name.trim());
-    const hashes = process.env.ANDROID_SHA256HASH.split(",").map(hash => hash.trim());
-    for (let i = 0; i < package_names.length; i++) {
-      assetlinks.push({
-        relation: relation,
-        target: {
-          namespace: 'android_app',
-          package_name: package_names[i],
-          sha256_cert_fingerprints: [hashes[i]],
-        },
-      });
-    }
-  }
-  return res.json(assetlinks);
-});
-
-app.get('/.well-known/passkey-endpoints', (req, res) => {
-  const web_endpoint = `${process.env.ORIGIN}/home`;
-  return res.json({ enroll: web_endpoint, manage: web_endpoint });
-});
-
 app.use('/auth', auth);
+app.use('/webauthn', webauthn);
+app.use('/.well-known', wellKnown);
 
 const listener = app.listen(process.env.PORT || 8080, () => {
   console.log('Your app is listening on port ' + listener.address().port);

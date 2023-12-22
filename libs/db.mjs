@@ -115,5 +115,5 @@ export const Credentials = {
 
 export const SessionStore = new FirestoreStore({
   dataset: store,
-  kind: process.env.SESSION_COLLECTION,
+  kind: process.env.SESSIONS_COLLECTION,
 });
