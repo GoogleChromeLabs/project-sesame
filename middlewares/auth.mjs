@@ -16,8 +16,6 @@
  */
 import express from 'express';
 const router = express.Router();
-import crypto from 'crypto';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users } from '../libs/db.mjs';
 import { csrfCheck, sessionCheck } from '../libs/common.mjs';
 
@@ -37,12 +35,7 @@ router.post('/username', async (req, res) => {
       let user = await Users.findByUsername(username);
       // If user entry is not created yet, create one
       if (!user) {
-        user = {
-          id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
-          username,
-          displayName: username,
-        };
-        await Users.update(user);
+        user = await Users.create(username);
       }
       // Set username in the session
       req.session.username = username;

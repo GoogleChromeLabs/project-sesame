@@ -20,6 +20,8 @@ import dotenv from 'dotenv';
 import firebaseJson from '../firebase.json' assert { type: 'json' };
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
+import crypto from 'crypto';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreStore } from '@google-cloud/connect-firestore';
 import { initializeApp } from 'firebase-admin/app';
@@ -43,8 +45,17 @@ store.settings({ ignoreUndefinedProperties: true });
  **/
 
 export const Users = {
+  create: async () => {
+    const user = {
+      id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
+      username,
+      displayName: username,
+    };
+    return Users.update(user);
+  },
+
   findById: async (user_id) => {
-    const doc = await store.collection('users').doc(user_id).get();
+    const doc = await store.collection(process.env.USERS_COLLECTION).doc(user_id).get();
     if (doc) {
       const credential = doc.data();
       return credential;
@@ -55,7 +66,7 @@ export const Users = {
 
   findByUsername: async (username) => {
     const results = [];
-    const refs = await store.collection('users')
+    const refs = await store.collection(process.env.USERS_COLLECTION)
       .where('username', '==', username).get();
     if (refs) {
       refs.forEach(user => results.push(user.data()));
@@ -64,7 +75,7 @@ export const Users = {
   },
 
   update: async (user) => {
-    const ref = store.collection('users').doc(user.id);
+    const ref = store.collection(process.env.USERS_COLLECTION).doc(user.id);
       return ref.set(user);
   }
 }
@@ -84,7 +95,7 @@ export const Users = {
 
 export const Credentials = {
   findById: async (credential_id) => {
-    const doc = await store.collection('credentials').doc(credential_id).get();
+    const doc = await store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id).get();
     if (doc) {
       const credential = doc.data();
       return credential;
@@ -95,7 +106,7 @@ export const Credentials = {
 
   findByUserId: async (user_id) => {
     const results = [];
-    const refs = await store.collection('credentials')
+    const refs = await store.collection(process.env.PUBKEY_CREDS_COLLECTION)
       .where('user_id', '==', user_id)
       .orderBy('registered', 'desc').get();
     refs.forEach(cred => results.push(cred.data()));
@@ -103,12 +114,12 @@ export const Credentials = {
   },
 
   update: async (credential) => {
-    const ref = store.collection('credentials').doc(credential.id);
+    const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential.id);
     return ref.set(credential);
   },
   
   remove: async (credential_id, user_id) => {
-    const ref = store.collection('credentials').doc(credential_id);
+    const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id);
     return ref.delete();
   }
 }
