@@ -31,7 +31,8 @@
       </form>
     </main>
     <script type="module">
-      import { $, _fetch, loading, authenticate } from '/client.js';
+      import { $, _fetch, loading } from '/client.js';
+      import { authenticate } from '/passkeys.js';
       new mdc.textField.MDCTextField($('.mdc-text-field'));
 
       const form = $('#form');

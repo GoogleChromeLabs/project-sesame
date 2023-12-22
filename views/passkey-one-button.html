@@ -14,7 +14,8 @@
       </section>
     </main>
     <script type="module">
-      import { $, _fetch, loading, authenticate } from '/client.js';
+      import { $, _fetch, loading } from '/client.js';
+      import { authenticate } from '/passkeys.js';
 
       const redirect = (path) => {
         location.href = path;

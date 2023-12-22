@@ -19,8 +19,12 @@
       <mwc-button><a href="/auth/signout">Sign out</a></mwc-button>
     </main>
     <script type="module">
-      import { $, _fetch, loading, registerCredential, updateCredential, unregisterCredential } from '/client.js';
+      import { $, _fetch, loading } from '/client.js';
+      import { registerCredential, updateCredential, unregisterCredential } from '/passkeys.js';
       import { html, render } from 'https://unpkg.com/lit-html@2.6.1/lit-html.js?module';
+
+      const aaguids = await fetch('/aaguids.json');
+      const icons = await aaguids.json();
 
       /**
        * Change and update the user's display name.
@@ -134,6 +138,12 @@
           ${res.map(cred => html`
             <mwc-list-item>
               <div class="list-item">
+                <div class="buttons">
+                  <mwc-icon-button
+                    title="${icons[cred.aaguid].name}">
+                    <img src="${icons[cred.aaguid].icon_light}" width="24" height="24">
+                  </mwc-icon-button>
+                </div>
                 <div class="entity-name">
                   <span>${cred.name || 'Unnamed' }</span>
                 </div>

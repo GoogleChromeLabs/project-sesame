@@ -26,6 +26,7 @@ import {
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users, Credentials } from '../libs/db.mjs';
 import { csrfCheck, sessionCheck } from '../libs/common.mjs';
+import aaguids from '../public/aaguids.json' assert { type: 'json' };
 
 router.use(express.json());
 
@@ -186,12 +187,16 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
     const base64CredentialID = isoBase64URL.fromBuffer(credentialID);
 
     const { user } = res.locals;
-    
+    const name = registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000' ?
+      req.useragent.platform :
+      aaguids[registrationInfo.aaguid].name;
+
     // Store the registration result.
     await Credentials.update({
       id: base64CredentialID,
       publicKey: base64PublicKey,
-      name: req.useragent.platform,
+      aaguid: registrationInfo.aaguid,
+      name,
       transports: credential.response.transports || [],
       registered: (new Date()).getTime(),
       last_used: null,
