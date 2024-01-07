@@ -45,7 +45,7 @@ store.settings({ ignoreUndefinedProperties: true });
  **/
 
 export const Users = {
-  create: async () => {
+  create: async (username) => {
     const user = {
       id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
       username,
