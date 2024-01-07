@@ -1,11 +1,17 @@
     <main class="content center">
       <h2>
-        Enter a username
+        Welcome back!
       </h2>
       <form id="form" method="POST" action="/auth/username" class="center">
-        <div class="mdc-text-field mdc-text-field--filled">
-          <span class="mdc-text-field__ripple"></span>
-          <label class="mdc-floating-label" id="username-label">username</label>
+        <p class="instructions">Don't have an account yet? Register now</p>
+        <label class="mdc-text-field mdc-text-field--outlined">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+              <span class="mdc-floating-label" id="username-label">username</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
           <input
            type="text"
            id="username"
@@ -13,13 +19,12 @@
            aria-labelledby="username-label"
            name="username"
            autocomplete="username webauthn"
+           size="30"
            autofocus />
-          <span class="mdc-line-ripple"></span>
-        </div>
+        </label>
         <input type="password" class="hidden" name="password" />
-        <p class="instructions">Any username can be accepted.</p>
-        <input type="submit" class="mdc-button mdc-button--raised" value="Next" />
-        <ol class="instructions narrow">
+        <md-filled-button type="submit">Continue</md-filled-button>
+        <!-- <ol class="instructions narrow">
           <li>Sign in with a random username and password.</li>
           <li>Create a passkey.</li>
           <li>Sign out.</li>
@@ -27,7 +32,7 @@
           <li>Select a passkey.</li>
           <li>Authenticate.</li>
           <li>You are signed in.</li>
-        </ol>
+        </ol> -->
       </form>
     </main>
     <script type="module">

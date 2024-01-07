@@ -18,18 +18,26 @@
   <head>
     {{> head this}}
   </head>
-  <body class="mdc-typography">
-    <mwc-top-app-bar-fixed>
-      <span slot="title"><a href="/">{{title}}</a></span>
-      <mwc-icon-button id="code" icon="code" slot="actionItems"></mwc-icon-button>
-    </mwc-top-app-bar-fixed>
-    <mwc-linear-progress id="progress"></mwc-linear-progress>
-    <script>
-      document.querySelector('#code').addEventListener('click', e => {
-        location.href = '{{repository_url}}';
-      });
-    </script>
-    <script src="https://unpkg.com/material-components-web@13.0.0/dist/material-components-web.min.js"></script>
-    {{{body}}}
+  <body>
+    <mwc-drawer type="dismissible">
+      <script src="https://unpkg.com/material-components-web@13.0.0/dist/material-components-web.min.js"></script>
+      {{> sidebar this}}
+      <div slot="appContent">
+        <mwc-top-app-bar>
+          <md-icon-button slot="navigationIcon">
+            <md-icon id="menu">menu</md-icon>
+          </md-icon-button>
+          <span slot="title"><a href="/">{{title}}</a></span>
+          <md-linear-progress id="progress"></md-linear-progress>
+          {{{body}}}
+        </mwc-top-app-bar>
+        <script>
+          const drawer = document.querySelector('mwc-drawer');
+          drawer.addEventListener('MDCTopAppBar:nav', e => {
+            drawer.open = !drawer.open;
+          });
+        </script>
+      </div>
+    </mwc-drawer>
   </body>
 </html>

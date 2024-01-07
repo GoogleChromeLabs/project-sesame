@@ -1,22 +1,18 @@
     <main class="content center">
       <h2>
-        Welcome, {{displayName}}!
+        Hi, {{displayName}}
       </h2>
       <section>
-        <h3>
-          Your name:
-        </h3>
         <div id="display-name"></div>
       </section>
       <section>
-        <h3 class="mdc-typography mdc-typography--headline6">
+        <h3>
           Your registered passkeys:
         </h3>
-        <div id="list"></div>
+        <md-list id="list"></md-list>
       </section>
       <p id="message" class="instructions"></p>
-      <mwc-button id="create-passkey" class="hidden" icon="fingerprint" raised>Create a passkey</mwc-button>
-      <mwc-button><a href="/auth/signout">Sign out</a></mwc-button>
+      <md-filled-button id="create-passkey" class="hidden">Create a passkey</md-filled-button>
     </main>
     <script type="module">
       import { $, _fetch, loading } from '/client.js';
@@ -45,22 +41,15 @@
       async function renderDisplayName() {
         const res = await _fetch('/auth/userinfo');
         render(html`
-        <mwc-list>
-          <mwc-list-item>
-            <div class="list-item">
-              <div class="entity-name">
-                <span>${res.displayName || res.username}</span>
-              </div>
-              <div class="buttons">
-                <mwc-icon-button
-                  data-display-name="${res.displayName || res.username }"
-                  @click="${changeDisplayName}"
-                  title="Edit your display name"
-                  icon="edit"></mwc-icon-button>
-              </div>
-            </div>
-          </mwc-list-item>
-        <mwc-list>`, $('#display-name'));
+          <span slot="headline">${res.displayName || res.username}</span>
+          <md-icon-button
+            slot="end"
+            data-display-name="${res.displayName || res.username }"
+            @click="${changeDisplayName}"
+            title="Edit your display name">
+            <md-icon>edit</md-icon>
+          </md-icon-button>
+        `, $('#display-name'));
       };
 
       /**
@@ -133,37 +122,33 @@
       async function renderCredentials() {
         const res = await _fetch('/webauthn/getKeys');
         const list = $('#list');
-        const creds = html`${res.length > 0 ? html`
-        <mwc-list>
-          ${res.map(cred => html`
-            <mwc-list-item>
-              <div class="list-item">
-                <div class="buttons">
-                  <mwc-icon-button
-                    title="${icons[cred.aaguid].name}">
-                    <img src="${icons[cred.aaguid].icon_light}" width="24" height="24">
-                  </mwc-icon-button>
-                </div>
-                <div class="entity-name">
-                  <span>${cred.name || 'Unnamed' }</span>
-                </div>
-                <div class="buttons">
-                  <mwc-icon-button
-                    data-cred-id="${cred.id}"
-                    data-name="${cred.name || 'Unnamed' }"
-                    @click="${rename}"
-                    icon="edit"></mwc-icon-button>
-                  <mwc-icon-button
-                    data-cred-id="${cred.id}"
-                    @click="${remove}"
-                    icon="delete"></mwc-icon-button>
-                </div>
-              </div>
-            </mwc-list-item>`)}
-        </mwc-list>` : html`
-        <mwc-list>
-          <mwc-list-item>No credentials found.</mwc-list-item>
-        </mwc-list>`}`;
+        const creds = res.length > 0 ? html`${res.map((cred, i) => {
+          const created = new Date(cred.registered);
+          const createdDate = created.toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+          const createdTime = created.toLocaleTimeString(undefined, {timeStyle: 'short', hour12: false});
+          const createdStr = `Created: ${createdDate}, ${createdTime}`;
+          return html`${i > 0 && i < res.length ? html`
+          <md-divider></md-divider>
+          `:''}
+          <md-list-item>
+            <img slot="start" src="${icons[cred.aaguid].icon_light}" title="${icons[cred.aaguid].name}" width="24" height="24">
+            <span slot="headline">${cred.name || 'Unnamed' }</span>
+            <span slot="supporting-text">${createdStr}</span>
+            <md-icon-button
+              slot="end"
+              data-cred-id="${cred.id}"
+              data-name="${cred.name || 'Unnamed' }"
+              @click="${rename}">
+              <md-icon>edit</md-icon>
+            </md-icon-button>
+            <md-icon-button
+              slot="end"
+              data-cred-id="${cred.id}"
+              @click="${remove}">
+              <md-icon>delete</md-icon>
+            </md-icon-button>
+          </md-list-item>`;})}`
+        : html`<md-list-item>No credentials found.</md-list-item>`;
         render(creds, list);
       };
 
