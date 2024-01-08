@@ -147,7 +147,15 @@ mwc-button, .mdc-button, md-filled-button {
   }
 }
 
-#display-name {
+main section {
+  margin-top: 2em;
+}
+
+.profile-image {
+  clip-path: circle(40px at 50% 50%);
+}
+
+.display-name {
   display: flex;
   align-items: center;
   span {

@@ -46,9 +46,13 @@ store.settings({ ignoreUndefinedProperties: true });
 
 export const Users = {
   create: async (username) => {
+    const picture = new URL('https://www.gravatar.com/');
+    picture.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
+    picture.searchParams.append('s', 200);
     const user = {
       id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
       username,
+      picture: picture.toString(),
       displayName: username,
     };
     return Users.update(user);

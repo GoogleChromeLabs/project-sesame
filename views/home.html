@@ -1,11 +1,7 @@
     <main class="content center">
-      <h2>
-        Hi, {{displayName}}
-      </h2>
-      <section>
-        <div id="display-name"></div>
+      <section id="userinfo" class="center">
       </section>
-      <section>
+      <section id="passkeys">
         <h3>
           Your registered passkeys:
         </h3>
@@ -41,15 +37,19 @@
       async function renderDisplayName() {
         const res = await _fetch('/auth/userinfo');
         render(html`
-          <span slot="headline">${res.displayName || res.username}</span>
-          <md-icon-button
-            slot="end"
-            data-display-name="${res.displayName || res.username }"
-            @click="${changeDisplayName}"
-            title="Edit your display name">
-            <md-icon>edit</md-icon>
-          </md-icon-button>
-        `, $('#display-name'));
+          <img class="profile-image" src="${res.picture}" width="80" height="80">
+          <h2>Hi, ${res.displayName}</h2>
+          <div class="display-name">
+            <span>${res.username}</span>
+            <md-icon-button
+              slot="end"
+              data-display-name="${res.displayName || res.username }"
+              @click="${changeDisplayName}"
+              title="Edit your display name">
+              <md-icon>edit</md-icon>
+            </md-icon-button>
+          </div>
+        `, $('#userinfo'));
       };
 
       /**
