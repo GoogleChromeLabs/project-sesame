@@ -47,6 +47,13 @@ router.get('/assetlinks.json', (req, res) => {
   return res.json(assetlinks);
 });
 
+router.get('/webidentity', (req, res) => {
+  const fedcm_config_url = `${process.env.ORIGIN}/fedcm/config.json`;
+  return res.json({
+    "provider_urls": [ fedcm_config_url ]
+  });
+});
+
 router.get('/passkey-endpoints', (req, res) => {
   const web_endpoint = `${process.env.ORIGIN}/home`;
   return res.json({ enroll: web_endpoint, manage: web_endpoint });
