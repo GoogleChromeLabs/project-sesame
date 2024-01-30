@@ -77,14 +77,14 @@ app.get('/', (req, res) => {
   return res.render('index.html');
 });
 
-app.get('/passkey-form-autofill', (req, res) => {
+app.get('/identifier-first-form', (req, res) => {
   // Check session
   if (req.session.username) {
     // If username is known, redirect to `/password`.
     return res.redirect(307, '/password');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('passkey-form-autofill.html');
+  return res.render('identifier-first-form.html');
 });
 
 app.get('/passkey-one-button', (req, res) => {
