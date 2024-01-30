@@ -297,6 +297,9 @@ router.post('/signinResponse', csrfCheck, async (req, res) => {
     req.session.username = user.username;
     req.session['signed-in'] = 'yes';
 
+    // Set a login status using the Login Status API
+    res.set('Set-Login', 'logged-in');
+
     return res.json(user);
   } catch (e) {
     delete req.session.challenge;

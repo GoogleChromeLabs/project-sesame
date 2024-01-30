@@ -66,6 +66,10 @@ router.post('/password', async (req, res) => {
   }
 
   req.session['signed-in'] = 'yes';
+
+  // Set a login status using the Login Status API
+  res.set('Set-Login', 'logged-in');
+
   return res.json(user);
 });
 
@@ -98,6 +102,10 @@ router.post('/updateDisplayName', csrfCheck, sessionCheck, async (req, res) => {
 router.get('/signout', (req, res) => {
   // Remove the session
   req.session.destroy()
+
+  // Set a login status using the Login Status API
+  res.set('Set-Login', 'logged-out');
+
   // Redirect to `/`
   return res.redirect(307, '/');
 });
