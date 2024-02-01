@@ -16,6 +16,11 @@
  */
 export const $ = document.querySelector.bind(document);
 
+export const toast = (text) => {
+  $('#snackbar').labelText = text;
+  $('#snackbar').show();
+}
+
 /**
  * Sends a POST request with payload. Throws when the response is not 200.
  * @param path The endpoint path.

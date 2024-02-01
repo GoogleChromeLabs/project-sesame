@@ -1,72 +1,86 @@
-const IDP_ORIGIN = 'https://fedcm-idp-demo.glitch.me';
-const IDP_CONFIG = `${IDP_ORIGIN}/fedcm.json`;
+class IdentityProvider {
 
-const $ = document.querySelector.bind(document);
-
-export const idpSignOut = () => {
-  try {
-    if (navigator.credentials && navigator.credentials.preventSilentAccess) {
-      navigator.credentials.preventSilentAccess();
+  constructor(options) {
+    let { configURL, clientId = '' } = options;
+    if (clientId === '') {
+      clientId = document.querySelector('meta[name="fedcm_demo_client_id"]').content
     }
-  } catch (e) {
-    console.error(e);
+    if (clientId === '') {
+      throw new Error('client ID is not declared.');
+    }
+    const url = new URL(configURL);
+    this.origin = url.origin;
+    this.configURL = configURL;
+    this.clientId = clientId;
+  }
+
+  async signIn(options = {}) {
+    let { loginHint, context, nonce } = options;
+    if (!nonce) {
+      const meta = 
+      nonce = document.querySelector('meta[name="nonce"]')?.content;
+    }
+    if (!nonce || !this.clientId) {
+      throw new Error('nonce or client_id is not declared.');
+    }
+
+    const credential = await navigator.credentials.get({
+      identity: {
+        providers: [{
+          configURL: this.configURL,
+          clientId: this.clientId,
+          nonce,
+          loginHint
+        }],
+        context,
+      },
+      mediation: 'optional',
+    }).catch(e => {
+      console.error(e);
+      return e;
+    });
+    const token = credential.token;
+    return token;
+  }
+
+  redirect() {
+    location.href = this.origin;
+  }
+
+  setIframe(domId, callback) {
+    const dom = document.querySelector(`#${domId}`);
+    if (!dom) throw new Error("Specified DOM ID doesn't exit");
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('allow', 'identity-credentials-get');
+    iframe.src = `${this.origin}/iframe`;
+    dom.appendChild(iframe);
+
+    window.addEventListener('message', async e => {
+      if (e.origin === this.origin && e.data === 'sign-in') {
+        await callback();
+      }
+    });
+  }
+
+  async signOut() {
+    try {
+      if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+        await navigator.credentials.preventSilentAccess();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async disconnect(accountId) {
+    await IdentityCredential.disconnect({
+      configURL: this.configURL,
+      clientId: this.clientId,
+      accountHint: accountId
+    });
   }
 };
-
-export const getToken = async (options = {}) => {
-  const { loginHint, context } = options;
-  const nonce = $('meta[name="nonce"]').content;
-  const clientId = $('meta[name="client_id"]').content;
-  if (!nonce || !clientId) {
-    throw new Error('nonce or client_id is missing in the meta tag.');
-  }
-  const credential = await navigator.credentials.get({
-    identity: {
-      providers: [{
-        configURL: IDP_CONFIG,
-        clientId,
-        nonce,
-        loginHint
-      }],
-      context,
-    },
-    mediation: 'optional',
-  }).catch(e => {
-    console.error(e);
-    return e;
-  });
-  const token = credential.token;
-  return token;
-};
-
-export const redirectToIdp = () => {
-  location.href = IDP_ORIGIN;
-}
-
-export function setIframe(domId, callback) {
-  const dom = $(`#${domId}`);
-  if (!dom) throw new Error("Specified DOM ID doesn't exit");
-
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('allow', 'identity-credentials-get');
-  iframe.src = `${IDP_ORIGIN}/iframe`;
-  dom.appendChild(iframe);
-
-  window.addEventListener('message', async e => {
-    if (e.origin === IDP_ORIGIN && e.data === 'sign-in') {
-      await callback();
-    }
-  });
-}
-
-export async function disconnect(account_id) {
-  const clientId = $('meta[name="client_id"]').content
-  await IdentityCredential.disconnect({
-    configURL: IDP_CONFIG,
-    clientId: clientId,
-    accountHint: account_id
-  });
-}
 
 // const tokenElement = document.createElement('meta');
 // tokenElement.httpEquiv = 'origin-trial';

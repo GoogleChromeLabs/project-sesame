@@ -111,6 +111,23 @@ app.get('/password', (req, res) => {
   });
 });
 
+app.get('/fedcm-rp', (req, res) => {
+  // Check session
+  if (req.session.username) {
+    // If username is known, redirect to `/password`.
+    return res.redirect(307, '/password');
+  }
+
+  const nonce = Math.floor(Math.random()*10e10);
+
+  // TODO: Kill this nonce
+  req.session.nonce = nonce;
+  const client_id = 'https://identity-demos.dev';
+
+  // If the user is not signed in, show `fedcm-rp.html` with id/password form.
+  return res.render('fedcm-rp.html', { nonce, client_id });
+});
+
 app.get('/home', (req, res) => {
   if (!req.session.username || req.session['signed-in'] != 'yes') {
     // If user is not signed in, redirect to `/`.
