@@ -132,3 +132,14 @@ export const SessionStore = new FirestoreStore({
   dataset: store,
   kind: process.env.SESSIONS_COLLECTION,
 });
+
+export const RelyingParties = {
+  rps: [{
+    url: 'https://fedcm-rp-demo.glitch.me',
+    client_id: 'fedcm-rp-demo',
+    name: 'FedCM RP Demo'
+  }],
+  findByClientID: async (client_id) => {
+    return Promise.resolve(RelyingParties.rps.find(rp => rp.client_id === client_id));
+  }
+};
