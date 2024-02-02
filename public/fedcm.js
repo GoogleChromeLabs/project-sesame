@@ -1,9 +1,9 @@
-class IdentityProvider {
+export class IdentityProvider {
 
   constructor(options) {
     let { configURL, clientId = '' } = options;
     if (clientId === '') {
-      clientId = document.querySelector('meta[name="fedcm_demo_client_id"]').content
+      clientId = document.querySelector('meta[name="fedcm_demo_client_id"]')?.content
     }
     if (clientId === '') {
       throw new Error('client ID is not declared.');
@@ -17,28 +17,30 @@ class IdentityProvider {
   async signIn(options = {}) {
     let { loginHint, context, nonce } = options;
     if (!nonce) {
-      const meta = 
       nonce = document.querySelector('meta[name="nonce"]')?.content;
     }
     if (!nonce || !this.clientId) {
       throw new Error('nonce or client_id is not declared.');
     }
 
-    const credential = await navigator.credentials.get({
-      identity: {
-        providers: [{
-          configURL: this.configURL,
-          clientId: this.clientId,
-          nonce,
-          loginHint
-        }],
-        context,
-      },
-      mediation: 'optional',
-    }).catch(e => {
+    let credential;
+    try {
+      credential = await navigator.credentials.get({
+        identity: {
+          providers: [{
+            configURL: this.configURL,
+            clientId: this.clientId,
+            nonce,
+            loginHint
+          }],
+          context,
+        },
+        mediation: 'optional',
+      })
+    } catch (e) {
       console.error(e);
-      return e;
-    });
+      throw new Error(e.message);
+    };
     const token = credential.token;
     return token;
   }
@@ -74,11 +76,15 @@ class IdentityProvider {
   }
 
   async disconnect(accountId) {
-    await IdentityCredential.disconnect({
-      configURL: this.configURL,
-      clientId: this.clientId,
-      accountHint: accountId
-    });
+    try {
+      return await IdentityCredential.disconnect({
+        configURL: this.configURL,
+        clientId: this.clientId,
+        accountHint: accountId
+      });      
+    } catch (e) {
+      throw new Error('Failed disconnecting.');
+    }
   }
 };
 

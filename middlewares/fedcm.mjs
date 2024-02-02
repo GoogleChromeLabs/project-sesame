@@ -148,4 +148,4 @@ router.post('/disconnect', csrfCheck, sessionCheck, (req, res) => {
   return res.json({ account_id: user.id });
 });
 
-module.exports = router;
+export { router as fedcm };
