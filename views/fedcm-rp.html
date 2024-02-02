@@ -1,0 +1,102 @@
+    <main class="content center">
+      <h2>
+        Welcome back!
+      </h2>
+      <form id="form" method="POST" action="/auth/username" class="center">
+        <p class="instructions">Don't have an account yet? Register now</p>
+        <label class="mdc-text-field mdc-text-field--outlined">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+              <span class="mdc-floating-label" id="username-label">username</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
+          <input
+           type="text"
+           id="username"
+           class="mdc-text-field__input"
+           aria-labelledby="username-label"
+           name="username"
+           autocomplete="username webauthn"
+           size="30"
+           autofocus />
+        </label>
+        <input type="password" class="hidden" name="password" />
+        <md-filled-button type="submit">Continue</md-filled-button>
+        <!-- <ol class="instructions narrow">
+          <li>Sign in with a random username and password.</li>
+          <li>Create a passkey.</li>
+          <li>Sign out.</li>
+          <li>Click or tap on the username input field to show an autofill dialog.</li>
+          <li>Select a passkey.</li>
+          <li>Authenticate.</li>
+          <li>You are signed in.</li>
+        </ol> -->
+      </form>
+    </main>
+    <script src="https://unpkg.com/material-components-web@14.0.0/dist/material-components-web.min.js"></script>
+    <script type="module">
+      const IDP_ORIGIN = 'https://fedcm-idp-demo.glitch.me';
+      import { $, _fetch, loading, toast } from '/client.js';
+      import { authenticate } from '/passkeys.js';
+      import { IdentityProvider } from 'https://fedcm-idp-demo.glitch.me/fedcm.js';
+      new mdc.textField.MDCTextField($('.mdc-text-field'));
+
+      let idpInfo;
+      try {
+        idpInfo = await _fetch('/federation/idp', { url: IDP_ORIGIN });
+      } catch (e) {
+        console.error(e);
+        toast(e.message);
+      }
+
+      const idp = new IdentityProvider({
+        configURL: idpInfo.configURL,
+        clientId: idpInfo.clientId
+      });
+
+      const form = $('#form');
+      // When the form is submitted, proceed to the password form.
+      form.addEventListener('submit', async s => {
+        s.preventDefault();
+        const form = new FormData(s.target);
+        const cred = {};
+        form.forEach((v, k) => cred[k] = v);
+        _fetch(s.target.action, cred)
+        .then(user => {
+          location.href = '/password';
+        }).catch(e => {
+          loading.stop();
+          console.error(e.message);
+          toast(e.message);
+        });
+      });
+
+      const signIn = async () => {
+        let token;
+        try {
+          token = await idp.signIn();
+        } catch (e) {
+          // Silently dismiss the request for now.
+          // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?
+          console.info('The user is not signed in to the IdP.');
+          return;
+        }
+
+        try {
+          await _fetch('/federation/verify', { token, url: idpInfo.origin });
+          location.href = '/home';
+        } catch (e) {
+          console.info(e);
+          toast(e.message);
+        }
+      }
+
+      if ('IdentityCredential' in window) {
+        await signIn();
+      } else {
+        $('#unsupported').classList.remove('hidden');
+      }
+
+    </script>

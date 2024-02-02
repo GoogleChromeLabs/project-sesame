@@ -45,15 +45,26 @@ store.settings({ ignoreUndefinedProperties: true });
  **/
 
 export const Users = {
-  create: async (username) => {
-    const picture = new URL('https://www.gravatar.com/');
-    picture.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
-    picture.searchParams.append('s', 200);
+  create: async (username, options = {}) => {
+    let { picture, displayName, email } = options;
+    if (!picture) {
+      const pictureURL = new URL('https://www.gravatar.com/');
+      pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
+      pictureURL.searchParams.append('s', 200);
+      picture = pictureURL.toString();
+    }
+    if (!displayName) {
+      displayName = username;
+    }
+    if (!email) {
+      email = username;
+    }
     const user = {
       id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
       username,
-      picture: picture.toString(),
-      displayName: username,
+      picture,
+      displayName,
+      email,
     };
     return Users.update(user);
   },
@@ -132,3 +143,53 @@ export const SessionStore = new FirestoreStore({
   dataset: store,
   kind: process.env.SESSIONS_COLLECTION,
 });
+
+/*
+  {
+    user_id: string
+    issuer: string
+    subject: string
+    name: string
+    email: string
+    given_name: string
+    family_name: string
+    picture: string
+    issued_at: number
+    expires_at: number
+  }
+*/
+export const FederationMappings = {
+  create: async (user_id, options) => {
+  },
+  findByIssuer: async (url) => {
+  },
+  findByUserId: async (user_id) => {
+  }
+};
+
+export const RelyingParties = {
+  rps: [{
+    url: 'https://fedcm-rp-demo.glitch.me',
+    client_id: 'fedcm-rp-demo',
+    name: 'FedCM RP Demo'
+  }],
+  findByClientID: async (client_id) => {
+    const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
+    return Promise.resolve(structuredClone(rp));
+  }
+};
+
+export const IdentityProviders = {
+  idps: [{
+    origin: 'https://fedcm-idp-demo.glitch.me',
+    configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
+    clientId: 'https://identity-demos.dev',
+    secret: 'xxxxx'
+  }],
+  findByURL: async (url) => {
+    const idp = IdentityProviders.idps.find(idp => {
+      return idp.origin === (new URL(url)).origin;
+    })
+    return Promise.resolve(structuredClone(idp));
+  }
+};

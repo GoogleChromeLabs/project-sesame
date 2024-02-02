@@ -28,6 +28,7 @@ import useragent from 'express-useragent';
 import { SessionStore } from './libs/db.mjs';
 import { auth } from './middlewares/auth.mjs';
 import { webauthn } from './middlewares/webauthn.mjs';
+import { federation } from './middlewares/federation.mjs';
 import { wellKnown } from './middlewares/well-known.mjs';
 
 const views = path.join(__dirname, 'views');
@@ -111,6 +112,22 @@ app.get('/password', (req, res) => {
   });
 });
 
+app.get('/fedcm-rp', (req, res) => {
+  // Check session
+  if (req.session.username) {
+    // If username is known, redirect to `/password`.
+    return res.redirect(307, '/password');
+  }
+
+  const nonce = Math.floor(Math.random()*10e10);
+
+  // TODO: Kill this nonce
+  req.session.nonce = nonce;
+
+  // If the user is not signed in, show `fedcm-rp.html` with id/password form.
+  return res.render('fedcm-rp.html', { nonce });
+});
+
 app.get('/home', (req, res) => {
   if (!req.session.username || req.session['signed-in'] != 'yes') {
     // If user is not signed in, redirect to `/`.
@@ -125,6 +142,7 @@ app.get('/home', (req, res) => {
 
 app.use('/auth', auth);
 app.use('/webauthn', webauthn);
+app.use('/federation', federation);
 app.use('/.well-known', wellKnown);
 
 const listener = app.listen(process.env.PORT || 8080, () => {

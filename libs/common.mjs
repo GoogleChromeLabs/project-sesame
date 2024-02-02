@@ -23,6 +23,7 @@ function csrfCheck(req, res, next) {
   if (req.header('X-Requested-With') != 'XMLHttpRequest') {
     return res.status(400).json({ error: 'invalid access.' });
   }
+  // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
   next();
 };
 
