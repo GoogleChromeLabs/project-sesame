@@ -28,7 +28,7 @@ router.post('/username', async (req, res) => {
 
   try {
      // Only check username, no need to check password as this is a mock
-    if (username && /^[a-zA-Z0-9@\.\-_]+$/.test(username)) {
+    if (Users.isValidUsername(username)) {
       // See if account already exists
       let user = await Users.findByUsername(username);
       // If user entry is not created yet, create one

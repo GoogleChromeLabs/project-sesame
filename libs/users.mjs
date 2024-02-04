@@ -33,6 +33,11 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 export class Users {
   static collection = 'users'
+
+  static isValidUsername(username) {
+    return username && /^[a-zA-Z0-9@\.\-_]+$/.test(username);
+  }
+
   static async create(username, options = {}) {
     let { picture, displayName, email } = options;
 
