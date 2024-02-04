@@ -16,7 +16,11 @@
 # Node.js dependencies:
 node_modules/
 
+.data
+firebase-export-*
+.env.development
+CONTRIBUTING.md
+firebase-debug.log
 LICENSE
 README.md
-CONTRIBUTING.md
-.env.development
+ui-debug.log
