@@ -16,7 +16,7 @@
 # Node.js dependencies:
 node_modules/
 
-.data
+.data/
 firebase-export-*
 .env.development
 CONTRIBUTING.md
