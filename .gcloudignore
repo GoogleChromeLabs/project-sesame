@@ -15,3 +15,8 @@
 
 # Node.js dependencies:
 node_modules/
+
+LICENSE
+README.md
+CONTRIBUTING.md
+.env.development
