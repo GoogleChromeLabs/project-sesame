@@ -45,7 +45,7 @@ router.get('/accounts', csrfCheck, sessionCheck, (req, res) => {
   const user = res.locals.user;
 
   if (user.status === 'session_expired') {
-    return res.status(401).json({ error: 'not signed in');
+    return res.status(401).json({ error: 'not signed in' });
   }
 
   return res.json({
