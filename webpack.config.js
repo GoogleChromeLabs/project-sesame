@@ -23,7 +23,7 @@ export default {
   },
   mode: 'production',
   output: {
-    filename: '[name].js',
+    filename: 'scripts/[name].js',
   },
   module: {
     rules: [
@@ -33,7 +33,7 @@ export default {
           {
             loader: 'file-loader',
             options: {
-              name: 'bundle.css',
+              name: 'styles/bundle.css',
             },
           },
           { loader: 'extract-loader' },

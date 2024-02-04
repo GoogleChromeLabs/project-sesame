@@ -38,8 +38,8 @@
     <script src="https://unpkg.com/material-components-web@14.0.0/dist/material-components-web.min.js"></script>
     <script type="module">
       const IDP_ORIGIN = 'https://fedcm-idp-demo.glitch.me';
-      import { $, _fetch, loading, toast } from '/client.js';
-      import { authenticate } from '/passkeys.js';
+      import { $, _fetch, loading, toast } from '/scripts/client.js';
+      import { authenticate } from '/scripts/passkeys.js';
       import { IdentityProvider } from 'https://fedcm-idp-demo.glitch.me/fedcm.js';
       new mdc.textField.MDCTextField($('.mdc-text-field'));
 

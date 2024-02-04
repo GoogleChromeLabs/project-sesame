@@ -26,7 +26,7 @@ import {
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users, Credentials } from '../libs/db.mjs';
 import { csrfCheck, sessionCheck } from './common.mjs';
-import aaguids from '../public/aaguids.json' assert { type: 'json' };
+import aaguids from '../static/aaguids.json' assert { type: 'json' };
 
 /**
  * Get the expected origin that the user agent is claiming to be at. If the
