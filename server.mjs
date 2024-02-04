@@ -24,7 +24,7 @@ import session from 'express-session';
 import hbs from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { SessionStore } from './libs/db.mjs';
+import { SessionStore } from './libs/session-store.mjs';
 import { auth } from './middlewares/auth.mjs';
 import { webauthn } from './middlewares/webauthn.mjs';
 import { federation } from './middlewares/federation.mjs';

@@ -16,7 +16,7 @@
  */
 import express from 'express';
 const router = express.Router();
-import { Users } from '../libs/db.mjs';
+import { Users } from '../libs/users.mjs';
 import { csrfCheck, sessionCheck } from './common.mjs';
 
 /**

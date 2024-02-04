@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import { Users } from '../libs/db.mjs';
+import { Users } from '../libs/users.mjs';
 
 /**
  * Checks CSRF protection using custom header `X-Requested-With`

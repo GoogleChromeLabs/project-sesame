@@ -17,7 +17,9 @@
 
 import express from 'express';
 const router = express.Router();
-import { Users, IdentityProviders, FederationMappings } from '../libs/db.mjs';
+import { Users } from '../libs/users.mjs';
+import { IdentityProviders } from '../libs/identity-providers.mjs';
+import { FederationMappings } from '../libs/federation-mappings.mjs';
 import jwt from 'jsonwebtoken';
 import { csrfCheck, sessionCheck } from './common.mjs';
 

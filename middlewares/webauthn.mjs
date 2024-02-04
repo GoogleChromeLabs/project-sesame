@@ -24,7 +24,8 @@ import {
   verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { Users, Credentials } from '../libs/db.mjs';
+import { Users } from '../libs/users.mjs';
+import { PublicKeyCredentials } from '../libs/public-key-credentials.mjs';
 import { csrfCheck, sessionCheck } from './common.mjs';
 import aaguids from '../static/aaguids.json' assert { type: 'json' };
 
@@ -70,7 +71,7 @@ function getOrigin(userAgent) {
  */
 router.post('/getKeys', csrfCheck, sessionCheck, async (req, res) => {
   const { user } = res.locals;
-  const credentials = await Credentials.findByUserId(user.id);
+  const credentials = await PublicKeyCredentials.findByUserId(user.id);
   return res.json(credentials || []);
 });
 
@@ -80,12 +81,12 @@ router.post('/getKeys', csrfCheck, sessionCheck, async (req, res) => {
 router.post('/renameKey', csrfCheck, sessionCheck, async (req, res) => {
   const { credId, newName } = req.body;
   const { user } = res.locals;
-  const credential = await Credentials.findById(credId);
+  const credential = await PublicKeyCredentials.findById(credId);
   if (!user || user.id !== credential?.user_id) {
     return res.status(401).json({ error: 'User not authorized.' });
   }
   credential.name = newName;
-  await Credentials.update(credential);
+  await PublicKeyCredentials.update(credential);
   return res.json(credential);
 });
 
@@ -97,7 +98,7 @@ router.post('/removeKey', csrfCheck, sessionCheck, async (req, res) => {
   const credId = req.query.credId;
   const { user } = res.locals;
 
-  await Credentials.remove(credId, user.id);
+  await PublicKeyCredentials.remove(credId, user.id);
 
   return res.json({});
 });
@@ -110,7 +111,7 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (req, res) => {
   try {
     // Create `excludeCredentials` from a list of stored credentials.
     const excludeCredentials = [];
-    const credentials = await Credentials.findByUserId(user.id);
+    const credentials = await PublicKeyCredentials.findByUserId(user.id);
     for (const cred of credentials) {
       excludeCredentials.push({
         id: isoBase64URL.toBuffer(cred.id),
@@ -190,7 +191,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
       aaguids[registrationInfo.aaguid].name;
 
     // Store the registration result.
-    await Credentials.update({
+    await PublicKeyCredentials.update({
       id: base64CredentialID,
       publicKey: base64PublicKey,
       aaguid: registrationInfo.aaguid,
@@ -249,7 +250,7 @@ router.post('/signinResponse', csrfCheck, async (req, res) => {
   try {
 
     // Find the matching credential from the credential ID
-    const cred = await Credentials.findById(credential.id);
+    const cred = await PublicKeyCredentials.findById(credential.id);
     if (!cred) {
       throw new Error('Matching credential not found on the server. Try signing in with a password.');
     }
@@ -286,7 +287,7 @@ router.post('/signinResponse', csrfCheck, async (req, res) => {
 
     // Update the last used timestamp.
     cred.last_used = (new Date()).getTime();
-    await Credentials.update(cred);
+    await PublicKeyCredentials.update(cred);
 
     // Delete the challenge from the session.
     delete req.session.challenge;
