@@ -21,8 +21,6 @@ import { Users, IdentityProviders, FederationMappings } from '../libs/db.mjs';
 import jwt from 'jsonwebtoken';
 import { csrfCheck, sessionCheck } from '../libs/common.mjs';
 
-router.use(express.json());
-
 router.post('/idp', async (req, res) => {
   const { url } = req.body;
   const idp = await IdentityProviders.findByURL(url);

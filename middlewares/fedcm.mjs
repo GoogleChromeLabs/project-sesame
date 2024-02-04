@@ -21,8 +21,6 @@ import { Users } from '../libs/db.mjs';
 import * as jwt from 'jsonwebtoken';
 import { csrfCheck, sessionCheck } from '../libs/common.mjs';
 
-router.use(express.json());
-
 router.get('/config.json', (req, res) => {
   return res.json({
     "accounts_endpoint": "/fedcm/accounts",
