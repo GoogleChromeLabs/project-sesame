@@ -17,9 +17,8 @@
 
 // init project
 import npm_package from './package.json' assert { type: 'json' };
+import { __dirname } from './config.mjs';
 import path from 'path';
-import url from 'url';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 import express from 'express';
 import session from 'express-session';
 import hbs from 'express-handlebars';

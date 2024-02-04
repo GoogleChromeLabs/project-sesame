@@ -14,26 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import path from 'path';
-import url from 'url';
-import dotenv from 'dotenv';
-import firebaseJson from '../firebase.json' assert { type: 'json' };
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+import { store } from '../config.mjs';
 import crypto from 'crypto';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreStore } from '@google-cloud/connect-firestore';
-import { initializeApp } from 'firebase-admin/app';
-
-if (process.env.NODE_ENV === 'localhost') {
-  process.env.DOMAIN = 'http://localhost:8080';
-  process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;
-}
-
-initializeApp();
-const store = getFirestore(process.env.FIRESTORE_DATABASENAME);
-store.settings({ ignoreUndefinedProperties: true });
 
 /**
  * User data schema
