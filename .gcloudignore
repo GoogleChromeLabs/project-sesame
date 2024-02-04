@@ -18,9 +18,8 @@ node_modules/
 
 .data/
 firebase-export-*
-.env.development
+.env.template
 CONTRIBUTING.md
-firebase-debug.log
+*.log
 LICENSE
 README.md
-ui-debug.log
