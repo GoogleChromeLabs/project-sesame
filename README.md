@@ -1,14 +1,14 @@
 # project-sesame
 
-project-sesame is a demo web application developers can try identity and authentication features to learn how to develop similar experiences.
+Project Sesame is an open-source demo web application, built on Firebase and Express.js, designed to provide web developers a hands-on environment for exploring and learning about a wide range of identity and authentication features and patterns.
 
 ## How to run locally
 
-### Prerequisite
+### Prerequisites
 
-* node.js 18+
-* gcloud
-* java 11+
+* [Node.js 20+](https://nodejs.org/)
+* [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+* [Java JDK 11+](https://jdk.java.net/)
 
 ### Install
 
