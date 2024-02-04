@@ -19,7 +19,7 @@ import express from 'express';
 const router = express.Router();
 import { Users } from '../libs/db.mjs';
 import * as jwt from 'jsonwebtoken';
-import { csrfCheck, sessionCheck } from '../libs/common.mjs';
+import { csrfCheck, sessionCheck } from './common.mjs';
 
 router.get('/config.json', (req, res) => {
   return res.json({

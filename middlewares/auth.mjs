@@ -17,7 +17,7 @@
 import express from 'express';
 const router = express.Router();
 import { Users } from '../libs/db.mjs';
-import { csrfCheck, sessionCheck } from '../libs/common.mjs';
+import { csrfCheck, sessionCheck } from './common.mjs';
 
 /**
  * Check username, create a new account if it doesn't exist.

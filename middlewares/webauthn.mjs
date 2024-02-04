@@ -25,7 +25,7 @@ import {
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users, Credentials } from '../libs/db.mjs';
-import { csrfCheck, sessionCheck } from '../libs/common.mjs';
+import { csrfCheck, sessionCheck } from './common.mjs';
 import aaguids from '../public/aaguids.json' assert { type: 'json' };
 
 /**

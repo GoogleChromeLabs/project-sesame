@@ -19,7 +19,7 @@ import express from 'express';
 const router = express.Router();
 import { Users, IdentityProviders, FederationMappings } from '../libs/db.mjs';
 import jwt from 'jsonwebtoken';
-import { csrfCheck, sessionCheck } from '../libs/common.mjs';
+import { csrfCheck, sessionCheck } from './common.mjs';
 
 router.post('/idp', async (req, res) => {
   const { url } = req.body;
