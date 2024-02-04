@@ -198,7 +198,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
       aaguid: registrationInfo.aaguid,
       name,
       transports: credential.response.transports || [],
-      registered: (new Date()).getTime(),
+      registeredAt: (new Date()).getTime(),
       last_used: null,
       user_id: user.id,
     });

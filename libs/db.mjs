@@ -96,13 +96,13 @@ export const Users = {
 }
 
 /**
- * User data schema
+ * Credentials data schema
  * {
  *   id: string Base64URL encoded CredentialID,
  *   publicKey: string Base64URL encoded PublicKey,
  *   name: string name of the credential,
  *   transports: an array of transports,
- *   registered: timestamp,
+ *   registeredAt: timestamp,
  *   last_used: timestamp,
  *   user_id: string Base64URL encoded user ID of the owner,
  * }
@@ -123,7 +123,7 @@ export const Credentials = {
     const results = [];
     const refs = await store.collection(process.env.PUBKEY_CREDS_COLLECTION)
       .where('user_id', '==', user_id)
-      .orderBy('registered', 'desc').get();
+      .orderBy('registeredAt', 'desc').get();
     refs.forEach(cred => results.push(cred.data()));
     return results;
   },
