@@ -19,30 +19,40 @@ import crypto from 'crypto';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { FirestoreStore } from '@google-cloud/connect-firestore';
 
+function getGravatarUrl(username) {
+  const pictureURL = new URL('https://www.gravatar.com/');
+  pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
+  pictureURL.searchParams.append('s', 200);
+  return pictureURL.toString();
+}
+
 /**
  * User data schema
  * {
  *   id: string Base64URL encoded user ID,
  *   username: string username,
  *   displayName: string display name,
+ *   email: string email address,
+ *   picture: string avatar image url,
  * }
  **/
 
-export const Users = {
-  create: async (username, options = {}) => {
+export class Users {
+  static async create(username, options = {}) {
     let { picture, displayName, email } = options;
+
     if (!picture) {
-      const pictureURL = new URL('https://www.gravatar.com/');
-      pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
-      pictureURL.searchParams.append('s', 200);
-      picture = pictureURL.toString();
+      picture = getGravatarUrl(username);
     }
+
     if (!displayName) {
       displayName = username;
     }
+
     if (!email) {
       email = username;
     }
+
     const user = {
       id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
       username,
@@ -51,9 +61,9 @@ export const Users = {
       email,
     };
     return Users.update(user);
-  },
+  }
 
-  findById: async (user_id) => {
+  static async findById(user_id) {
     const doc = await store.collection(process.env.USERS_COLLECTION).doc(user_id).get();
     if (doc) {
       const credential = doc.data();
@@ -61,9 +71,9 @@ export const Users = {
     } else {
       return;
     }
-  },
+  }
 
-  findByUsername: async (username) => {
+  static async findByUsername(username) {
     const results = [];
     const refs = await store.collection(process.env.USERS_COLLECTION)
       .where('username', '==', username).get();
@@ -71,9 +81,9 @@ export const Users = {
       refs.forEach(user => results.push(user.data()));
     }
     return results.length > 0 ? results[0] : undefined;
-  },
+  }
 
-  update: async (user) => {
+  static async update(user) {
     const ref = store.collection(process.env.USERS_COLLECTION).doc(user.id);
       return ref.set(user);
   }
@@ -92,8 +102,8 @@ export const Users = {
  * }
  **/
 
-export const Credentials = {
-  findById: async (credential_id) => {
+export class Credentials {
+  static async findById(credential_id) {
     const doc = await store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id).get();
     if (doc) {
       const credential = doc.data();
@@ -101,23 +111,23 @@ export const Credentials = {
     } else {
       return;
     }
-  },
+  }
 
-  findByUserId: async (user_id) => {
+  static async findByUserId (user_id) {
     const results = [];
     const refs = await store.collection(process.env.PUBKEY_CREDS_COLLECTION)
       .where('user_id', '==', user_id)
       .orderBy('registeredAt', 'desc').get();
     refs.forEach(cred => results.push(cred.data()));
     return results;
-  },
+  }
 
-  update: async (credential) => {
+  static async update(credential) {
     const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential.id);
     return ref.set(credential);
-  },
+  }
   
-  remove: async (credential_id, user_id) => {
+  static async remove(credential_id, user_id) {
     const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id);
     return ref.delete();
   }
@@ -142,35 +152,39 @@ export const SessionStore = new FirestoreStore({
     expires_at: number
   }
 */
-export const FederationMappings = {
-  create: async (user_id, options) => {
-  },
-  findByIssuer: async (url) => {
-  },
-  findByUserId: async (user_id) => {
+export class FederationMappings {
+  static async create(user_id, options) {
+  }
+
+  static async findByIssuer(url) {
+  }
+
+  static async findByUserId(user_id) {
   }
 };
 
-export const RelyingParties = {
-  rps: [{
+export class RelyingParties {
+  static rps = [{
     url: 'https://fedcm-rp-demo.glitch.me',
     client_id: 'fedcm-rp-demo',
     name: 'FedCM RP Demo'
-  }],
-  findByClientID: async (client_id) => {
+  }]
+
+  static async findByClientID(client_id) {
     const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
     return Promise.resolve(structuredClone(rp));
   }
 };
 
-export const IdentityProviders = {
-  idps: [{
+export class IdentityProviders {
+  static idps = [{
     origin: 'https://fedcm-idp-demo.glitch.me',
     configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
     clientId: 'https://identity-demos.dev',
     secret: 'xxxxx'
-  }],
-  findByURL: async (url) => {
+  }]
+
+  static async findByURL(url) {
     const idp = IdentityProviders.idps.find(idp => {
       return idp.origin === (new URL(url)).origin;
     })
