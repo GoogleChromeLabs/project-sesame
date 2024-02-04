@@ -32,6 +32,7 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
  **/
 
 export class Users {
+  static collection = 'users'
   static async create(username, options = {}) {
     let { picture, displayName, email } = options;
 
@@ -58,7 +59,7 @@ export class Users {
   }
 
   static async findById(user_id) {
-    const doc = await store.collection(process.env.USERS_COLLECTION).doc(user_id).get();
+    const doc = await store.collection(Users.collection).doc(user_id).get();
     if (doc) {
       const credential = doc.data();
       return credential;
@@ -69,7 +70,7 @@ export class Users {
 
   static async findByUsername(username) {
     const results = [];
-    const refs = await store.collection(process.env.USERS_COLLECTION)
+    const refs = await store.collection(Users.collection)
       .where('username', '==', username).get();
     if (refs) {
       refs.forEach(user => results.push(user.data()));
@@ -78,7 +79,7 @@ export class Users {
   }
 
   static async update(user) {
-    const ref = store.collection(process.env.USERS_COLLECTION).doc(user.id);
+    const ref = store.collection(Users.collection).doc(user.id);
       return ref.set(user);
   }
 }

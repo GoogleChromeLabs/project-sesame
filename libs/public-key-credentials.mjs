@@ -31,8 +31,9 @@ import { store } from '../config.mjs';
  **/
 
 export class PublicKeyCredentials {
+  static collection = 'public_key_credentials'
   static async findById(credential_id) {
-    const doc = await store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id).get();
+    const doc = await store.collection(PublicKeyCredentials.collection).doc(credential_id).get();
     if (doc) {
       const credential = doc.data();
       return credential;
@@ -43,7 +44,7 @@ export class PublicKeyCredentials {
 
   static async findByUserId (user_id) {
     const results = [];
-    const refs = await store.collection(process.env.PUBKEY_CREDS_COLLECTION)
+    const refs = await store.collection(PublicKeyCredentials.collection)
       .where('user_id', '==', user_id)
       .orderBy('registeredAt', 'desc').get();
     refs.forEach(cred => results.push(cred.data()));
@@ -51,12 +52,12 @@ export class PublicKeyCredentials {
   }
 
   static async update(credential) {
-    const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential.id);
+    const ref = store.collection(PublicKeyCredentials.collection).doc(credential.id);
     return ref.set(credential);
   }
   
   static async remove(credential_id, user_id) {
-    const ref = store.collection(process.env.PUBKEY_CREDS_COLLECTION).doc(credential_id);
+    const ref = store.collection(PublicKeyCredentials.collection).doc(credential_id);
     return ref.delete();
   }
 }

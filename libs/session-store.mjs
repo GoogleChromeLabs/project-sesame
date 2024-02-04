@@ -20,5 +20,5 @@ import { FirestoreStore } from '@google-cloud/connect-firestore';
 
 export const SessionStore = new FirestoreStore({
   dataset: store,
-  kind: process.env.SESSIONS_COLLECTION,
+  kind: 'sessions',
 });
