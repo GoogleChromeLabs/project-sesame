@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
+
+import crypto from 'crypto';
+
 export function getGravatarUrl(username) {
   const pictureURL = new URL('https://www.gravatar.com/');
   pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
