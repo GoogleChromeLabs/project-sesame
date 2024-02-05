@@ -16,10 +16,10 @@ service: dev
 env_variables:
   NODE_ENV: development
 handlers:
-# - url: /scripts
-#   static_dir: static/scripts
-# - url: /styles
-#   static_dir: static/styles
+- url: /scripts
+  static_dir: dist/static/scripts
+- url: /styles
+  static_dir: dist/static/styles
 - url: /.*
   secure: always
   redirect_http_response_code: 301

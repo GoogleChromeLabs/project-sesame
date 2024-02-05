@@ -15,8 +15,7 @@
  * limitations under the License
  */
 
-// init project
-import npm_package from './package.json' assert { type: 'json' };
+import npm_package from '../package.json' assert { type: 'json' };
 import { __dirname } from './config.mjs';
 import path from 'path';
 import express from 'express';
@@ -38,11 +37,10 @@ app.engine('html', hbs.engine({
   layoutsDir: path.join(views, 'layouts'),
   partialsDir: path.join(views, 'partials'),
 }));
-app.set('views', './views');
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(useragent.express());
-app.use(express.static('dist'));
-app.use(express.static('static'));
+app.use(express.static(path.join(__dirname, 'static')));
 app.use(session({
   secret: process.env.SECRET,
   resave: true,

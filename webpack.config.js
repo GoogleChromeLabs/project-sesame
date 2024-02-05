@@ -14,16 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
+
 import * as sass from 'sass';
+import CopyPlugin from 'copy-webpack-plugin';
+import TerserPlugin from 'terser-webpack-plugin';
+import url from 'url';
+import path from 'path';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));  
+
+const srcDir = path.join(__dirname, 'src');
+const distDir = path.join(__dirname, 'dist');
+
+const entries = {
+  'components': path.join(srcDir, 'static', 'scripts', 'components.js'),
+  'styles': path.join(srcDir, 'static', 'styles', 'style.scss'),
+}
 
 export default {
-  entry: {
-    'components-bundle': './public/components.js',
-    'styles-bundle': './public/style.scss',
-  },
+  entry: entries,
   mode: 'production',
   output: {
-    filename: 'scripts/[name].js',
+    filename: path.join('static', 'scripts', '[name].js'),
   },
   module: {
     rules: [
@@ -33,7 +44,7 @@ export default {
           {
             loader: 'file-loader',
             options: {
-              name: 'styles/bundle.css',
+              name: path.join('static', 'styles', 'styles.css'),
             },
           },
           { loader: 'extract-loader' },
@@ -44,7 +55,7 @@ export default {
               implementation: sass,
               webpackImporter: false,
               sassOptions: {
-                includePaths: ['./node_modules'],
+                includePaths: [ path.join(__dirname, 'node_modules') ],
               },
             },
           },
@@ -53,6 +64,29 @@ export default {
       {
         test: /components\.js$/,
       },
+    ],
+  },
+  plugins: [
+    new CopyPlugin({
+      patterns: [{
+        from: srcDir,
+        to: distDir,
+        filter: async (path) => {
+          // If built file is included, skip copying.
+          for (let value of Object.values(entries)) {
+            if (path.includes(value)) return false;
+          }
+          return true;
+        },
+      }],
+    }),
+  ],
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      })
     ],
   },
 };
