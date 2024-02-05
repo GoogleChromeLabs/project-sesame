@@ -20,6 +20,10 @@ handlers:
   static_dir: dist/static/scripts
 - url: /styles
   static_dir: dist/static/styles
+- url: /images
+  static_dir: dist/static/images
+- url: /.*\.[js|json]$
+  static_dir: dist/static
 - url: /.*
   secure: always
   redirect_http_response_code: 301
