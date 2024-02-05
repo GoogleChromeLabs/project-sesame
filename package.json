@@ -19,7 +19,7 @@
     "@material/mwc-snackbar": "0.27.0",
     "@material/mwc-top-app-bar": "0.27.0",
     "@material/web": "1.2.0",
-    "@simplewebauthn/server": "8.3.7",
+    "@simplewebauthn/server": "9.0.1",
     "base64url": "3.0.1",
     "dotenv": "16.4.1",
     "express": "4.18.2",
@@ -54,7 +54,7 @@
     "file-loader": "6.2.0",
     "firebase-tools": "13.1.0",
     "sass": "1.70.0",
-    "sass-loader": "13.3.3",
+    "sass-loader": "14.1.0",
     "webpack": "5.90.1",
     "webpack-cli": "5.1.4"
   }
