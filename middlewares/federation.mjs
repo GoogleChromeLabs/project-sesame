@@ -86,7 +86,7 @@ router.post('/verify', csrfCheck, async (req, res) => {
       FederationMappings.create(user.id, token);
     }
 
-    req.session.username = user.username;
+    req.session.username = token.email;
     req.session['signed-in'] = 'yes';
 
     // Set a login status using the Login Status API
