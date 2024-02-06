@@ -93,14 +93,14 @@ export default {
       ],
     }),
   ],
-  // optimization: {
-  //   minimize: true,
-  //   minimizer: [
-  //     new TerserPlugin({
-  //       extractComments: false,
-  //     }),
-  //   ],
-  // },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      }),
+    ],
+  },
   resolve: {
     extensions: [ '.ts', '.mjs', '.js' ],
   },
