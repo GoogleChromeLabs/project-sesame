@@ -30,14 +30,9 @@
           <md-linear-progress id="progress"></md-linear-progress>
           {{{body}}}
         </mwc-top-app-bar>
-        <script>
-          const drawer = document.querySelector('mwc-drawer');
-          drawer.addEventListener('MDCTopAppBar:nav', e => {
-            drawer.open = !drawer.open;
-          });
-        </script>
       </div>
     </mwc-drawer>
     <mwc-snackbar id="snackbar"></mwc-snackbar>
+    <script type="module" src="/scripts/components.js"></script>
   </body>
 </html>

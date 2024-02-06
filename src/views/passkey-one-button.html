@@ -15,35 +15,4 @@
         </ol>
       </section>
     </main>
-    <script type="module">
-      import { $, _fetch, loading } from '/scripts/client.js';
-      import { authenticate } from '/scripts/passkeys.js';
-
-      const redirect = (path) => {
-        location.href = path;
-      }
-
-      if (window.PublicKeyCredential) {
-        $('#passkey-signin').addEventListener('click', async e => {
-          try {
-            loading.start();
-            const user = await authenticate();
-            if (user) {
-              redirect('/home');
-            } else {
-              throw new Error('User not found.');
-            }
-          } catch (e) {
-            loading.stop();
-            console.error(e);
-            if (e.name !== 'NotAllowedError') {
-              alert(e.message);
-            }
-          }
-        });
-      } else {
-        alert("WebAuthn isn't supported on this browser. Redirecting to a form.")
-        redirect('/');
-      }
-
-    </script>
+    <script type="module" src="/scripts/pages/passkey-one-button.js"></script>

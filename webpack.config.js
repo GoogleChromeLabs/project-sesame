@@ -15,78 +15,93 @@
  * limitations under the License
  */
 
-import * as sass from 'sass';
-import CopyPlugin from 'copy-webpack-plugin';
-import TerserPlugin from 'terser-webpack-plugin';
-import url from 'url';
-import path from 'path';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));  
+import * as sass from "sass";
+import * as glob from 'glob';
+import CopyPlugin from "copy-webpack-plugin";
+import TerserPlugin from "terser-webpack-plugin";
+import url from "url";
+import path from "path";
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
-const srcDir = path.join(__dirname, 'src');
-const distDir = path.join(__dirname, 'dist');
+const srcDir = path.join(__dirname, "src");
+const distDir = path.join(__dirname, "dist");
 
-const entries = {
-  'components': path.join(srcDir, 'static', 'scripts', 'components.js'),
-  'styles': path.join(srcDir, 'static', 'styles', 'style.scss'),
-}
+// TODO: Externalize this value
+const mode = 'development';
+
+const clientEntryPoints = glob.sync(path.join(srcDir, 'static', '**', '*.ts')).reduce((acc, path) => {
+  const entry = path.replace(/^.*\/src\/|\.ts/g, '');
+  acc[entry] = path;
+  return acc;
+}, {
+  styles: path.join(srcDir, "static", "styles", "style.scss"),
+});
 
 export default {
-  entry: entries,
-  mode: 'production',
-  output: {
-    filename: path.join('static', 'scripts', '[name].js'),
-  },
+  entry: clientEntryPoints,
+  mode,
   module: {
     rules: [
       {
         test: /\.scss$/,
         use: [
           {
-            loader: 'file-loader',
+            loader: "file-loader",
             options: {
-              name: path.join('static', 'styles', 'styles.css'),
+              name: path.join("static", "styles", "styles.css"),
             },
           },
-          { loader: 'extract-loader' },
-          { loader: 'css-loader' },
           {
-            loader: 'sass-loader',
+            loader: "extract-loader",
+          },
+          {
+            loader: "css-loader",
+          },
+          {
+            loader: "sass-loader",
             options: {
               implementation: sass,
               webpackImporter: false,
               sassOptions: {
-                includePaths: [ path.join(__dirname, 'node_modules') ],
+                includePaths: [path.join(__dirname, "node_modules")],
               },
             },
           },
         ],
       },
       {
-        test: /components\.js$/,
+        test: /.*\.ts$/,
+        use: 'ts-loader',
+        exclude: /https:\/\//
       },
     ],
   },
   plugins: [
     new CopyPlugin({
-      patterns: [{
-        from: srcDir,
-        to: distDir,
-        filter: async (path) => {
-          // If built file is included, skip copying.
-          for (let value of Object.values(entries)) {
-            if (path.includes(value)) return false;
-          }
-          return true;
+      patterns: [
+        {
+          from: srcDir,
+          to: distDir,
+          filter: async (path) => {
+            // If built file is included, skip copying.
+            for (let value of Object.values(clientEntryPoints)) {
+              if (path.includes(value)) return false;
+            }
+            return true;
+          },
         },
-      }],
+      ],
     }),
   ],
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        extractComments: false,
-      })
-    ],
+  // optimization: {
+  //   minimize: true,
+  //   minimizer: [
+  //     new TerserPlugin({
+  //       extractComments: false,
+  //     }),
+  //   ],
+  // },
+  resolve: {
+    extensions: [ '.ts', '.mjs', '.js' ],
   },
 };
