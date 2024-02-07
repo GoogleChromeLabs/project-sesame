@@ -16,8 +16,3 @@
  */
 
 import '../layout';
-import { postForm, $ } from '../common';
-import '@material/web/textfield/outlined-text-field';
-// import { MDCTextField } from '@material/textfield';
-// new MDCTextField($('.mdc-text-field'));
-postForm("/home");

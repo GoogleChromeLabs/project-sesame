@@ -19,6 +19,7 @@
     "@material/mwc-drawer": "0.27.0",
     "@material/mwc-snackbar": "0.27.0",
     "@material/mwc-top-app-bar": "0.27.0",
+    "@material/textfield": "^14.0.0",
     "@material/web": "1.2.0",
     "@simplewebauthn/server": "9.0.1",
     "@simplewebauthn/types": "9.0.1",
@@ -30,8 +31,7 @@
     "express-useragent": "1.0.15",
     "firebase-admin": "12.0.0",
     "jsonwebtoken": "9.0.2",
-    "lit": "3.1.2",
-    "material-components-web": "14.0.0"
+    "lit": "3.1.2"
   },
   "engines": {
     "node": ">=18.x"

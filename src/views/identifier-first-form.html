@@ -4,7 +4,15 @@
       </h2>
       <form id="form" method="POST" action="/auth/username" class="center">
         <p class="instructions">Don't have an account yet? Register now</p>
-        <label class="mdc-text-field mdc-text-field--outlined">
+        <md-outlined-text-field
+          type="text"
+          id="username"
+          name="username"
+          autocomplete="username webauthn"
+          label="username"
+          autofocus>
+        </md-outlined-text-field>
+        <!-- <label class="mdc-text-field mdc-text-field--outlined">
           <span class="mdc-notched-outline">
             <span class="mdc-notched-outline__leading"></span>
             <span class="mdc-notched-outline__notch">
@@ -21,7 +29,7 @@
            autocomplete="username webauthn"
            size="30"
            autofocus />
-        </label>
+        </label> -->
         <input type="password" class="hidden" name="password" />
         <md-filled-button type="submit">Continue</md-filled-button>
         <!-- <ol class="instructions narrow">
@@ -35,4 +43,3 @@
         </ol> -->
       </form>
     </main>
-    <script type="module" src="/scripts/pages/identifier-first-form.js"></script>

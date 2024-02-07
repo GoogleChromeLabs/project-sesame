@@ -13,7 +13,7 @@ Project Sesame is an open-source demo web application, built on Firebase and Exp
 ### Install
 
 ```shell
-npm i
+npm ci
 ```
 
 ### Bulid

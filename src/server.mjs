@@ -61,6 +61,7 @@ app.use((req, res, next) => {
   process.env.ORIGIN = `${protocol}://${req.headers.host}`;
   app.locals.title = process.env.PROJECT_NAME;
   app.locals.repository_url = npm_package.repository.url;
+  app.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
   req.schema = 'https';
   return next();
 });
