@@ -15,10 +15,19 @@
  * limitations under the License
  */
 
-import { getGravatarUrl } from './helpers.mjs';
-import { store } from '../config.mjs';
-import crypto from 'crypto';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import { getGravatarUrl } from "./helpers";
+import { store } from "../config";
+import crypto from "crypto";
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
+import { Base64URLString } from "@simplewebauthn/types";
+
+export interface User {
+  id: Base64URLString;
+  username?: string;
+  displayName?: string;
+  email?: string;
+  picture?: string;
+}
 
 /**
  * User data schema
@@ -32,14 +41,21 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
  **/
 
 export class Users {
-  static collection = 'users'
+  static collection = "users";
 
-  static isValidUsername(username) {
-    return username && /^[a-zA-Z0-9@\.\-_]+$/.test(username);
+  static isValidUsername(username: string): boolean {
+    return !!username && /^[a-zA-Z0-9@\.\-_]+$/.test(username);
   }
 
-  static async create(username, options = {}) {
-    let { picture, displayName, email } = options;
+  static async create(
+    username: string,
+    options: {
+      picture?: string,
+      displayName?: string,
+      email?: string
+    } = {}
+  ): Promise<User> {
+    let { picture, displayName, email }: any = options;
 
     if (!picture) {
       picture = getGravatarUrl(username);
@@ -63,28 +79,36 @@ export class Users {
     return Users.update(user);
   }
 
-  static async findById(user_id) {
+  static async findById(
+    user_id: Base64URLString
+  ): Promise<User | undefined> {
     const doc = await store.collection(Users.collection).doc(user_id).get();
     if (doc) {
-      const credential = doc.data();
-      return credential;
+      return <User>doc.data();
     } else {
       return;
     }
   }
 
-  static async findByUsername(username) {
-    const results = [];
-    const refs = await store.collection(Users.collection)
-      .where('username', '==', username).get();
+  static async findByUsername(
+    username: string
+  ): Promise<User | undefined> {
+    const results: User[] = [];
+    const refs = await store
+      .collection(Users.collection)
+      .where("username", "==", username)
+      .get();
     if (refs) {
-      refs.forEach(user => results.push(user.data()));
+      refs.forEach((user) => results.push(<User>user.data()));
     }
     return results.length > 0 ? results[0] : undefined;
   }
 
-  static async update(user) {
-    const ref = store.collection(Users.collection).doc(user.id);
-      return ref.set(user);
+  static async update(
+    user: User
+  ): Promise<User> {
+    const ref = store.collection(Users.collection).doc(<Base64URLString>user.id);
+    ref.set(user);
+    return user;
   }
 }

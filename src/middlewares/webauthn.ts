@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import express from 'express';
+import express, { Request, Response } from 'express';
 const router = express.Router();
 // import crypto from 'crypto';
 import {
@@ -23,10 +23,19 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse
 } from '@simplewebauthn/server';
+import {
+  Base64URLString,
+  AttestationConveyancePreference,
+  PublicKeyCredentialParameters,
+  AuthenticatorDevice,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+  PublicKeyCredentialUserEntityJSON,
+} from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { Users } from '../libs/users.mjs';
-import { PublicKeyCredentials } from '../libs/public-key-credentials.mjs';
-import { csrfCheck, sessionCheck } from './common.mjs';
+import { Users } from '../libs/users';
+import { PublicKeyCredentials } from '../libs/public-key-credentials';
+import { csrfCheck, sessionCheck } from './common';
 import aaguids from '../static/aaguids.json' assert { type: 'json' };
 
 /**
@@ -35,7 +44,9 @@ import aaguids from '../static/aaguids.json' assert { type: 'json' };
  * @param { string } userAgent A user agent string used to check if it's a web browser.
  * @returns A string that indicates an expected origin.
  */
-function getOrigin(userAgent) {
+function getOrigin(
+  userAgent: string
+): string {
   let origin = process.env.ORIGIN;
   
   const appRe = /^[a-zA-z0-9_.]+/;
@@ -69,7 +80,10 @@ function getOrigin(userAgent) {
 /**
  * Respond with a list of stored credentials.
  */
-router.post('/getKeys', csrfCheck, sessionCheck, async (req, res) => {
+router.post('/getKeys', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response,
+) => {
   const { user } = res.locals;
   const credentials = await PublicKeyCredentials.findByUserId(user.id);
   return res.json(credentials || []);
@@ -78,11 +92,14 @@ router.post('/getKeys', csrfCheck, sessionCheck, async (req, res) => {
 /**
  * Update the name of a passkey.
  */
-router.post('/renameKey', csrfCheck, sessionCheck, async (req, res) => {
+router.post('/renameKey', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response,
+) => {
   const { credId, newName } = req.body;
   const { user } = res.locals;
   const credential = await PublicKeyCredentials.findById(credId);
-  if (!user || user.id !== credential?.user_id) {
+  if (!user || !credential || user.id !== credential?.user_id) {
     return res.status(401).json({ error: 'User not authorized.' });
   }
   credential.name = newName;
@@ -94,8 +111,11 @@ router.post('/renameKey', csrfCheck, sessionCheck, async (req, res) => {
  * Removes a credential id attached to the user.
  * Responds with empty JSON `{}`.
  **/
-router.post('/removeKey', csrfCheck, sessionCheck, async (req, res) => {
-  const credId = req.query.credId;
+router.post('/removeKey', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response,
+) => {
+  const credId = <Base64URLString>req.query.credId;
   const { user } = res.locals;
 
   await PublicKeyCredentials.remove(credId, user.id);
@@ -106,24 +126,27 @@ router.post('/removeKey', csrfCheck, sessionCheck, async (req, res) => {
 /**
  * Start creating a new passkey by serving registration options.
  */
-router.post('/registerRequest', csrfCheck, sessionCheck, async (req, res) => {
+router.post('/registerRequest', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response,
+) => {
   const { user } = res.locals;
   try {
     // Create `excludeCredentials` from a list of stored credentials.
     const excludeCredentials = [];
     const credentials = await PublicKeyCredentials.findByUserId(user.id);
-    for (const cred of credentials) {
+    for (const cred of credentials || []) {
       excludeCredentials.push({
         id: isoBase64URL.toBuffer(cred.id),
         type: 'public-key',
         transports: cred.transports,
-      });
+      } as PublicKeyCredentialDescriptor);
     }
     // Set `authenticatorSelection`.
     const authenticatorSelection = {
       authenticatorAttachment: 'platform',
       requireResidentKey: true
-    }
+    } as AuthenticatorSelectionCriteria
     const attestationType = 'none';
 
     // Use SimpleWebAuthn's handy function to create registration options.
@@ -154,7 +177,10 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (req, res) => {
 /**
  * Register a new passkey to the server.
  */
-router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
+router.post('/registerResponse', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response,
+) => {
   // Set expected values.
   const expectedChallenge = req.session.challenge;
   const expectedOrigin = getOrigin(req.get('User-Agent'));
@@ -175,7 +201,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
     const { verified, registrationInfo } = verification;
 
     // If the verification failed, throw.
-    if (!verified) {
+    if (!verified || !registrationInfo) {
       throw new Error('User verification failed.');
     }
 
@@ -187,7 +213,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
 
     const { user } = res.locals;
     const name = registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000' ?
-      req.useragent.platform :
+      req.useragent?.platform :
       aaguids[registrationInfo.aaguid].name;
 
     // Store the registration result.
@@ -218,7 +244,10 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (req, res) => {
 /**
  * Start authenticating the user.
  */
-router.post('/signinRequest', csrfCheck, async (req, res) => {
+router.post('/signinRequest', csrfCheck, async (
+  req: Request,
+  res: Response,
+) => {
   try {
     // Use SimpleWebAuthn's handy function to create a new authentication request.
     const options = await generateAuthenticationOptions({
@@ -240,7 +269,10 @@ router.post('/signinRequest', csrfCheck, async (req, res) => {
 /**
  * Verify the authentication request.
  */
-router.post('/signinResponse', csrfCheck, async (req, res) => {
+router.post('/signinResponse', csrfCheck, async (
+  req: Request,
+  res: Response,
+) => {
   // Set expected values.
   const credential = req.body;
   const expectedChallenge = req.session.challenge;

@@ -15,13 +15,16 @@
  * limitations under the License
  */
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 const router = express.Router();
-import { Users } from '../libs/users.mjs';
+import { Users } from '../libs/users';
 import * as jwt from 'jsonwebtoken';
-import { csrfCheck, sessionCheck } from './common.mjs';
+import { csrfCheck, sessionCheck } from './common';
 
-router.get('/config.json', (req, res) => {
+router.get('/config.json', (
+  req: Request,
+  res: Response
+): any => {
   return res.json({
     "accounts_endpoint": "/fedcm/accounts",
     "client_metadata_endpoint": "/fedcm/metadata",
@@ -39,7 +42,10 @@ router.get('/config.json', (req, res) => {
   });
 });
 
-router.get('/accounts', csrfCheck, sessionCheck, (req, res) => {
+router.get('/accounts', csrfCheck, sessionCheck, (
+  req: Request,
+  res: Response
+): any => {
   const user = res.locals.user;
 
   if (user.status === 'session_expired') {
@@ -57,14 +63,20 @@ router.get('/accounts', csrfCheck, sessionCheck, (req, res) => {
   });
 });
 
-router.get('/metadata', (req, res) => {
+router.get('/metadata', (
+  req: Request,
+  res: Response
+): any => {
   return res.json({
     privacy_policy_url: `${process.env.ORIGIN}/privacy_policy`,
     terms_of_service_url:`${process.env.ORIGIN}/terms_of_service` 
   });
 });
 
-router.post('/idtokens', csrfCheck, sessionCheck, (req, res) => {
+router.post('/idtokens', csrfCheck, sessionCheck, (
+  req: Request,
+  res: Response
+): any => {
   const { client_id, nonce, account_id, consent_acquired, disclosure_text_shown } = req.body;
   let user = res.locals.user;
 
@@ -124,7 +136,10 @@ router.post('/idtokens', csrfCheck, sessionCheck, (req, res) => {
   }
 });
 
-router.post('/disconnect', csrfCheck, sessionCheck, (req, res) => {
+router.post('/disconnect', csrfCheck, sessionCheck, (
+  req: Request,
+  res: Response
+): any => {
   const { account_hint, client_id } = req.body;
 
   const user = res.locals.user;

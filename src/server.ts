@@ -16,18 +16,18 @@
  */
 
 import npm_package from '../package.json' assert { type: 'json' };
-import { __dirname } from './config.mjs';
+import { __dirname } from './config';
 import path from 'path';
 import express from 'express';
 import session from 'express-session';
 import hbs from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { SessionStore } from './libs/session-store.mjs';
-import { auth } from './middlewares/auth.mjs';
-import { webauthn } from './middlewares/webauthn.mjs';
-import { federation } from './middlewares/federation.mjs';
-import { wellKnown } from './middlewares/well-known.mjs';
+import { SessionStore } from './libs/session-store.js';
+import { auth } from './middlewares/auth.js';
+import { webauthn } from './middlewares/webauthn.js';
+import { federation } from './middlewares/federation.js';
+import { wellKnown } from './middlewares/well-known.js';
 
 const views = path.join(__dirname, 'views');
 app.set('view engine', 'html');
@@ -143,6 +143,4 @@ app.use('/webauthn', webauthn);
 app.use('/federation', federation);
 app.use('/.well-known', wellKnown);
 
-const listener = app.listen(process.env.PORT || 8080, () => {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
+const listener = app.listen(process.env.PORT || 8080)

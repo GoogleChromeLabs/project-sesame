@@ -25,6 +25,8 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const srcDir = path.join(__dirname, "src");
 const distDir = path.join(__dirname, "dist");
+const clientSrcDir = path.join(srcDir, "static");
+const clientDistDir = path.join(distDir, "static");
 
 // TODO: Externalize this value
 const mode = 'development';
@@ -37,9 +39,10 @@ const clientEntryPoints = glob.sync(path.join(srcDir, 'static', '**', '*.ts')).r
   styles: path.join(srcDir, "static", "styles", "style.scss"),
 });
 
-export default {
+const clientConfig = {
   entry: clientEntryPoints,
   mode,
+  target: 'web',
   module: {
     rules: [
       {
@@ -80,8 +83,8 @@ export default {
     new CopyPlugin({
       patterns: [
         {
-          from: srcDir,
-          to: distDir,
+          from: clientSrcDir,
+          to: clientDistDir,
           filter: async (path) => {
             // If built file is included, skip copying.
             for (let value of Object.values(clientEntryPoints)) {
@@ -105,3 +108,45 @@ export default {
     extensions: [ '.ts', '.mjs', '.js' ],
   },
 };
+
+const serverConfig = {
+  entry: './src/server.js',
+  mode,
+  target: 'node',
+  module: {
+    rules: [
+      {
+        test: /.*\.ts$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      },
+    ],
+  },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: srcDir,
+          to: distDir,
+          filter: async (path) => {
+            // Exclude files under `static`
+            return !path.includes('static');
+          },
+        },
+      ],
+    }),
+  ],
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      }),
+    ],
+  },
+  resolve: {
+    extensions: [ '.ts', '.mjs', '.js' ],
+  },
+};
+
+export { clientConfig, serverConfig };

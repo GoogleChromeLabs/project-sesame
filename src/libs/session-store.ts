@@ -15,18 +15,10 @@
  * limitations under the License
  */
 
-export class IdentityProviders {
-  static idps = [{
-    origin: 'https://fedcm-idp-demo.glitch.me',
-    configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
-    clientId: 'https://identity-demos.dev',
-    secret: 'xxxxx'
-  }]
+import { store } from '../config';
+import { FirestoreStore } from '@google-cloud/connect-firestore';
 
-  static async findByURL(url) {
-    const idp = IdentityProviders.idps.find(idp => {
-      return idp.origin === (new URL(url)).origin;
-    })
-    return Promise.resolve(structuredClone(idp));
-  }
-};
+export const SessionStore = new FirestoreStore({
+  dataset: store,
+  kind: 'sessions',
+});

@@ -15,10 +15,13 @@
  * limitations under the License
  */
 
-import { store } from '../config.mjs';
-import { FirestoreStore } from '@google-cloud/connect-firestore';
+import crypto from 'crypto';
 
-export const SessionStore = new FirestoreStore({
-  dataset: store,
-  kind: 'sessions',
-});
+export function getGravatarUrl(
+  username: string
+): string {
+  const pictureURL = new URL('https://www.gravatar.com/');
+  pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
+  pictureURL.searchParams.append('s', '200');
+  return pictureURL.toString();
+}

@@ -15,27 +15,27 @@
  * limitations under the License
  */
 
-/*
-  {
-    user_id: string
-    issuer: string
-    subject: string
-    name: string
-    email: string
-    given_name: string
-    family_name: string
-    picture: string
-    issued_at: number
-    expires_at: number
-  }
-*/
-export class FederationMappings {
-  static async create(user_id, options) {
-  }
+export interface IdentityProvider {
+  origin: string
+  configURL: string
+  clientId: string
+  secret: string
+}
 
-  static async findByIssuer(url) {
-  }
+export class IdentityProviders {
+  static idps: IdentityProvider[] = [{
+    origin: 'https://fedcm-idp-demo.glitch.me',
+    configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
+    clientId: 'https://identity-demos.dev',
+    secret: 'xxxxx'
+  }]
 
-  static async findByUserId(user_id) {
+  static async findByURL(
+    url: string
+  ): Promise<IdentityProvider | undefined> {
+    const idp = IdentityProviders.idps.find(idp => {
+      return idp.origin === (new URL(url)).origin;
+    })
+    return Promise.resolve(structuredClone(idp));
   }
 };

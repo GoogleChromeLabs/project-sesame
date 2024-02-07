@@ -14,17 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 const router = express.Router();
-import { Users } from '../libs/users.mjs';
-import { csrfCheck, sessionCheck } from './common.mjs';
+import { Users } from '../libs/users';
+import { csrfCheck, sessionCheck } from './common';
 
 /**
  * Check username, create a new account if it doesn't exist.
  * Set a `username` in the session.
  **/
-router.post('/username', async (req, res) => {
-  const { username } = req.body;
+router.post('/username', async (
+  req: Request,
+  res: Response
+) => {
+  const { username } = <{ username: string }>req.body;
 
   try {
      // Only check username, no need to check password as this is a mock
@@ -42,9 +45,9 @@ router.post('/username', async (req, res) => {
     } else {
       throw new Error('Invalid username');
     }
-  } catch (e) {
-    console.error(e);
-    return res.status(400).send({ error: e.message });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(400).send({ error: error.message });
   }
 });
 
@@ -53,7 +56,10 @@ router.post('/username', async (req, res) => {
  * No preceding registration required.
  * This only checks if `username` is not empty string and ignores the password.
  **/
-router.post('/password', async (req, res) => {
+router.post('/password', async (
+  req: Request,
+  res: Response
+) => {
   if (!req.body.password) {
     return res.status(401).json({ error: 'Enter at least one random letter.' });
   }
@@ -74,7 +80,10 @@ router.post('/password', async (req, res) => {
 /**
  * Response with user information.
  */
-router.post('/userinfo', csrfCheck, sessionCheck, (req, res) => {
+router.post('/userinfo', csrfCheck, sessionCheck, (
+  req: Request,
+  res: Response
+) => {
   const { user } = res.locals;
   return res.json(user);
 });
@@ -82,7 +91,10 @@ router.post('/userinfo', csrfCheck, sessionCheck, (req, res) => {
 /**
  * Update the user's display name.
  */
-router.post('/updateDisplayName', csrfCheck, sessionCheck, async (req, res) => {
+router.post('/updateDisplayName', csrfCheck, sessionCheck, async (
+  req: Request,
+  res: Response
+) => {
   const { newName } = req.body;
   if (newName) {
     const { user } = res.locals;
@@ -97,9 +109,12 @@ router.post('/updateDisplayName', csrfCheck, sessionCheck, async (req, res) => {
 /**
  * Sign out the user.
  */
-router.get('/signout', (req, res) => {
+router.get('/signout', (
+  req: Request,
+  res: Response
+) => {
   // Remove the session
-  req.session.destroy()
+  req.session.destroy(() => {})
 
   // Set a login status using the Login Status API
   res.set('Set-Login', 'logged-out');

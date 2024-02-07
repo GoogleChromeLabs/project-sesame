@@ -15,11 +15,41 @@
  * limitations under the License
  */
 
-import crypto from 'crypto';
+import {
+  Base64URLString
+} from '@simplewebauthn/types';
 
-export function getGravatarUrl(username) {
-  const pictureURL = new URL('https://www.gravatar.com/');
-  pictureURL.pathname = `/avatar/${crypto.createHash('md5').update(username).digest('hex')}`;
-  pictureURL.searchParams.append('s', 200);
-  return pictureURL.toString();
-}
+/*
+  {
+    user_id: string
+    issuer: string
+    subject: string
+    name: string
+    email: string
+    given_name: string
+    family_name: string
+    picture: string
+    issued_at: number
+    expires_at: number
+  }
+*/
+export class FederationMappings {
+  static async create(
+    user_id: Base64URLString,
+    options: any = {}
+  ): Promise<any> {
+
+  }
+
+  static async findByIssuer(
+    url: string
+  ) {
+
+  }
+
+  static async findByUserId(
+    user_id: Base64URLString
+  ) {
+
+  }
+};

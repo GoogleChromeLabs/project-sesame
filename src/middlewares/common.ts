@@ -14,17 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import { Users } from '../libs/users.mjs';
+
+import { Request, Response, NextFunction } from 'express';
+import { Users } from '../libs/users';
 
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
  **/
-function csrfCheck(req, res, next) {
+function csrfCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): any {
   if (req.header('X-Requested-With') != 'XMLHttpRequest') {
     return res.status(400).json({ error: 'invalid access.' });
   }
   // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
-  next();
+  return next();
 };
 
 /**
@@ -32,7 +38,11 @@ function csrfCheck(req, res, next) {
  * If the session does not contain `signed-in` or a username, consider the user is not signed in.
  * If the user is signed in, put the user object in `res.locals.user`.
  **/
-async function sessionCheck(req, res, next) {
+async function sessionCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
   if (!req.session['signed-in'] || !req.session.username) {
     return res.status(401).json({ error: 'not signed in.' });
   }
@@ -41,7 +51,7 @@ async function sessionCheck(req, res, next) {
     return res.status(401).json({ error: 'user not found.' });    
   }
   res.locals.user = user;
-  next();
+  return next();
 };
 
 export { csrfCheck, sessionCheck };

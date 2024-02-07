@@ -17,11 +17,11 @@
 
 import express from 'express';
 const router = express.Router();
-import { Users } from '../libs/users.mjs';
-import { IdentityProviders } from '../libs/identity-providers.mjs';
-import { FederationMappings } from '../libs/federation-mappings.mjs';
+import { Users } from '../libs/users';
+import { IdentityProviders } from '../libs/identity-providers';
+import { FederationMappings } from '../libs/federation-mappings';
 import jwt from 'jsonwebtoken';
-import { csrfCheck, sessionCheck } from './common.mjs';
+import { csrfCheck, sessionCheck } from './common';
 
 router.post('/idp', async (req, res) => {
   const { url } = req.body;
@@ -29,7 +29,7 @@ router.post('/idp', async (req, res) => {
   if (!idp) {
     return res.status(404).json({ error: 'No matching identity provider found.' });
   }
-  delete idp.secret;
+  idp.secret = '';
   return res.json(idp);
 });
 
@@ -41,6 +41,10 @@ router.post('/verify', csrfCheck, async (req, res) => {
     const expected_nonce = req.session.nonce.toString();
 
     const idp = await IdentityProviders.findByURL(url);
+
+    if (!idp) {
+      throw new Error('Identity provider not found.');
+    }
 
     const token = jwt.verify(raw_token, idp.secret, {
       issuer: idp.origin,
@@ -78,7 +82,7 @@ router.post('/verify', csrfCheck, async (req, res) => {
       }
     } else {
       // If the user does not exist yet, create a new user.
-      user = Users.create(token.email, {
+      user = await Users.create(token.email, {
         email: token.email,
         displayName: token.name,
         picture: token.picture
@@ -93,8 +97,8 @@ router.post('/verify', csrfCheck, async (req, res) => {
     res.set('Set-Login', 'logged-in');
 
     return res.status(200).json(user);
-  } catch (e) {
-    console.error(e.message);
+  } catch (error: any) {
+    console.error(error.message);
     return res.status(401).json({ error: 'ID token verification failed.'});
   }
 });

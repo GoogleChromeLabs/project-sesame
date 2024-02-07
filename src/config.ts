@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'localhost') {
 }  
 
 initializeApp();  
-const store = getFirestore(process.env.FIRESTORE_DATABASENAME);  
+const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
 store.settings({ ignoreUndefinedProperties: true });  
 
 export {__dirname, store }
