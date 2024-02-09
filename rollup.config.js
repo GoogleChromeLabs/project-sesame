@@ -28,6 +28,7 @@ import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
 import css from 'rollup-plugin-import-css';
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import * as fs from 'fs';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
@@ -38,7 +39,10 @@ const clientDst = path.join(dstRoot, 'static');
 
 export default () => {
   const sourcemap = process.env.NODE_ENV !== 'production' ? true : false;
-  const env = process.env.NODE_ENV !== 'production' ? '.env.development' : '.env';
+  if (!fs.existsSync(path.join(serverSrc, '.env'))) {
+    throw new Error('.env file does not exist under /src.');
+    process.exit();
+  }
 
   const plugins = [
     typescript({
@@ -98,9 +102,8 @@ export default () => {
           src: path.join(serverSrc, 'views', '*'),
           dest: path.join(dstRoot, 'views'),
         }, {
-          src: path.join(serverSrc, env),
-          dest: dstRoot,
-          rename: '.env'
+          src: path.join(serverSrc, '.env'),
+          dest: dstRoot
         }]
       }),
     ]
