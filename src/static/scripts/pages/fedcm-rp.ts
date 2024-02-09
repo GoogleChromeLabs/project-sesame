@@ -16,12 +16,10 @@
  */
 
 import '../layout';
-import { $, _fetch, loading, postForm, toast } from '../common';
+import { $, _fetch, postForm, toast } from '../common';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
 const { IdentityProvider } = await import(/* webpackIgnore: true */'https://fedcm-idp-demo.glitch.me/fedcm.js')
-// import { MDCTextField } from '@material/textfield';
-// new MDCTextField($('.mdc-text-field'));
 
 let idpInfo: any;
 try {

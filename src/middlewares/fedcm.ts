@@ -15,11 +15,15 @@
  * limitations under the License
  */
 
+import { vars } from '../config';
 import express, { Request, Response } from 'express';
 const router = express.Router();
 import { Users } from '../libs/users';
 import * as jwt from 'jsonwebtoken';
 import { csrfCheck, sessionCheck } from './common';
+import { RelyingParties } from '../libs/relying-parties';
+import { compareUrls } from '../libs/helpers';
+import { Base64URLString } from '@simplewebauthn/types';
 
 router.get('/config.json', (
   req: Request,
@@ -73,28 +77,33 @@ router.get('/metadata', (
   });
 });
 
-router.post('/idtokens', csrfCheck, sessionCheck, (
+router.post('/idtokens', csrfCheck, sessionCheck, async (
   req: Request,
   res: Response
-): any => {
+): Promise<any> => {
   const { client_id, nonce, account_id, consent_acquired, disclosure_text_shown } = req.body;
   let user = res.locals.user;
 
   // TODO: Revisit the hardcoded RP client ID handling
+  const rp = await RelyingParties.findByClientID(client_id);
   
-  // If the user did not consent or the account does not match who is currently signed in, return error.
-  if (client_id !== RP_CLIENT_ID ||
-      account_id !== user.id ||
-      !isValidOrigin(new URL(req.headers.origin).toString())) {
+  // Error when:
+  // * the RP is not registered.
+  // * The RP URL matches the requesting origin.
+  // * the account does not match who is currently signed in.
+  if (!rp ||
+      !compareUrls(rp.origin, req.headers.origin) ||
+      account_id !== user.id) {
     console.error('Invalid request.', req.body);
     return res.status(400).json({ error: 'Invalid request.' });
   }
 
+  // TODO: Should it reject if consent is not acquired?
   if (consent_acquired === 'true' ||
       disclosure_text_shown ==='true' ||
-      !user.approved_clients.includes(RP_CLIENT_ID)) {
+      !user.approved_clients.includes(rp.client_id)) {
     console.log('The user is registering to the RP.');
-    user.approved_clients.push(RP_CLIENT_ID);
+    user.approved_clients.push(rp.client_id);
     Users.update(user);
   } else {
     console.log('The user is signing in to the RP.');
@@ -106,7 +115,7 @@ router.post('/idtokens', csrfCheck, sessionCheck, (
       sub: user.id,
       aud: client_id,
       nonce,
-      exp: new Date().getTime()+IDTOKEN_LIFETIME,
+      exp: new Date().getTime() + vars.id_token_lifetime,
       iat: new Date().getTime(),
       name: `${user.displayName}`,
       email: user.username,
@@ -156,7 +165,8 @@ router.post('/disconnect', csrfCheck, sessionCheck, (
   }
 
   // Remove the client ID from the `approved_clients` list.
-  user.approved_clients = user.approved_clients.filter(_client_id => _client_id !== client_id);
+  user.approved_clients = user.approved_clients.filter(
+    (_client_id: Base64URLString) => _client_id !== client_id);
   Users.update(user);
   return res.json({ account_id: user.id });
 });

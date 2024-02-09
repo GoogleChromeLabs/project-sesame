@@ -20,8 +20,15 @@ const router = express.Router();
 import { Users } from '../libs/users';
 import { IdentityProviders } from '../libs/identity-providers';
 import { FederationMappings } from '../libs/federation-mappings';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { csrfCheck, sessionCheck } from './common';
+
+interface IdToken extends JwtPayload {
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+  picture?: string;
+}
 
 router.post('/idp', async (req, res) => {
   const { url } = req.body;
@@ -46,11 +53,15 @@ router.post('/verify', csrfCheck, async (req, res) => {
       throw new Error('Identity provider not found.');
     }
 
-    const token = jwt.verify(raw_token, idp.secret, {
+    const token = <IdToken>jwt.verify(raw_token, idp.secret, {
       issuer: idp.origin,
       nonce: expected_nonce,
       audience: idp.clientId
     });
+
+    if (!token.email) {
+      throw new Error('`email` is missing in the ID token.');
+    }
 
     /*
       Example JWT:
@@ -72,7 +83,7 @@ router.post('/verify', csrfCheck, async (req, res) => {
     // Find a matching user by querying with the email address
     // TODO: Beware that the email is verified.
     let user = await Users.findByUsername(token.email);
-    if (user) {
+    if (user && token.iss) {
       const map = FederationMappings.findByIssuer(token.iss);
       if (!map) {
         // If the email address matches, merge the user.

@@ -19,8 +19,6 @@ import '../layout';
 import { $, loading, redirect, postForm } from '../common';
 import { authenticate } from '../passkeys';
 import '@material/web/textfield/outlined-text-field';
-// import { MDCTextField } from '@material/textfield';
-// new MDCTextField($('.mdc-text-field'));
 
 postForm('/password');
 

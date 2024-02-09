@@ -48,7 +48,7 @@ async function sessionCheck(
   }
   const user = await Users.findByUsername(req.session.username);
   if (!user) {
-    return res.status(401).json({ error: 'user not found.' });    
+    return res.status(401).json({ error: 'user not found.' });
   }
   res.locals.user = user;
   return next();

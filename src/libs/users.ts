@@ -23,7 +23,7 @@ import { Base64URLString } from "@simplewebauthn/types";
 
 export interface User {
   id: Base64URLString;
-  username?: string;
+  username: string;
   displayName?: string;
   email?: string;
   picture?: string;

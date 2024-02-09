@@ -38,6 +38,25 @@ declare module 'jwt' {
   }
 }
 
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      ANDROID_PACKAGENAME: string
+      ANDROID_SHA256HASH: string
+      DOMAIN: string
+      FIRESTORE_EMULATOR_HOST: string
+      FIRESTORE_DATABASENAME: string
+      HOSTNAME: string
+      ID_TOKEN_LIFETIME: number
+      NODE_ENV: string
+      ORIGIN: string
+      PROJECT_NAME: string
+      SECRET: string
+      PORT: number
+    }
+  }
+}
+
 import {
   CredentialDeviceType,
   PublicKeyCredentialCreationOptionsJSON,
@@ -50,6 +69,8 @@ import {
   AuthenticatorAttachment,
   AuthenticatorTransportFuture
 } from '@simplewebauthn/types';
+import { JwtPayload } from 'jsonwebtoken'
+import { StringDecoder } from 'string_decoder'
 
 export interface UserInfo {
   user_id: string

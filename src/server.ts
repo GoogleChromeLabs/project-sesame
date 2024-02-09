@@ -15,23 +15,24 @@
  * limitations under the License
  */
 
-import npm_package from '../package.json' assert { type: 'json' };
-import { __dirname } from './config';
+import { __dirname, initialize } from './config';
 import path from 'path';
 import express from 'express';
 import session from 'express-session';
-import hbs from 'express-handlebars';
+import { engine } from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { SessionStore } from './libs/session-store.js';
-import { auth } from './middlewares/auth.js';
-import { webauthn } from './middlewares/webauthn.js';
-import { federation } from './middlewares/federation.js';
-import { wellKnown } from './middlewares/well-known.js';
+import { SessionStore } from './libs/session-store';
+import { auth } from './middlewares/auth';
+import { webauthn } from './middlewares/webauthn';
+import { federation } from './middlewares/federation';
+import { wellKnown } from './middlewares/well-known';
+
+initialize(app);
 
 const views = path.join(__dirname, 'views');
 app.set('view engine', 'html');
-app.engine('html', hbs.engine({
+app.engine('html', engine({
   extname: 'html',
   defaultLayout: 'index',
   layoutsDir: path.join(views, 'layouts'),
@@ -58,11 +59,11 @@ app.use(session({
 app.use((req, res, next) => {
   process.env.HOSTNAME = req.hostname;
   const protocol = process.env.NODE_ENV === 'localhost' ? 'http' : 'https';
+  // TODO: Use `URL` object
+  // TODO: Why doesn't this contain a port?
   process.env.ORIGIN = `${protocol}://${req.headers.host}`;
-  app.locals.title = process.env.PROJECT_NAME;
-  app.locals.repository_url = npm_package.repository.url;
-  app.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
-  req.schema = 'https';
+  // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
+  res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
   return next();
 });
 
@@ -99,8 +100,7 @@ app.get('/passkey-one-button', (req, res) => {
 app.get('/password', (req, res) => {
   const username = req.session.username;
   if (!username) {
-    res.redirect(302, '/');
-    return;
+    return res.redirect(302, '/');
   }
   // Show `reauth.html`.
   // User is supposed to enter a password (which will be ignored)
@@ -129,8 +129,7 @@ app.get('/fedcm-rp', (req, res) => {
 app.get('/home', (req, res) => {
   if (!req.session.username || req.session['signed-in'] != 'yes') {
     // If user is not signed in, redirect to `/`.
-    res.redirect(307, '/');
-    return;
+    return res.redirect(307, '/');
   }
   // `home.html` shows sign-out link
   return res.render('home.html', {
@@ -142,5 +141,4 @@ app.use('/auth', auth);
 app.use('/webauthn', webauthn);
 app.use('/federation', federation);
 app.use('/.well-known', wellKnown);
-
-const listener = app.listen(process.env.PORT || 8080)
+app.listen(process.env.PORT || 8080)

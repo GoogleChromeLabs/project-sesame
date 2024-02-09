@@ -27,13 +27,11 @@ export interface PublicKeyCredential {
   user_id: Base64URLString
   name?: string
   // User visible identifier.
-  credentialID: Base64URLString // roaming authenticator's credential id,
-  credentialPublicKey: string // public key,
-  counter: number // previous counter,
+  credentialPublicKey: Base64URLString // public key,
+  counter?: number // previous counter,
   aaguid?: string // AAGUID,
-  registered?: number // registered epoc time,
   user_verifying: boolean // user verifying authenticator,
-  transports?: AuthenticatorTransportFuture[] // list of transports,
+  transports: AuthenticatorTransportFuture[] // list of transports,
   browser?: string
   os?: string
   platform?: string

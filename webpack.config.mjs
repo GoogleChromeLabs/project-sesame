@@ -39,7 +39,7 @@ const clientEntryPoints = glob.sync(path.join(srcDir, 'static', '**', '*.ts')).r
   styles: path.join(srcDir, "static", "styles", "style.scss"),
 });
 
-const clientConfig = {
+export default {
   entry: clientEntryPoints,
   mode,
   target: 'web',
@@ -73,7 +73,7 @@ const clientConfig = {
         ],
       },
       {
-        test: /.*\.ts$/,
+        test: /\.ts$/,
         use: 'ts-loader',
         exclude: /https:\/\//
       },
@@ -108,45 +108,3 @@ const clientConfig = {
     extensions: [ '.ts', '.mjs', '.js' ],
   },
 };
-
-const serverConfig = {
-  entry: './src/server.js',
-  mode,
-  target: 'node',
-  module: {
-    rules: [
-      {
-        test: /.*\.ts$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
-      },
-    ],
-  },
-  plugins: [
-    new CopyPlugin({
-      patterns: [
-        {
-          from: srcDir,
-          to: distDir,
-          filter: async (path) => {
-            // Exclude files under `static`
-            return !path.includes('static');
-          },
-        },
-      ],
-    }),
-  ],
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        extractComments: false,
-      }),
-    ],
-  },
-  resolve: {
-    extensions: [ '.ts', '.mjs', '.js' ],
-  },
-};
-
-export { clientConfig, serverConfig };

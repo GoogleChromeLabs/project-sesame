@@ -21,7 +21,8 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
   generateAuthenticationOptions,
-  verifyAuthenticationResponse
+  verifyAuthenticationResponse,
+  VerifyAuthenticationResponseOpts
 } from '@simplewebauthn/server';
 import {
   Base64URLString,
@@ -31,12 +32,20 @@ import {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
   PublicKeyCredentialUserEntityJSON,
+  AuthenticatorAssertionResponseJSON,
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users } from '../libs/users';
 import { PublicKeyCredentials } from '../libs/public-key-credentials';
 import { csrfCheck, sessionCheck } from './common';
 import aaguids from '../static/aaguids.json' assert { type: 'json' };
+
+interface AAGUIDs {
+  [key: string]: {
+    name: string
+    icon_light?: string
+  }
+}
 
 /**
  * Get the expected origin that the user agent is claiming to be at. If the
@@ -45,7 +54,7 @@ import aaguids from '../static/aaguids.json' assert { type: 'json' };
  * @returns A string that indicates an expected origin.
  */
 function getOrigin(
-  userAgent: string
+  userAgent: string = ''
 ): string {
   let origin = process.env.ORIGIN;
   
@@ -66,7 +75,8 @@ function getOrigin(
           const octArray = hashes[i].split(':').map((h) =>
             parseInt(h, 16),
           );
-          const androidHash = isoBase64URL.fromBuffer(octArray);
+          const uint8Array = new Uint8Array(octArray.length);
+          const androidHash = isoBase64URL.fromBuffer(uint8Array);
           origin = `android:apk-key-hash:${androidHash}`;
           break;
         }
@@ -168,9 +178,9 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (
 
     // Respond with the registration options.
     return res.json(options);
-  } catch (e) {
-    console.error(e);
-    return res.status(400).send({ error: e.message });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(400).send({ error: error.message });
   }
 });
 
@@ -188,6 +198,10 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   const credential = req.body;
 
   try {
+
+    if (!expectedChallenge) {
+      throw new Error('An empty challenge.');
+    }
 
     // Use SimpleWebAuthn's handy function to verify the registration request.
     const verification = await verifyRegistrationResponse({
@@ -208,24 +222,24 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
     const { credentialPublicKey, credentialID } = registrationInfo;
 
     // Base64URL encode ArrayBuffers.
-    const base64PublicKey = isoBase64URL.fromBuffer(credentialPublicKey);
-    const base64CredentialID = isoBase64URL.fromBuffer(credentialID);
+    const base64PublicKey = <Base64URLString>isoBase64URL.fromBuffer(credentialPublicKey);
+    const base64CredentialID = <Base64URLString>isoBase64URL.fromBuffer(credentialID);
 
     const { user } = res.locals;
     const name = registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000' ?
       req.useragent?.platform :
-      aaguids[registrationInfo.aaguid].name;
+      (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
 
     // Store the registration result.
     await PublicKeyCredentials.update({
       id: base64CredentialID,
-      publicKey: base64PublicKey,
-      aaguid: registrationInfo.aaguid,
-      name,
-      transports: credential.response.transports || [],
-      registeredAt: (new Date()).getTime(),
-      last_used: null,
       user_id: user.id,
+      name,
+      credentialPublicKey: base64PublicKey,
+      aaguid: registrationInfo.aaguid,
+      transports: credential.response.transports || [],
+      user_verifying: registrationInfo.userVerified,
+      registeredAt: (new Date()).getTime(),
     });
 
     // Delete the challenge from the session.
@@ -233,11 +247,11 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
 
     // Respond with the user information.
     return res.json(user);
-  } catch (e) {
+  } catch (error: any) {
     delete req.session.challenge;
 
-    console.error(e);
-    return res.status(400).send({ error: e.message });
+    console.error(error);
+    return res.status(400).send({ error: error.message });
   }
 });
 
@@ -259,10 +273,10 @@ router.post('/signinRequest', csrfCheck, async (
     req.session.challenge = options.challenge;
 
     return res.json(options)
-  } catch (e) {
-    console.error(e);
+  } catch (error: any) {
+    console.error(error);
 
-    return res.status(400).json({ error: e.message });
+    return res.status(400).json({ error: error.message });
   }
 });
 
@@ -281,6 +295,10 @@ router.post('/signinResponse', csrfCheck, async (
 
   try {
 
+    if (!expectedChallenge) {
+      throw new Error('An empty challenge.');
+    }
+
     // Find the matching credential from the credential ID
     const cred = await PublicKeyCredentials.findById(credential.id);
     if (!cred) {
@@ -295,10 +313,10 @@ router.post('/signinResponse', csrfCheck, async (
 
     // Decode ArrayBuffers and construct an authenticator object.
     const authenticator = {
-      credentialPublicKey: isoBase64URL.toBuffer(cred.publicKey),
       credentialID: isoBase64URL.toBuffer(cred.id),
+      credentialPublicKey: isoBase64URL.toBuffer(cred.credentialPublicKey),
       transports: cred.transports,
-    };
+    } as AuthenticatorDevice;
 
     // Use SimpleWebAuthn's handy function to verify the authentication request.
     const verification = await verifyAuthenticationResponse({
@@ -332,11 +350,11 @@ router.post('/signinResponse', csrfCheck, async (
     res.set('Set-Login', 'logged-in');
 
     return res.json(user);
-  } catch (e) {
+  } catch (error: any) {
     delete req.session.challenge;
 
-    console.error(e);
-    return res.status(400).json({ error: e.message });
+    console.error(error);
+    return res.status(400).json({ error: error.message });
   }
 });
 

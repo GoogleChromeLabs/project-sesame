@@ -15,23 +15,43 @@
  * limitations under the License
  */
 
-import url from 'url';
-import path from 'path';
-import dotenv from 'dotenv';  
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));  
-dotenv.config({ path: path.join(__dirname, '.env') });  
+import npm_package from '../package.json';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
+import dotenv from 'dotenv';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, '.env') });
 
+import { Express } from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import firebaseJson from '../firebase.json' assert { type: 'json' };  
+import firebaseJson from '../firebase.json';
 
-if (process.env.NODE_ENV === 'localhost') {  
-  process.env.DOMAIN = 'http://localhost:8080';  
-  process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;  
-}  
+interface AppConfig {
+  title: string
+  repository_url: string
+  id_token_lifetime: number
+}
 
-initializeApp();  
+if (process.env.NODE_ENV === 'localhost') {
+  process.env.DOMAIN = 'http://localhost:8080';
+  process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;
+}
+
+initializeApp();
 const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
-store.settings({ ignoreUndefinedProperties: true });  
+store.settings({ ignoreUndefinedProperties: true });
 
-export {__dirname, store }
+const vars: AppConfig = {
+  title: '',
+  repository_url: '',
+  id_token_lifetime: 0
+};
+
+function initialize(app: Express) {
+  vars.title = process.env.PROJECT_NAME;
+  vars.repository_url = npm_package.repository.url;
+  vars.id_token_lifetime = process.env.ID_TOKEN_LIFETIME || 1 * 24 * 60 * 60 * 1000;
+};
+
+export {__dirname, store, initialize, vars }

@@ -2,11 +2,19 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+    "rootDir": ".",
+    "outDir": "../dist",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
-  }
+  },
+  "typeRoots": [
+    "../node_modules/@types"
+  ],
+  "exclude": [
+    "./static"
+  ]
 }

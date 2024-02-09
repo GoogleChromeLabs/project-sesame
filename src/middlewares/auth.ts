@@ -25,7 +25,7 @@ import { csrfCheck, sessionCheck } from './common';
  **/
 router.post('/username', async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   const { username } = <{ username: string }>req.body;
 
