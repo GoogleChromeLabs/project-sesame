@@ -16,26 +16,26 @@
  */
 
 export interface IdentityProvider {
-  origin: string
-  configURL: string
-  clientId: string
-  secret: string
+  origin: string;
+  configURL: string;
+  clientId: string;
+  secret: string;
 }
 
 export class IdentityProviders {
-  static idps: IdentityProvider[] = [{
-    origin: 'https://fedcm-idp-demo.glitch.me',
-    configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
-    clientId: 'https://identity-demos.dev',
-    secret: 'xxxxx'
-  }]
+  static idps: IdentityProvider[] = [
+    {
+      origin: "https://fedcm-idp-demo.glitch.me",
+      configURL: "https://fedcm-idp-demo.glitch.me/fedcm.json",
+      clientId: "https://identity-demos.dev",
+      secret: "xxxxx",
+    },
+  ];
 
-  static async findByURL(
-    url: string
-  ): Promise<IdentityProvider | undefined> {
-    const idp = IdentityProviders.idps.find(idp => {
-      return idp.origin === (new URL(url)).origin;
-    })
+  static async findByURL(url: string): Promise<IdentityProvider | undefined> {
+    const idp = IdentityProviders.idps.find((idp) => {
+      return idp.origin === new URL(url).origin;
+    });
     return Promise.resolve(structuredClone(idp));
   }
-};
+}

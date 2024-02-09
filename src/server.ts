@@ -15,18 +15,18 @@
  * limitations under the License
  */
 
-import { __dirname, initialize } from './config';
+import { __dirname, initialize } from './config.js';
 import path from 'path';
 import express from 'express';
 import session from 'express-session';
 import { engine } from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { SessionStore } from './libs/session-store';
-import { auth } from './middlewares/auth';
-import { webauthn } from './middlewares/webauthn';
-import { federation } from './middlewares/federation';
-import { wellKnown } from './middlewares/well-known';
+import { SessionStore } from './libs/session-store.js';
+import { auth } from './middlewares/auth.js';
+import { webauthn } from './middlewares/webauthn.js';
+import { federation } from './middlewares/federation.js';
+import { wellKnown } from './middlewares/well-known.js';
 
 initialize(app);
 

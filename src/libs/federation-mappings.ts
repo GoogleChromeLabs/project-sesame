@@ -15,9 +15,7 @@
  * limitations under the License
  */
 
-import {
-  Base64URLString
-} from '@simplewebauthn/types';
+import { Base64URLString } from "@simplewebauthn/types";
 
 /*
   {
@@ -37,19 +35,9 @@ export class FederationMappings {
   static async create(
     user_id: Base64URLString,
     options: any = {}
-  ): Promise<any> {
+  ): Promise<any> {}
 
-  }
+  static async findByIssuer(url: string) {}
 
-  static async findByIssuer(
-    url: string
-  ) {
-
-  }
-
-  static async findByUserId(
-    user_id: Base64URLString
-  ) {
-
-  }
-};
+  static async findByUserId(user_id: Base64URLString) {}
+}

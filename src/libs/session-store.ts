@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { store } from '../config';
+import { store } from '../config.js';
 import { FirestoreStore } from '@google-cloud/connect-firestore';
 
 export const SessionStore = new FirestoreStore({

@@ -15,13 +15,13 @@
  * limitations under the License
  */
 
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import { Users } from '../libs/users';
-import { IdentityProviders } from '../libs/identity-providers';
-import { FederationMappings } from '../libs/federation-mappings';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { csrfCheck, sessionCheck } from './common';
+import { Users } from "../libs/users.js";
+import { IdentityProviders } from "../libs/identity-providers.js";
+import { FederationMappings } from "../libs/federation-mappings.js";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { csrfCheck, sessionCheck } from "./common.js";
 
 interface IdToken extends JwtPayload {
   email?: string;
@@ -30,17 +30,19 @@ interface IdToken extends JwtPayload {
   picture?: string;
 }
 
-router.post('/idp', async (req, res) => {
+router.post("/idp", async (req, res) => {
   const { url } = req.body;
   const idp = await IdentityProviders.findByURL(url);
   if (!idp) {
-    return res.status(404).json({ error: 'No matching identity provider found.' });
+    return res
+      .status(404)
+      .json({ error: "No matching identity provider found." });
   }
-  idp.secret = '';
+  idp.secret = "";
   return res.json(idp);
 });
 
-router.post('/verify', csrfCheck, async (req, res) => {
+router.post("/verify", csrfCheck, async (req, res) => {
   const { token: raw_token, url } = req.body;
   // console.error(raw_token);
 
@@ -50,17 +52,17 @@ router.post('/verify', csrfCheck, async (req, res) => {
     const idp = await IdentityProviders.findByURL(url);
 
     if (!idp) {
-      throw new Error('Identity provider not found.');
+      throw new Error("Identity provider not found.");
     }
 
     const token = <IdToken>jwt.verify(raw_token, idp.secret, {
       issuer: idp.origin,
       nonce: expected_nonce,
-      audience: idp.clientId
+      audience: idp.clientId,
     });
 
     if (!token.email) {
-      throw new Error('`email` is missing in the ID token.');
+      throw new Error("`email` is missing in the ID token.");
     }
 
     /*
@@ -96,21 +98,21 @@ router.post('/verify', csrfCheck, async (req, res) => {
       user = await Users.create(token.email, {
         email: token.email,
         displayName: token.name,
-        picture: token.picture
+        picture: token.picture,
       });
       FederationMappings.create(user.id, token);
     }
 
     req.session.username = token.email;
-    req.session['signed-in'] = 'yes';
+    req.session["signed-in"] = "yes";
 
     // Set a login status using the Login Status API
-    res.set('Set-Login', 'logged-in');
+    res.set("Set-Login", "logged-in");
 
     return res.status(200).json(user);
   } catch (error: any) {
     console.error(error.message);
-    return res.status(401).json({ error: 'ID token verification failed.'});
+    return res.status(401).json({ error: "ID token verification failed." });
   }
 });
 

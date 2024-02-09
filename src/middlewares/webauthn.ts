@@ -35,9 +35,9 @@ import {
   AuthenticatorAssertionResponseJSON,
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { Users } from '../libs/users';
-import { PublicKeyCredentials } from '../libs/public-key-credentials';
-import { csrfCheck, sessionCheck } from './common';
+import { Users } from '../libs/users.js';
+import { PublicKeyCredentials } from '../libs/public-key-credentials.js';
+import { csrfCheck, sessionCheck } from './common.js';
 import aaguids from '../static/aaguids.json' assert { type: 'json' };
 
 interface AAGUIDs {

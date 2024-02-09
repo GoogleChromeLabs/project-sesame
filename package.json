@@ -4,16 +4,22 @@
   "description": "Project Sesame",
   "main": "dist/server.js",
   "type": "module",
-  "scripts": {
-    "build": "npm run clean; rollup -c; tsc -p src/tsconfig.json",
-    "clean": "rimraf ./dist",
-    "dev": "NODE_ENV=localhost node dist/server.js",
-    "start": "node dist/server.js",
-    "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
-    "deploy:prod": "npm run build && gcloud app deploy app.yaml --project=google.com:project-sesame",
-    "logs": "gcloud app logs tail --project=google.com:project-sesame",
-    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit"
+  "module": "dist/server.js",
+  "engines": {
+    "node": ">=20.x"
   },
+  "repository": {
+    "url": "https://github.com/GoogleChromeLabs/project-sesame"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "node",
+    "express",
+    "webauthn",
+    "fido2",
+    "passkey",
+    "fedcm"
+  ],
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
     "@material/mwc-drawer": "0.27.0",
@@ -35,20 +41,6 @@
     "jsonwebtoken": "9.0.2",
     "lit": "3.1.2"
   },
-  "engines": {
-    "node": ">=18.x"
-  },
-  "repository": {
-    "url": "https://github.com/GoogleChromeLabs/passkeys-demo"
-  },
-  "license": "Apache-2.0",
-  "keywords": [
-    "node",
-    "express",
-    "webauthn",
-    "fido2",
-    "passkey"
-  ],
   "devDependencies": {
     "@babel/core": "7.23.9",
     "@rollup/plugin-commonjs": "25.0.7",
@@ -83,5 +75,15 @@
     "typescript": "5.3.3",
     "webpack": "5.90.1",
     "webpack-cli": "5.1.4"
+  },
+  "scripts": {
+    "build": "npm run clean; rollup -c; tsc -p src/tsconfig.json",
+    "clean": "rimraf ./dist",
+    "dev": "NODE_ENV=localhost node dist/server.js",
+    "start": "node dist/server.js",
+    "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
+    "deploy:prod": "npm run build && gcloud app deploy app.yaml --project=google.com:project-sesame",
+    "logs": "gcloud app logs tail --project=google.com:project-sesame",
+    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit"
   }
 }

@@ -15,28 +15,28 @@
  * limitations under the License
  */
 
-import {
-  Base64URLString
-} from '@simplewebauthn/types'
+import { Base64URLString } from "@simplewebauthn/types";
 
 export interface RelyingParty {
-  origin: string
-  client_id: Base64URLString
-  name: string
+  origin: string;
+  client_id: Base64URLString;
+  name: string;
 }
 
 export class RelyingParties {
-  static rps = [{
-    origin: 'https://fedcm-rp-demo.glitch.me',
-    client_id: 'fedcm-rp-demo',
-    name: 'FedCM RP Demo'
-  } as RelyingParty]
+  static rps = [
+    {
+      origin: "https://fedcm-rp-demo.glitch.me",
+      client_id: "fedcm-rp-demo",
+      name: "FedCM RP Demo",
+    } as RelyingParty,
+  ];
 
   static async findByClientID(
     client_id: Base64URLString
   ): Promise<RelyingParty | undefined> {
-    const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
+    const rp = RelyingParties.rps.find((rp) => rp.client_id === client_id);
     const clone = structuredClone(rp);
     return Promise.resolve(clone);
   }
-};
+}

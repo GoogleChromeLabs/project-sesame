@@ -15,8 +15,8 @@
  * limitations under the License
  */
 
-import { getGravatarUrl } from "./helpers";
-import { store } from "../config";
+import { getGravatarUrl } from "./helpers.js";
+import { store } from "../config.js";
 import crypto from "crypto";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { Base64URLString } from "@simplewebauthn/types";
@@ -50,9 +50,9 @@ export class Users {
   static async create(
     username: string,
     options: {
-      picture?: string,
-      displayName?: string,
-      email?: string
+      picture?: string;
+      displayName?: string;
+      email?: string;
     } = {}
   ): Promise<User> {
     let { picture, displayName, email }: any = options;
@@ -79,9 +79,7 @@ export class Users {
     return Users.update(user);
   }
 
-  static async findById(
-    user_id: Base64URLString
-  ): Promise<User | undefined> {
+  static async findById(user_id: Base64URLString): Promise<User | undefined> {
     const doc = await store.collection(Users.collection).doc(user_id).get();
     if (doc) {
       return <User>doc.data();
@@ -90,9 +88,7 @@ export class Users {
     }
   }
 
-  static async findByUsername(
-    username: string
-  ): Promise<User | undefined> {
+  static async findByUsername(username: string): Promise<User | undefined> {
     const results: User[] = [];
     const refs = await store
       .collection(Users.collection)
@@ -104,10 +100,10 @@ export class Users {
     return results.length > 0 ? results[0] : undefined;
   }
 
-  static async update(
-    user: User
-  ): Promise<User> {
-    const ref = store.collection(Users.collection).doc(<Base64URLString>user.id);
+  static async update(user: User): Promise<User> {
+    const ref = store
+      .collection(Users.collection)
+      .doc(<Base64URLString>user.id);
     ref.set(user);
     return user;
   }

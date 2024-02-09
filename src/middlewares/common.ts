@@ -15,23 +15,19 @@
  * limitations under the License
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { Users } from '../libs/users';
+import { Request, Response, NextFunction } from "express";
+import { Users } from "../libs/users.js";
 
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
  **/
-function csrfCheck(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): any {
-  if (req.header('X-Requested-With') != 'XMLHttpRequest') {
-    return res.status(400).json({ error: 'invalid access.' });
+function csrfCheck(req: Request, res: Response, next: NextFunction): any {
+  if (req.header("X-Requested-With") != "XMLHttpRequest") {
+    return res.status(400).json({ error: "invalid access." });
   }
   // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
   return next();
-};
+}
 
 /**
  * Checks session cookie.
@@ -43,15 +39,15 @@ async function sessionCheck(
   res: Response,
   next: NextFunction
 ): Promise<any> {
-  if (!req.session['signed-in'] || !req.session.username) {
-    return res.status(401).json({ error: 'not signed in.' });
+  if (!req.session["signed-in"] || !req.session.username) {
+    return res.status(401).json({ error: "not signed in." });
   }
   const user = await Users.findByUsername(req.session.username);
   if (!user) {
-    return res.status(401).json({ error: 'user not found.' });
+    return res.status(401).json({ error: "user not found." });
   }
   res.locals.user = user;
   return next();
-};
+}
 
 export { csrfCheck, sessionCheck };

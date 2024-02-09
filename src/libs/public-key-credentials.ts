@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { store } from "../config";
+import { store } from "../config.js";
 import {
   Base64URLString,
   CredentialDeviceType,
@@ -23,22 +23,22 @@ import {
 } from "@simplewebauthn/types";
 
 export interface PublicKeyCredential {
-  id: Base64URLString
-  user_id: Base64URLString
-  name?: string
+  id: Base64URLString;
+  user_id: Base64URLString;
+  name?: string;
   // User visible identifier.
-  credentialPublicKey: Base64URLString // public key,
-  counter?: number // previous counter,
-  aaguid?: string // AAGUID,
-  user_verifying: boolean // user verifying authenticator,
-  transports: AuthenticatorTransportFuture[] // list of transports,
-  browser?: string
-  os?: string
-  platform?: string
-  last_used?: number // last used epoc time,
-  credentialDeviceType?: CredentialDeviceType
-  credentialBackedUp?: boolean
-  registeredAt: number
+  credentialPublicKey: Base64URLString; // public key,
+  counter?: number; // previous counter,
+  aaguid?: string; // AAGUID,
+  user_verifying: boolean; // user verifying authenticator,
+  transports: AuthenticatorTransportFuture[]; // list of transports,
+  browser?: string;
+  os?: string;
+  platform?: string;
+  last_used?: number; // last used epoc time,
+  credentialDeviceType?: CredentialDeviceType;
+  credentialBackedUp?: boolean;
+  registeredAt: number;
 }
 
 /**
