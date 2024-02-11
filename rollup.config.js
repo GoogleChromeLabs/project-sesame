@@ -93,9 +93,6 @@ export default () => {
       ...plugins,
       copy({
         targets: [{
-          src: 'firebase.json',
-          dest: dstRoot,
-        }, {
           src: path.join(clientSrc, 'images', '*'),
           dest: path.join(clientDst, 'images'),
         }, {

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import npm_package from '../package.json' assert { type: 'json' };
+import npm_package from '../package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import dotenv from 'dotenv';
@@ -25,7 +25,7 @@ dotenv.config({ path: join(__dirname, '.env') });
 import { Express } from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import firebaseJson from '../firebase.json' assert { type: 'json' };
+import firebaseJson from '../firebase.json' with { type: 'json' };
 
 interface AppConfig {
   title: string

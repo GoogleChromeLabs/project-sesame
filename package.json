@@ -2,9 +2,9 @@
   "name": "project-sesame",
   "version": "1.0.0",
   "description": "Project Sesame",
-  "main": "dist/server.js",
+  "main": "./dist/server.js",
+  "exports": "./dist/server.js",
   "type": "module",
-  "module": "dist/server.js",
   "engines": {
     "node": ">=20.x"
   },
