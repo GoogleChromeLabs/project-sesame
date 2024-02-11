@@ -19,7 +19,7 @@ import npm_package from '../package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 import dotenv from 'dotenv';
-const __dirname = dirname(fileURLToPath(import.meta.url));
+export const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, '.env') });
 
 import { Express } from 'express';
@@ -39,19 +39,17 @@ if (process.env.NODE_ENV === 'localhost') {
 }
 
 initializeApp();
-const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
+export const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
 store.settings({ ignoreUndefinedProperties: true });
 
-const vars: AppConfig = {
+export const vars: AppConfig = {
   title: '',
   repository_url: '',
   id_token_lifetime: 0
 };
 
-function initialize(app: Express) {
+export function initialize(app: Express) {
   vars.title = process.env.PROJECT_NAME;
   vars.repository_url = npm_package.repository.url;
   vars.id_token_lifetime = process.env.ID_TOKEN_LIFETIME || 1 * 24 * 60 * 60 * 1000;
 };
-
-export {__dirname, store, initialize, vars }

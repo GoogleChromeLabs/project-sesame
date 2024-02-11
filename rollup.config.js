@@ -20,10 +20,7 @@ import url from 'url';
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
-// import terser from '@rollup/plugin-terser';
-// import json from '@rollup/plugin-json';
-// import builtins from 'rollup-plugin-node-builtins';
-// import globals from 'rollup-plugin-node-globals';
+import terser from '@rollup/plugin-terser';
 import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
 import css from 'rollup-plugin-import-css';
@@ -38,7 +35,7 @@ const dstRoot = path.join(__dirname, 'dist');
 const clientDst = path.join(dstRoot, 'static');
 
 export default () => {
-  const sourcemap = process.env.NODE_ENV !== 'production' ? true : false;
+  const production = process.env.NODE_ENV === 'production';
   if (!fs.existsSync(path.join(serverSrc, '.env'))) {
     throw new Error('.env file does not exist under /src.');
     process.exit();
@@ -47,6 +44,7 @@ export default () => {
   const plugins = [
     typescript({
       tsconfig: path.join(clientSrc, 'tsconfig.json'),
+      sourceMap: !production,
     }),
     commonjs({ extensions: ['.js', '.ts', '.mts'] }),
     nodeResolve({
@@ -54,13 +52,9 @@ export default () => {
       preferBuiltins: false,
       cache: true,
     }),
-    // terser({
-    //   module: true,
-    //   treeshake: true,
-    // }),
-    // builtins(),
-    // globals(),
-    // json(),
+    terser({
+      module: true,
+    }),
     sourcemaps(),
   ];
 
@@ -74,7 +68,8 @@ export default () => {
       output: {
         file: path.join(dstRoot, `${src.replace(/^.*\/src\/|\.ts/g, '')}.js`),
         format: 'es',
-        sourcemap,
+        sourcemap: !production,
+        sourcemapFile: path.join(dstRoot, `${src.replace(/^.*\/src\/|\.ts/g, '')}.js.map`),
       },
       external,
       plugins,
@@ -88,6 +83,7 @@ export default () => {
     output: {
       file: path.join(clientDst, 'fedcm.js'),
       format: 'es',
+      sourcemap: !production,
     },
     plugins: [
       ...plugins,

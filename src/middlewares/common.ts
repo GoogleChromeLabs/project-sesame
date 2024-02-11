@@ -21,7 +21,7 @@ import { Users } from "../libs/users.js";
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
  **/
-function csrfCheck(req: Request, res: Response, next: NextFunction): any {
+export function csrfCheck(req: Request, res: Response, next: NextFunction): any {
   if (req.header("X-Requested-With") != "XMLHttpRequest") {
     return res.status(400).json({ error: "invalid access." });
   }
@@ -34,7 +34,7 @@ function csrfCheck(req: Request, res: Response, next: NextFunction): any {
  * If the session does not contain `signed-in` or a username, consider the user is not signed in.
  * If the user is signed in, put the user object in `res.locals.user`.
  **/
-async function sessionCheck(
+export async function sessionCheck(
   req: Request,
   res: Response,
   next: NextFunction
@@ -49,5 +49,3 @@ async function sessionCheck(
   res.locals.user = user;
   return next();
 }
-
-export { csrfCheck, sessionCheck };
