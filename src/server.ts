@@ -18,12 +18,11 @@
 import { __dirname, initialize } from './config.js';
 import path from 'path';
 import express from 'express';
-import session from 'express-session';
 import { engine } from 'express-handlebars';
 const app = express();
 import useragent from 'express-useragent';
-import { SessionStore } from './libs/session-store.js';
 import { auth } from './middlewares/auth.js';
+import { Session } from './middlewares/session.js';
 import { webauthn } from './middlewares/webauthn.js';
 import { federation } from './middlewares/federation.js';
 import { wellKnown } from './middlewares/well-known.js';
@@ -42,19 +41,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(useragent.express());
 app.use(express.static(path.join(__dirname, 'static')));
-app.use(session({
-  secret: process.env.SECRET,
-  resave: true,
-  saveUninitialized: false,
-  proxy: true,
-  store: SessionStore,
-  cookie:{
-    path: '/',
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== 'localhost',
-    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-  }
-}));
+app.use(Session.initialize());
 
 app.use((req, res, next) => {
   process.env.HOSTNAME = req.hostname;

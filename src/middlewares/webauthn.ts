@@ -22,21 +22,20 @@ import {
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
-  VerifyAuthenticationResponseOpts
+  VerifyAuthenticationResponseOpts,
+  GenerateAuthenticationOptionsOpts
 } from '@simplewebauthn/server';
 import {
   Base64URLString,
-  AttestationConveyancePreference,
-  PublicKeyCredentialParameters,
   AuthenticatorDevice,
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
-  PublicKeyCredentialUserEntityJSON,
   AuthenticatorAssertionResponseJSON,
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users } from '../libs/users.js';
-import { PublicKeyCredentials } from '../libs/public-key-credentials.js';
+import { Session } from "./session.js";
+import { PublicKeyCredentials, SesamePublicKeyCredential } from '../libs/public-key-credentials.js';
 import { csrfCheck, sessionCheck } from './common.js';
 import aaguids from '../static/aaguids.json' with { type: 'json' };
 
@@ -174,7 +173,8 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (
     });
 
     // Keep the challenge value in a session.
-    req.session.challenge = options.challenge;
+    // req.session.challenge = options.challenge;
+    Session.setChallenge(options.challenge, req, res);
 
     // Respond with the registration options.
     return res.json(options);
@@ -192,7 +192,8 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   res: Response,
 ) => {
   // Set expected values.
-  const expectedChallenge = req.session.challenge;
+  // const expectedChallenge = req.session.challenge;
+  const expectedChallenge = Session.getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = process.env.HOSTNAME;
   const credential = req.body;
@@ -240,15 +241,17 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
       transports: credential.response.transports || [],
       user_verifying: registrationInfo.userVerified,
       registeredAt: (new Date()).getTime(),
-    });
+    } as SesamePublicKeyCredential);
 
     // Delete the challenge from the session.
-    delete req.session.challenge;
+    // delete req.session.challenge;
+    Session.deleteChallenge(req, res);
 
     // Respond with the user information.
     return res.json(user);
   } catch (error: any) {
-    delete req.session.challenge;
+    // delete req.session.challenge;
+    Session.deleteChallenge(req, res);
 
     console.error(error);
     return res.status(400).send({ error: error.message });
@@ -267,10 +270,11 @@ router.post('/signinRequest', csrfCheck, async (
     const options = await generateAuthenticationOptions({
       rpID: process.env.HOSTNAME,
       allowCredentials: [],
-    });
+    } as GenerateAuthenticationOptionsOpts);
 
     // Keep the challenge value in a session.
-    req.session.challenge = options.challenge;
+    // req.session.challenge = options.challenge;
+    Session.setChallenge(options.challenge, req, res);
 
     return res.json(options)
   } catch (error: any) {
@@ -289,7 +293,8 @@ router.post('/signinResponse', csrfCheck, async (
 ) => {
   // Set expected values.
   const credential = req.body;
-  const expectedChallenge = req.session.challenge;
+  // const expectedChallenge = req.session.challenge;
+  const expectedChallenge = Session.getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = process.env.HOSTNAME;
 
@@ -326,7 +331,7 @@ router.post('/signinResponse', csrfCheck, async (
       expectedRPID,
       authenticator,
       requireUserVerification: false,
-    });
+    } as VerifyAuthenticationResponseOpts);
 
     const { verified, authenticationInfo } = verification;
 
@@ -340,18 +345,21 @@ router.post('/signinResponse', csrfCheck, async (
     await PublicKeyCredentials.update(cred);
 
     // Delete the challenge from the session.
-    delete req.session.challenge;
+    // delete req.session.challenge;
+    Session.deleteChallenge(req, res);
 
     // Start a new session.
-    req.session.username = user.username;
-    req.session['signed-in'] = 'yes';
+    // req.session.username = user.username;
+    // req.session['signed-in'] = 'yes';
 
     // Set a login status using the Login Status API
-    res.set('Set-Login', 'logged-in');
+    // res.set('Set-Login', 'logged-in');
+    await Session.signedIn(user.username, req, res);
 
     return res.json(user);
   } catch (error: any) {
-    delete req.session.challenge;
+    // delete req.session.challenge;
+    Session.deleteChallenge(req, res);
 
     console.error(error);
     return res.status(400).json({ error: error.message });

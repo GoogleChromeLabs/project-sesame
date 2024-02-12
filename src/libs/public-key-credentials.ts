@@ -22,7 +22,7 @@ import {
   AuthenticatorTransportFuture,
 } from "@simplewebauthn/types";
 
-export interface PublicKeyCredential {
+export interface SesamePublicKeyCredential {
   id: Base64URLString;
   user_id: Base64URLString;
   name?: string;
@@ -59,14 +59,14 @@ export class PublicKeyCredentials {
 
   static async findById(
     credential_id: Base64URLString
-  ): Promise<PublicKeyCredential | undefined> {
+  ): Promise<SesamePublicKeyCredential | undefined> {
     const doc = await store
       .collection(PublicKeyCredentials.collection)
       .doc(credential_id)
       .get();
     if (doc) {
       const credential = doc.data();
-      return <PublicKeyCredential>credential;
+      return <SesamePublicKeyCredential>credential;
     } else {
       return;
     }
@@ -74,19 +74,19 @@ export class PublicKeyCredentials {
 
   static async findByUserId(
     user_id: Base64URLString
-  ): Promise<PublicKeyCredential[] | undefined> {
-    const results: PublicKeyCredential[] = [];
+  ): Promise<SesamePublicKeyCredential[] | undefined> {
+    const results: SesamePublicKeyCredential[] = [];
     const refs = await store
       .collection(PublicKeyCredentials.collection)
       .where("user_id", "==", user_id)
       .orderBy("registeredAt", "desc")
       .get();
-    refs.forEach((cred) => results.push(<PublicKeyCredential>cred.data()));
+    refs.forEach((cred) => results.push(<SesamePublicKeyCredential>cred.data()));
     return results;
   }
 
   static async update(
-    credential: PublicKeyCredential
+    credential: SesamePublicKeyCredential
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)

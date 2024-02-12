@@ -18,6 +18,7 @@
 import express from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
+import { Session } from "./session.js";
 import { IdentityProviders } from "../libs/identity-providers.js";
 import { FederationMappings } from "../libs/federation-mappings.js";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -103,11 +104,12 @@ router.post("/verify", csrfCheck, async (req, res) => {
       FederationMappings.create(user.id, token);
     }
 
-    req.session.username = token.email;
-    req.session["signed-in"] = "yes";
+    // req.session.username = token.email;
+    // req.session["signed-in"] = "yes";
 
     // Set a login status using the Login Status API
-    res.set("Set-Login", "logged-in");
+    // res.set("Set-Login", "logged-in");
+    Session.signedIn(token.email, req, res);
 
     return res.status(200).json(user);
   } catch (error: any) {
