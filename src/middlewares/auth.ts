@@ -17,8 +17,8 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
-import { Session } from "./session.js";
-import { csrfCheck, sessionCheck } from "./common.js";
+import { sessionCheck, signOut, signedIn, setUsername, getUsername } from "./session.js";
+import { csrfCheck } from "./common.js";
 
 /**
  * Check username, create a new account if it doesn't exist.
@@ -37,8 +37,7 @@ router.post("/username", async (req: Request, res: Response) => {
         user = await Users.create(username);
       }
       // Set username in the session
-      // req.session.username = username;
-      Session.setUsername(username, req, res);
+      setUsername(username, req, res);
 
       return res.json(user);
     } else {
@@ -59,8 +58,7 @@ router.post("/password", async (req: Request, res: Response) => {
   if (!req.body.password) {
     return res.status(401).json({ error: "Enter at least one random letter." });
   }
-  const username = Session.getUsername(req, res);
-  // const user = await Users.findByUsername(req.session.username);
+  const username = getUsername(req, res);
   if (!username) {
     // TODO: Redirect to the entrance instead
     return res.redirect(307, '/');
@@ -72,11 +70,8 @@ router.post("/password", async (req: Request, res: Response) => {
     return res.status(401).json({ error: "Enter username first." });
   }
 
-  // req.session["signed-in"] = "yes";
-
-  // Set a login status using the Login Status API
-  // res.set("Set-Login", "logged-in");
-  Session.signedIn(username, req, res);
+  // Set the user as a signed in status
+  signedIn(username, req, res);
 
   return res.json(user);
 });
@@ -119,14 +114,7 @@ router.post(
  */
 router.get("/signout", (req: Request, res: Response) => {
   // Remove the session
-  // req.session.destroy(() => {});
-  Session.signOut('/', req, res);
-
-  // Set a login status using the Login Status API
-  // res.set("Set-Login", "logged-out");
-
-  // Redirect to `/`
-  // return res.redirect(307, "/");
+  signOut('/', req, res);
 });
 
 export { router as auth };

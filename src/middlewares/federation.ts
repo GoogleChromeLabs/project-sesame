@@ -18,11 +18,11 @@
 import express from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
-import { Session } from "./session.js";
+import { sessionCheck, signedIn, getChallenge } from "./session.js";
 import { IdentityProviders } from "../libs/identity-providers.js";
 import { FederationMappings } from "../libs/federation-mappings.js";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { csrfCheck, sessionCheck } from "./common.js";
+import { csrfCheck } from "./common.js";
 
 interface IdToken extends JwtPayload {
   email?: string;
@@ -48,7 +48,11 @@ router.post("/verify", csrfCheck, async (req, res) => {
   // console.error(raw_token);
 
   try {
-    const expected_nonce = req.session.nonce.toString();
+    const expected_nonce = getChallenge(req, res);
+
+    if (!expected_nonce || typeof expected_nonce !== 'string') {
+      throw new Error("Invalid nonce.");
+    }
 
     const idp = await IdentityProviders.findByURL(url);
 
@@ -104,12 +108,8 @@ router.post("/verify", csrfCheck, async (req, res) => {
       FederationMappings.create(user.id, token);
     }
 
-    // req.session.username = token.email;
-    // req.session["signed-in"] = "yes";
-
-    // Set a login status using the Login Status API
-    // res.set("Set-Login", "logged-in");
-    Session.signedIn(token.email, req, res);
+    // Set the user as a signed in status
+    signedIn(token.email, req, res);
 
     return res.status(200).json(user);
   } catch (error: any) {

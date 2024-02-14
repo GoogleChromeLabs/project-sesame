@@ -16,7 +16,6 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { Users } from "../libs/users.js";
 
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
@@ -29,23 +28,6 @@ export function csrfCheck(req: Request, res: Response, next: NextFunction): any 
   return next();
 }
 
-/**
- * Checks session cookie.
- * If the session does not contain `signed-in` or a username, consider the user is not signed in.
- * If the user is signed in, put the user object in `res.locals.user`.
- **/
-export async function sessionCheck(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<any> {
-  if (!req.session["signed-in"] || !req.session.username) {
-    return res.status(401).json({ error: "not signed in." });
-  }
-  const user = await Users.findByUsername(req.session.username);
-  if (!user) {
-    return res.status(401).json({ error: "user not found." });
-  }
-  res.locals.user = user;
-  return next();
+export function getTime(offset: number = 0): number {
+  return (new Date()).getTime() + offset;
 }

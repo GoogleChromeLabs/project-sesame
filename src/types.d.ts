@@ -14,49 +14,6 @@
  * limitations under the License.
  */
 
-declare module 'express-session' {
-  interface Session {
-    'signed-in'?: 'yes' | undefined
-    // User ID and the indicator that the user is signed in.
-    username: string
-    nonce: number
-    name?: string
-    displayName?: string
-    picture?: string
-    // Timestamp of the recent successful sign-in time.
-    timeout?: number
-    // Enrollment session for the second step.
-    challenge?: string
-    // Enrollment type
-    type?: 'platform' | 'cross-platform' | 'undefined'
-  }
-}
-
-declare module 'jwt' {
-  interface jwtPayload {
-    email: string
-  }
-}
-
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      ANDROID_PACKAGENAME: string
-      ANDROID_SHA256HASH: string
-      DOMAIN: string
-      FIRESTORE_EMULATOR_HOST: string
-      FIRESTORE_DATABASENAME: string
-      HOSTNAME: string
-      ID_TOKEN_LIFETIME: number
-      NODE_ENV: string
-      ORIGIN: string
-      PROJECT_NAME: string
-      SECRET: string
-      PORT: number
-    }
-  }
-}
-
 import {
   CredentialDeviceType,
   PublicKeyCredentialCreationOptionsJSON,
@@ -72,21 +29,77 @@ import {
 import { JwtPayload } from 'jsonwebtoken'
 import { StringDecoder } from 'string_decoder'
 
+interface AppLocals {
+  is_localhost?: boolean;
+  title?: string;
+  repository_url?: string;
+  id_token_lifetime?: number;
+}
+
+declare global {
+  namespace Express {
+    interface Application {
+      locals: AppLocals;
+    }
+  }
+}
+
+declare module 'express-session' {
+  interface Session {
+    // `true` if the user is signed in.
+    signed_in: boolean;
+    // Claimed username. This alone doesn't mean the user is signed in.
+    username: string;
+    // User information if the user is signed in.
+    user?: User;
+    // Last signed in time in epoc;
+    last_signedin_at?: number;
+    // Enrollment session for the second step.
+    challenge?: string;
+  }
+}
+
+declare module 'jwt' {
+  interface jwtPayload {
+    email: string;
+  }
+}
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      ANDROID_PACKAGENAME: string;
+      ANDROID_SHA256HASH: string;
+      FIRESTORE_EMULATOR_HOST: string;
+      FIRESTORE_DATABASENAME: string;
+      HOSTNAME: string;
+      ID_TOKEN_LIFETIME: number;
+      SHORT_SESSION_DURATION: number;
+      LONG_SESSION_DURATION: number;
+      NODE_ENV: string;
+      ORIGIN: string;
+      PROJECT_NAME: string;
+      SECRET: string;
+      PORT: number;
+    }
+  }
+}
+
 export interface UserInfo {
-  user_id: string
-  name: string
-  displayName: string
-  picture: string
+  user_id: string;
+  name: string;
+  displayName: string;
+  picture: string;
 }
 
 export interface WebAuthnRegistrationObject extends
   Omit<PublicKeyCredentialCreationOptionsJSON, 'rp' | 'pubKeyCredParams' | 'challenge' | 'excludeCredentials'> {
-  credentialsToExclude?: string[]
-  customTimeout?: number
-  abortTimeout?: number
+  credentialsToExclude?: string[];
+  customTimeout?: number;
+  abortTimeout?: number;
 }
 
 export interface WebAuthnAuthenticationObject extends Omit<PublicKeyCredentialRequestOptionsJSON, 'challenge'> {
-  customTimeout?: number
-  abortTimeout?: number
+  customTimeout?: number;
+  abortTimeout?: number;
 }

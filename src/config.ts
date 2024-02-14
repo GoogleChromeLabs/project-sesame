@@ -28,13 +28,20 @@ import { getFirestore } from 'firebase-admin/firestore';
 import firebaseJson from '../firebase.json' with { type: 'json' };
 
 interface AppConfig {
-  title: string
-  repository_url: string
-  id_token_lifetime: number
+  debug: boolean;
+  is_localhost: boolean;
+  origin: string;
+  hostname: string;
+  title: string;
+  repository_url: string;
+  id_token_lifetime: number;
+  short_session_duration: number;
+  long_session_duration: number;
 }
 
-if (process.env.NODE_ENV === 'localhost') {
-  process.env.DOMAIN = 'http://localhost:8080';
+const is_localhost = process.env.NODE_ENV === 'localhost';
+
+if (is_localhost) {
   process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;
 }
 
@@ -42,14 +49,31 @@ initializeApp();
 export const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
 store.settings({ ignoreUndefinedProperties: true });
 
-export const vars: AppConfig = {
+export const config: AppConfig = {
+  debug: false,
+  is_localhost,
+  origin: '',
+  hostname: '',
   title: '',
   repository_url: '',
-  id_token_lifetime: 0
+  id_token_lifetime: 0,
+  short_session_duration: 0,
+  long_session_duration: 0,
 };
 
-export function initialize(app: Express) {
-  vars.title = process.env.PROJECT_NAME;
-  vars.repository_url = npm_package.repository.url;
-  vars.id_token_lifetime = process.env.ID_TOKEN_LIFETIME || 1 * 24 * 60 * 60 * 1000;
+export function configureApp(app: Express) {
+  if (!process.env.ORIGIN) {
+    throw new Error('Environment variable `ORIGIN` is not set.');
+  }
+  const port = process.env.PORT || 8080;
+  config.origin = is_localhost ? `http://localhost:${port}` : process.env.ORIGIN;
+  config.hostname = (new URL(config.origin)).hostname;
+  config.title = process.env.PROJECT_NAME;
+  config.repository_url = npm_package.repository.url;
+  config.id_token_lifetime = process.env.ID_TOKEN_LIFETIME || 1 * 24 * 60 * 60 * 1000;
+  config.short_session_duration = process.env.SHORT_SESSION_DURATION || 3 * 60 * 1000;
+  config.long_session_duration = process.env.LONG_SESSION_DURATION || 1000 * 60 * 60 * 24 * 365;
+  if (config.is_localhost || process.env.NODE_ENV === 'development') {
+    config.debug = true;
+  }
 };

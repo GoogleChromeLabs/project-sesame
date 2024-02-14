@@ -15,12 +15,13 @@
  * limitations under the License
  */
 
-import { vars } from "../config.js";
+import { config } from "../config.js";
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
 import * as jwt from "jsonwebtoken";
-import { csrfCheck, sessionCheck } from "./common.js";
+import { csrfCheck, getTime } from "./common.js";
+import { sessionCheck } from "./session.js";
 import { RelyingParties } from "../libs/relying-parties.js";
 import { compareUrls } from "../libs/helpers.js";
 import { Base64URLString } from "@simplewebauthn/types";
@@ -127,8 +128,8 @@ router.post(
           sub: user.id,
           aud: client_id,
           nonce,
-          exp: new Date().getTime() + vars.id_token_lifetime,
-          iat: new Date().getTime(),
+          exp: getTime(config.id_token_lifetime),
+          iat: getTime(),
           name: `${user.displayName}`,
           email: user.username,
           picture: user.picture,

@@ -15,91 +15,143 @@
  * limitations under the License
  */
 
-import { Request, Response, NextFunction } from 'express';
-import expressSession from 'express-session';
-import { Users } from '../libs/users.js';
-import { store } from '../config.js';
-import { FirestoreStore } from '@google-cloud/connect-firestore';
+import { getTime } from "./common.js";
+import { Request, Response, NextFunction } from "express";
+import session from "express-session";
+import { FirestoreStore } from "@google-cloud/connect-firestore";
+import { Users } from "../libs/users.js";
+import { store, config } from "../config.js";
 
-export const SessionStore = new FirestoreStore({
-  dataset: store,
-  kind: 'sessions',
-});
-
-export class Session {
-  static initialize() {
-    return expressSession({
-      secret: process.env.SECRET,
-      resave: true,
-      saveUninitialized: false,
-      proxy: true,
-      store: SessionStore,
-      cookie:{
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== 'localhost',
-        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-      }
-    });
+/**
+ * Checks session cookie.
+ * If the session does not contain `signed-in` or a username, consider the user is not signed in.
+ * If the user is signed in, put the user object in `res.locals.user`.
+ **/
+export async function sessionCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  if (!isSignedIn(req, res)) {
+    return res.status(401).json({ error: "not signed in." });
   }
-
-  static sessionCheck(req: Request, res: Response): any {
+  const user = await Users.findByUsername(req.session.username);
+  if (!user) {
+    return res.status(401).json({ error: "user not found." });
   }
+  res.locals.user = user;
+  return next();
+}
 
-  static async apiSessionCheck(req: Request, res: Response, next: NextFunction): Promise<any> {
-    if (!req.session["signed-in"] || !req.session.username) {
-      return res.status(401).json({ error: "not signed in." });
-    }
-    const user = await Users.findByUsername(req.session.username);
-    if (!user) {
-      return res.status(401).json({ error: "user not found." });
-    }
-    res.locals.user = user;
-    return next();
+export function initializeSession() {
+  return session({
+    secret: process.env.SECRET,
+    resave: true,
+    saveUninitialized: false,
+    proxy: true,
+    store: new FirestoreStore({
+      dataset: store,
+      kind: "sessions",
+    }),
+    cookie: {
+      path: "/",
+      httpOnly: true,
+      secure: !config.is_localhost,
+      maxAge: config.long_session_duration, // 1 year
+    },
+  });
+}
+
+export function signedIn(username: string, req: Request, res: Response) {
+  if (req.session.username !== undefined && req.session.username !== username) {
+    throw new Error("Trying to sign in with a wrong username.");
   }
+  req.session.username = username;
+  req.session.signed_in = true;
+  req.session.last_signedin_at = getTime();
 
-  static setChallenge(challenge: string, req: Request, res: Response): void {
-    req.session.challenge = challenge;
-    return;
+  // Set a login status using the Login Status API
+  res.set("Set-Login", "logged-in");
+}
+
+export function signOut(nextPath: string, req: Request, res: Response) {
+  // Destroy the session
+  req.session.destroy(() => {});
+
+  // Set a login status using the Login Status API
+  res.set("Set-Login", "logged-out");
+
+  // Redirect to `/`
+  return res.redirect(307, nextPath);
+}
+
+export function isSignedIn(req: Request, res: Response): boolean {
+  // if (!req.session.username || req.session['signed-in'] !== 'yes') {
+  if (!req.session.username || !req.session.signed_in) {
+    // If user is not signed in, redirect to `/`.
+    return false;
   }
+  return true;
+}
 
-  static getChallenge(req: Request, res: Response): string | undefined {
-    return req.session.challenge;
+export function isRecentlySignedIn(req: Request, res: Response): boolean {
+  // if (!req.session.username || req.session['signed-in'] !== 'yes') {
+  if (!req.session.username || !req.session.signed_in) {
+    // If user is not signed in, return false.
+    return false;
   }
-
-  static deleteChallenge(req: Request, res: Response): void {
-    delete req.session.challenge;
-    return;
+  if (
+    !req.session.last_signedin_at ||
+    req.session.last_signedin_at < getTime(-config.short_session_duration)
+  ) {
+    // If the last sign-in was older than the short session duration, return false.
+    return false;
   }
+  return true;
+}
 
-  static setUsername(username: string, req: Request, res: Response): void {
-    req.session.username = username;
-    return;
+/**
+ * Sets the challenge value for the session.
+ * If the challenge is not provided, a random challenge value is generated.
+ * 
+ * @param challenge - The challenge value to set (optional)
+ * @param req - The request object
+ * @param res - The response object
+ * @returns The challenge value that was set
+ */
+export function setChallenge(
+  challenge: string = "",
+  req: Request,
+  res: Response
+): string {
+  if (challenge === "") {
+    challenge = Math.floor(Math.random() * 10e10).toString();
   }
+  req.session.challenge = challenge;
+  return challenge;
+}
 
-  static getUsername(req: Request, res: Response): string | undefined {
-    return req.session.username;
+export function getChallenge(req: Request, res: Response): string | undefined {
+  return req.session.challenge;
+}
+
+export function deleteChallenge(req: Request, res: Response): void {
+  delete req.session.challenge;
+  return;
+}
+
+export function setUsername(
+  username: string,
+  req: Request,
+  res: Response
+): void {
+  if (!username) {
+    throw new Error("Invalid username.");
   }
+  req.session.username = username;
+  return;
+}
 
-  static signedIn(username: string, req: Request, res: Response) {
-    if (req.session.username !== undefined && req.session.username !== username) {
-      throw new Error('Trying to sign in with a wrong username.');
-    }
-    req.session.username = username;
-    req.session["signed-in"] = "yes";
-
-    // Set a login status using the Login Status API
-    res.set("Set-Login", "logged-in");
-  }
-
-  static signOut(nextPath: string, req: Request, res: Response) {
-    // Destroy the session
-    req.session.destroy(() => {});
-
-    // Set a login status using the Login Status API
-    res.set("Set-Login", "logged-out");
-
-    // Redirect to `/`
-    return res.redirect(307, nextPath);
-  }
+export function getUsername(req: Request, res: Response): string | undefined {
+  return req.session.username;
 }

@@ -34,9 +34,9 @@ import {
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { Users } from '../libs/users.js';
-import { Session } from "./session.js";
+import { sessionCheck, signedIn, setChallenge, getChallenge, deleteChallenge } from "./session.js";
 import { PublicKeyCredentials, SesamePublicKeyCredential } from '../libs/public-key-credentials.js';
-import { csrfCheck, sessionCheck } from './common.js';
+import { csrfCheck, getTime } from './common.js';
 import aaguids from '../static/aaguids.json' with { type: 'json' };
 
 interface AAGUIDs {
@@ -173,8 +173,7 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (
     });
 
     // Keep the challenge value in a session.
-    // req.session.challenge = options.challenge;
-    Session.setChallenge(options.challenge, req, res);
+    setChallenge(options.challenge, req, res);
 
     // Respond with the registration options.
     return res.json(options);
@@ -192,8 +191,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   res: Response,
 ) => {
   // Set expected values.
-  // const expectedChallenge = req.session.challenge;
-  const expectedChallenge = Session.getChallenge(req, res);
+  const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = process.env.HOSTNAME;
   const credential = req.body;
@@ -201,7 +199,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   try {
 
     if (!expectedChallenge) {
-      throw new Error('An empty challenge.');
+      throw new Error('Invalid challenge');
     }
 
     // Use SimpleWebAuthn's handy function to verify the registration request.
@@ -240,18 +238,16 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
       aaguid: registrationInfo.aaguid,
       transports: credential.response.transports || [],
       user_verifying: registrationInfo.userVerified,
-      registeredAt: (new Date()).getTime(),
+      registeredAt: getTime(),
     } as SesamePublicKeyCredential);
 
     // Delete the challenge from the session.
-    // delete req.session.challenge;
-    Session.deleteChallenge(req, res);
+    deleteChallenge(req, res);
 
     // Respond with the user information.
     return res.json(user);
   } catch (error: any) {
-    // delete req.session.challenge;
-    Session.deleteChallenge(req, res);
+    deleteChallenge(req, res);
 
     console.error(error);
     return res.status(400).send({ error: error.message });
@@ -273,8 +269,7 @@ router.post('/signinRequest', csrfCheck, async (
     } as GenerateAuthenticationOptionsOpts);
 
     // Keep the challenge value in a session.
-    // req.session.challenge = options.challenge;
-    Session.setChallenge(options.challenge, req, res);
+    setChallenge(options.challenge, req, res);
 
     return res.json(options)
   } catch (error: any) {
@@ -293,15 +288,14 @@ router.post('/signinResponse', csrfCheck, async (
 ) => {
   // Set expected values.
   const credential = req.body;
-  // const expectedChallenge = req.session.challenge;
-  const expectedChallenge = Session.getChallenge(req, res);
+  const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = process.env.HOSTNAME;
 
   try {
 
     if (!expectedChallenge) {
-      throw new Error('An empty challenge.');
+      throw new Error('Invalid challenge');
     }
 
     // Find the matching credential from the credential ID
@@ -341,25 +335,18 @@ router.post('/signinResponse', csrfCheck, async (
     }
 
     // Update the last used timestamp.
-    cred.last_used = (new Date()).getTime();
+    cred.last_used = getTime();
     await PublicKeyCredentials.update(cred);
 
     // Delete the challenge from the session.
-    // delete req.session.challenge;
-    Session.deleteChallenge(req, res);
+    deleteChallenge(req, res);
 
-    // Start a new session.
-    // req.session.username = user.username;
-    // req.session['signed-in'] = 'yes';
-
-    // Set a login status using the Login Status API
-    // res.set('Set-Login', 'logged-in');
-    await Session.signedIn(user.username, req, res);
+    // Set the user as a signed in status
+    await signedIn(user.username, req, res);
 
     return res.json(user);
   } catch (error: any) {
-    // delete req.session.challenge;
-    Session.deleteChallenge(req, res);
+    deleteChallenge(req, res);
 
     console.error(error);
     return res.status(400).json({ error: error.message });
