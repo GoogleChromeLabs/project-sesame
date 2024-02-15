@@ -73,8 +73,8 @@ router.get(
 
 router.get("/metadata", (req: Request, res: Response): any => {
   return res.json({
-    privacy_policy_url: `${process.env.ORIGIN}/privacy_policy`,
-    terms_of_service_url: `${process.env.ORIGIN}/terms_of_service`,
+    privacy_policy_url: `${config.origin}/privacy_policy`,
+    terms_of_service_url: `${config.origin}/terms_of_service`,
   });
 });
 
@@ -124,7 +124,7 @@ router.post(
     if (user.status === "") {
       const token = jwt.sign(
         {
-          iss: process.env.ORIGIN,
+          iss: config.origin,
           sub: user.id,
           aud: client_id,
           nonce,
@@ -153,7 +153,7 @@ router.post(
       return res.status(error_code).json({
         error: {
           code: user.status,
-          url: `${process.env.ORIGIN}/error.html&type=${user.status}`,
+          url: `${config.origin}/error.html&type=${user.status}`,
         },
       });
     }

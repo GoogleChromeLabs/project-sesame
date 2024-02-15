@@ -33,8 +33,9 @@ import {
   AuthenticatorAssertionResponseJSON,
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import { config } from '../config.js';
 import { Users } from '../libs/users.js';
-import { sessionCheck, signedIn, setChallenge, getChallenge, deleteChallenge } from "./session.js";
+import { sessionCheck, setChallenge, getChallenge, deleteChallenge, setSessionUser } from "./session.js";
 import { PublicKeyCredentials, SesamePublicKeyCredential } from '../libs/public-key-credentials.js';
 import { csrfCheck, getTime } from './common.js';
 import aaguids from '../static/aaguids.json' with { type: 'json' };
@@ -55,7 +56,7 @@ interface AAGUIDs {
 function getOrigin(
   userAgent: string = ''
 ): string {
-  let origin = process.env.ORIGIN;
+  let origin = config.origin;
   
   const appRe = /^[a-zA-z0-9_.]+/;
   const match = userAgent.match(appRe);
@@ -161,7 +162,7 @@ router.post('/registerRequest', csrfCheck, sessionCheck, async (
     // Use SimpleWebAuthn's handy function to create registration options.
     const options = await generateRegistrationOptions({
       rpName: process.env.PROJECT_NAME,
-      rpID: process.env.HOSTNAME,
+      rpID: config.hostname,
       userID: user.id,
       userName: user.username,
       userDisplayName: user.displayName || user.username,
@@ -193,7 +194,7 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   // Set expected values.
   const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
-  const expectedRPID = process.env.HOSTNAME;
+  const expectedRPID = config.hostname;
   const credential = req.body;
 
   try {
@@ -264,7 +265,7 @@ router.post('/signinRequest', csrfCheck, async (
   try {
     // Use SimpleWebAuthn's handy function to create a new authentication request.
     const options = await generateAuthenticationOptions({
-      rpID: process.env.HOSTNAME,
+      rpID: config.hostname,
       allowCredentials: [],
     } as GenerateAuthenticationOptionsOpts);
 
@@ -290,7 +291,7 @@ router.post('/signinResponse', csrfCheck, async (
   const credential = req.body;
   const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
-  const expectedRPID = process.env.HOSTNAME;
+  const expectedRPID = config.hostname;
 
   try {
 
@@ -342,7 +343,7 @@ router.post('/signinResponse', csrfCheck, async (
     deleteChallenge(req, res);
 
     // Set the user as a signed in status
-    await signedIn(user.username, req, res);
+    await setSessionUser(user, req, res);
 
     return res.json(user);
   } catch (error: any) {

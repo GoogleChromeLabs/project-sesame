@@ -18,7 +18,7 @@
 import express from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
-import { sessionCheck, signedIn, getChallenge } from "./session.js";
+import { sessionCheck, setSessionUser, getChallenge } from "./session.js";
 import { IdentityProviders } from "../libs/identity-providers.js";
 import { FederationMappings } from "../libs/federation-mappings.js";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -109,7 +109,7 @@ router.post("/verify", csrfCheck, async (req, res) => {
     }
 
     // Set the user as a signed in status
-    signedIn(token.email, req, res);
+    setSessionUser(user, req, res);
 
     return res.status(200).json(user);
   } catch (error: any) {

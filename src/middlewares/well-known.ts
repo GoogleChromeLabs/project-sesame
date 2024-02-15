@@ -15,6 +15,7 @@
  * limitations under the License
  */
 import express from 'express';
+import { config } from '../config.js';
 const router = express.Router();
 
 router.get('/assetlinks.json', (req, res) => {
@@ -27,7 +28,7 @@ router.get('/assetlinks.json', (req, res) => {
     relation: relation,
     target: {
       namespace: 'web',
-      site: process.env.ORIGIN,
+      site: config.origin,
     },
   });
   if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
@@ -48,14 +49,14 @@ router.get('/assetlinks.json', (req, res) => {
 });
 
 router.get('/webidentity', (req, res) => {
-  const fedcm_config_url = `${process.env.ORIGIN}/fedcm/config.json`;
+  const fedcm_config_url = `${config.origin}/fedcm/config.json`;
   return res.json({
     "provider_urls": [ fedcm_config_url ]
   });
 });
 
 router.get('/passkey-endpoints', (req, res) => {
-  const web_endpoint = `${process.env.ORIGIN}/home`;
+  const web_endpoint = `${config.origin}/home`;
   return res.json({ enroll: web_endpoint, manage: web_endpoint });
 });
 

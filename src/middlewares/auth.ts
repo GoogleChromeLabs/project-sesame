@@ -17,7 +17,15 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";
-import { sessionCheck, signOut, signedIn, setUsername, getUsername } from "./session.js";
+import {
+  sessionCheck,
+  signOut,
+  setUsername,
+  getUsername,
+  SignInStatus,
+  setSessionUser,
+  getEntrancePath,
+} from "./session.js";
 import { csrfCheck } from "./common.js";
 
 /**
@@ -32,14 +40,13 @@ router.post("/username", async (req: Request, res: Response) => {
     if (Users.isValidUsername(username)) {
       // See if account already exists
       let user = await Users.findByUsername(username);
-      // If user entry is not created yet, create one
-      if (!user) {
-        user = await Users.create(username);
-      }
+
+      // TODO: Examine if notifying user that the username doesn't exist is a good idea.
+
       // Set username in the session
       setUsername(username, req, res);
 
-      return res.json(user);
+      return res.json({});
     } else {
       throw new Error("Invalid username");
     }
@@ -54,24 +61,33 @@ router.post("/username", async (req: Request, res: Response) => {
  * No preceding registration required.
  * This only checks if `username` is not empty string and ignores the password.
  **/
-router.post("/password", async (req: Request, res: Response) => {
+router.post("/password", sessionCheck, async (req: Request, res: Response) => {
+  // TODO: Validate entered parameter.
   if (!req.body.password) {
     return res.status(401).json({ error: "Enter at least one random letter." });
+  }
+  if (res.locals.signin_status !== SignInStatus.SigningIn) {
+    return res
+      .status(400)
+      .json({ error: "The user is not signing in or already signed in." });
   }
   const username = getUsername(req, res);
   if (!username) {
     // TODO: Redirect to the entrance instead
-    return res.redirect(307, '/');
+    return res.redirect(307, "/");
   }
 
-  const user = await Users.findByUsername(username);
+  let user = await Users.findByUsername(username);
+
+  // TODO: Compare the entered password against the registered password.
+  // This is skipped for now.
 
   if (!user) {
-    return res.status(401).json({ error: "Enter username first." });
+    user = await Users.create(username);
   }
 
   // Set the user as a signed in status
-  signedIn(username, req, res);
+  setSessionUser(user, req, res);
 
   return res.json(user);
 });
@@ -108,13 +124,5 @@ router.post(
     }
   }
 );
-
-/**
- * Sign out the user.
- */
-router.get("/signout", (req: Request, res: Response) => {
-  // Remove the session
-  signOut('/', req, res);
-});
 
 export { router as auth };

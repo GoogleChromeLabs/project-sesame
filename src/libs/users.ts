@@ -57,6 +57,7 @@ export class Users {
   ): Promise<User> {
     let { picture, displayName, email }: any = options;
 
+    // TODO: Examine why gravatar is not registered.
     if (!picture) {
       picture = getGravatarUrl(username);
     }

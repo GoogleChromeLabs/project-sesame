@@ -15,12 +15,20 @@
  * limitations under the License
  */
 
-import { getTime } from "./common.js";
 import { Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { FirestoreStore } from "@google-cloud/connect-firestore";
-import { Users } from "../libs/users.js";
+import { getTime } from "./common.js";
 import { store, config } from "../config.js";
+import { User } from "../libs/users.js";
+
+export enum SignInStatus {
+  Unregistered = 0,
+  SignedOut = 1,
+  SigningIn = 2,
+  SignedIn = 3,
+  RecentlySignedIn = 4,
+}
 
 /**
  * Checks session cookie.
@@ -32,14 +40,31 @@ export async function sessionCheck(
   res: Response,
   next: NextFunction
 ): Promise<any> {
-  if (!isSignedIn(req, res)) {
+  res.locals.signin_status = getSignInStatus(req, res);
+  if (res.locals.signin_status >= SignInStatus.SigningIn) {
+    res.locals.username = getUsername(req, res);
+  }
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    res.locals.user = getSessionUser(req, res);
+  }
+  return next();
+}
+
+export async function apiFilter(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  res.locals.signin_status = getSignInStatus(req, res);
+  if (res.locals.signin_status === SignInStatus.SignedOut) {
     return res.status(401).json({ error: "not signed in." });
   }
-  const user = await Users.findByUsername(req.session.username);
-  if (!user) {
-    return res.status(401).json({ error: "user not found." });
+  if (res.locals.signin_status >= SignInStatus.SigningIn) {
+    res.locals.username = getUsername(req, res);
   }
-  res.locals.user = user;
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    res.locals.user = getSessionUser(req, res);
+  }
   return next();
 }
 
@@ -56,58 +81,34 @@ export function initializeSession() {
     cookie: {
       path: "/",
       httpOnly: true,
-      secure: !config.is_localhost,
-      maxAge: config.long_session_duration, // 1 year
+      secure: !config.is_localhost, // `false` on localhost
+      maxAge: config.long_session_duration,
     },
   });
 }
 
-export function signedIn(username: string, req: Request, res: Response) {
-  if (req.session.username !== undefined && req.session.username !== username) {
-    throw new Error("Trying to sign in with a wrong username.");
+export function getSignInStatus(req: Request, res: Response): SignInStatus {
+  const { username, signed_in, last_signedin_at, user } = req.session;
+
+  // TODO: Think about strict conditions and patterns of whether a user is signed in.
+
+  if (!username) {
+    // The user is signed out.
+    return SignInStatus.SignedOut;
   }
-  req.session.username = username;
-  req.session.signed_in = true;
-  req.session.last_signedin_at = getTime();
-
-  // Set a login status using the Login Status API
-  res.set("Set-Login", "logged-in");
-}
-
-export function signOut(nextPath: string, req: Request, res: Response) {
-  // Destroy the session
-  req.session.destroy(() => {});
-
-  // Set a login status using the Login Status API
-  res.set("Set-Login", "logged-out");
-
-  // Redirect to `/`
-  return res.redirect(307, nextPath);
-}
-
-export function isSignedIn(req: Request, res: Response): boolean {
-  // if (!req.session.username || req.session['signed-in'] !== 'yes') {
-  if (!req.session.username || !req.session.signed_in) {
-    // If user is not signed in, redirect to `/`.
-    return false;
-  }
-  return true;
-}
-
-export function isRecentlySignedIn(req: Request, res: Response): boolean {
-  // if (!req.session.username || req.session['signed-in'] !== 'yes') {
-  if (!req.session.username || !req.session.signed_in) {
-    // If user is not signed in, return false.
-    return false;
+  if (!signed_in) {
+    // The user is signing in, but not signed in yet.
+    return SignInStatus.SigningIn;
   }
   if (
-    !req.session.last_signedin_at ||
-    req.session.last_signedin_at < getTime(-config.short_session_duration)
+    !last_signedin_at ||
+    last_signedin_at < getTime(-config.short_session_duration)
   ) {
-    // If the last sign-in was older than the short session duration, return false.
-    return false;
+    // The user is signed in, but exceeds the short session duration (within the long session duration).
+    return SignInStatus.SignedIn;
   }
-  return true;
+  // The user is signed in, and within the short session duration.
+  return SignInStatus.RecentlySignedIn;
 }
 
 /**
@@ -154,4 +155,51 @@ export function setUsername(
 
 export function getUsername(req: Request, res: Response): string | undefined {
   return req.session.username;
+}
+
+export function setSessionUser(user: User, req: Request, res: Response): void {
+  deleteChallenge(req, res);
+
+  // TODO: Do we really need this check?
+  if (req.session.username !== undefined && req.session.username !== user.username) {
+    throw new Error("The user is trying to sign in with a wrong username.");
+  }
+  req.session.username = user.username;
+  req.session.signed_in = true;
+  req.session.last_signedin_at = getTime();
+  req.session.user = user;
+
+  // Set a login status using the Login Status API
+  res.set("Set-Login", "logged-in");
+  return;
+}
+
+export function getSessionUser(
+  req: Request,
+  res: Response
+): User {
+  if (res.locals.signin_status < SignInStatus.SignedIn || !req.session.user) {
+    throw new Error('User is not signed in.');
+  }
+  return req.session.user;
+}
+
+export function signOut(nextPath: string, req: Request, res: Response) {
+  // Destroy the session
+  req.session.destroy(() => {});
+
+  // Set a login status using the Login Status API
+  res.set("Set-Login", "logged-out");
+
+  // Redirect to `/`
+  return res.redirect(307, nextPath);
+}
+
+export function recordEntrance(req: Request, res: Response) {
+  req.session.entrance = req.path;
+  return;
+}
+
+export function getEntrancePath(req: Request, res: Response): string {
+  return req.session.entrance || '/';
 }

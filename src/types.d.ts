@@ -26,8 +26,10 @@ import {
   AuthenticatorAttachment,
   AuthenticatorTransportFuture
 } from '@simplewebauthn/types';
-import { JwtPayload } from 'jsonwebtoken'
-import { StringDecoder } from 'string_decoder'
+import { JwtPayload } from 'jsonwebtoken';
+import { StringDecoder } from 'string_decoder';
+import { SignInStatus } from './middlewares/session.ts';
+import { User } from './libs/users.js';
 
 interface AppLocals {
   is_localhost?: boolean;
@@ -36,10 +38,18 @@ interface AppLocals {
   id_token_lifetime?: number;
 }
 
+interface ResLocals {
+  signin_status: SignInStatus;
+  user: User;
+}
+
 declare global {
   namespace Express {
     interface Application {
       locals: AppLocals;
+    }
+    interface Response {
+      locals: ResLocals;
     }
   }
 }
@@ -52,10 +62,12 @@ declare module 'express-session' {
     username: string;
     // User information if the user is signed in.
     user?: User;
-    // Last signed in time in epoc;
+    // Last signed in time in epoc.
     last_signedin_at?: number;
     // Enrollment session for the second step.
     challenge?: string;
+    // The path from which the user signed in.
+    entrance?: string;
   }
 }
 
@@ -83,13 +95,6 @@ declare global {
       PORT: number;
     }
   }
-}
-
-export interface UserInfo {
-  user_id: string;
-  name: string;
-  displayName: string;
-  picture: string;
 }
 
 export interface WebAuthnRegistrationObject extends
