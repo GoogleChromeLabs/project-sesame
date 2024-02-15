@@ -73,8 +73,7 @@ router.post("/password", sessionCheck, async (req: Request, res: Response) => {
   }
   const username = getUsername(req, res);
   if (!username) {
-    // TODO: Redirect to the entrance instead
-    return res.redirect(307, "/");
+    return res.redirect(307, getEntrancePath(req, res));
   }
 
   let user = await Users.findByUsername(username);

@@ -26,7 +26,7 @@ import {
   SignInStatus,
   getEntrancePath,
   initializeSession,
-  recordEntrance,
+  setEntrancePath,
   sessionCheck,
   setChallenge,
   signOut,
@@ -72,7 +72,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/identifier-first-form", sessionCheck, (req, res) => {
-  recordEntrance(req, res);
+  setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
@@ -87,7 +87,7 @@ app.get("/identifier-first-form", sessionCheck, (req, res) => {
 });
 
 app.get("/passkey-one-button", sessionCheck, (req, res) => {
-  recordEntrance(req, res);
+  setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
@@ -102,7 +102,7 @@ app.get("/passkey-one-button", sessionCheck, (req, res) => {
 });
 
 app.get("/fedcm-rp", sessionCheck, (req, res) => {
-  recordEntrance(req, res);
+  setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
@@ -113,6 +113,7 @@ app.get("/fedcm-rp", sessionCheck, (req, res) => {
     return res.redirect(307, "/home");
   }
 
+  // Generate a new nonce.
   const nonce = setChallenge('', req, res);
 
   // If the user is not signed in, show `fedcm-rp.html` with id/password form.
@@ -121,8 +122,7 @@ app.get("/fedcm-rp", sessionCheck, (req, res) => {
 
 app.get("/password", sessionCheck, (req, res) => {
   if (res.locals.signin_status < SignInStatus.SigningIn) {
-    // If the user has not started signing in, redirect to `/`.
-    // TODO: The desitnation should be variable depending on where they come from.
+    // If the user has not started signing in, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
@@ -137,18 +137,14 @@ app.get("/password", sessionCheck, (req, res) => {
 
 app.get("/home", sessionCheck, (req, res) => {
   if (res.locals.signin_status < SignInStatus.SignedIn) {
-    // If the user has not signed in yet, redirect to `/`.
-    // TODO: The desitnation should be variable depending on where they come from.
+    // If the user has not signed in yet, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
   // `home.html` shows sign-out link
   return res.render("home.html");
 });
 
-app.get("/signout", (req, res) => {
-  // Terminate the session
-  signOut(getEntrancePath(req, res), req, res);
-});
+app.get("/signout", signOut);
 
 app.use("/auth", auth);
 app.use("/webauthn", webauthn);

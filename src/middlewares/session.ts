@@ -184,18 +184,18 @@ export function getSessionUser(
   return req.session.user;
 }
 
-export function signOut(nextPath: string, req: Request, res: Response) {
+export function signOut(req: Request, res: Response) {
   // Destroy the session
   req.session.destroy(() => {});
 
   // Set a login status using the Login Status API
   res.set("Set-Login", "logged-out");
 
-  // Redirect to `/`
-  return res.redirect(307, nextPath);
+  // Redirect to the original entrance.
+  return res.redirect(307, getEntrancePath(req, res));
 }
 
-export function recordEntrance(req: Request, res: Response) {
+export function setEntrancePath(req: Request, res: Response) {
   req.session.entrance = req.path;
   return;
 }
