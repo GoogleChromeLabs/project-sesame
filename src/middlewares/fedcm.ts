@@ -21,7 +21,7 @@ const router = express.Router();
 import { Users } from "../libs/users.js";
 import * as jwt from "jsonwebtoken";
 import { csrfCheck, getTime } from "./common.js";
-import { sessionCheck } from "./session.js";
+import { SignInStatus, sessionCheck } from "./session.js";
 import { RelyingParties } from "../libs/relying-parties.js";
 import { compareUrls } from "../libs/helpers.js";
 import { Base64URLString } from "@simplewebauthn/types";
@@ -38,7 +38,7 @@ router.get("/config.json", (req: Request, res: Response): any => {
       color: "#ffffff",
       icons: [
         {
-          url: "https://cdn.glitch.global/3e0c8298-f17f-4c5b-89ea-f93a6f29cb1e/icon.png?v=1654655899873",
+          url: `${config.origin}/images/favicon.svg`,
           size: 256,
         },
       ],
@@ -53,7 +53,7 @@ router.get(
   (req: Request, res: Response): any => {
     const user = res.locals.user;
 
-    if (user.status === "session_expired") {
+    if (res.locals.signin_status < SignInStatus.SignedIn) {
       return res.status(401).json({ error: "not signed in" });
     }
 
@@ -90,15 +90,19 @@ router.post(
       consent_acquired,
       disclosure_text_shown,
     } = req.body;
-    let user = res.locals.user;
+    let { user, signin_status } = res.locals.user;
 
-    // TODO: Revisit the hardcoded RP client ID handling
+    if (signin_status < SignInStatus.SignedIn) {
+      return res.status(401).json({ error: { 'code': 'access_denied' }});
+    }
+
     const rp = await RelyingParties.findByClientID(client_id);
 
     // Error when:
     // * the RP is not registered.
     // * The RP URL matches the requesting origin.
     // * the account does not match who is currently signed in.
+    // TODO: Apply the Error API https://developers.google.com/privacy-sandbox/3pcd/fedcm-developer-guide#error-response
     if (
       !rp ||
       !compareUrls(rp.origin, req.headers.origin) ||
