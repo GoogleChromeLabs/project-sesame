@@ -201,5 +201,5 @@ export function setEntrancePath(req: Request, res: Response) {
 }
 
 export function getEntrancePath(req: Request, res: Response): string {
-  return req.session.entrance || '/';
+  return req.session?.entrance || '/';
 }

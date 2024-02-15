@@ -18,9 +18,9 @@
 import { __dirname, configureApp, config } from "./config.js";
 import path from "path";
 import express from "express";
-import { engine } from "express-handlebars";
-const app = express();
+import helmet from 'helmet';
 import useragent from "express-useragent";
+import { engine } from "express-handlebars";
 import { auth } from "./middlewares/auth.js";
 import {
   SignInStatus,
@@ -35,7 +35,21 @@ import { webauthn } from "./middlewares/webauthn.js";
 import { federation } from "./middlewares/federation.js";
 import { wellKnown } from "./middlewares/well-known.js";
 
+const app = express();
 configureApp(app);
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      connectSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
+      scriptSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
+      imgSrc: ["'self'", "https://www.gravatar.com", "https://gravatar.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    },
+    // CSP is report-only if the app is running locally.
+    reportOnly: config.is_localhost
+  }
+}));
 
 const views = path.join(__dirname, "views");
 app.set("view engine", "html");
