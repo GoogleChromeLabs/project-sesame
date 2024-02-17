@@ -192,10 +192,10 @@ router.post('/registerResponse', csrfCheck, sessionCheck, async (
   res: Response,
 ) => {
   // Set expected values.
+  const credential = <RegistrationResponseJSON>req.body;
   const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = config.hostname;
-  const credential = req.body;
 
   try {
 
@@ -288,7 +288,7 @@ router.post('/signinResponse', csrfCheck, async (
   res: Response,
 ) => {
   // Set expected values.
-  const credential = req.body;
+  const credential = <AuthenticationResponseJSON>req.body;
   const expectedChallenge = getChallenge(req, res);
   const expectedOrigin = getOrigin(req.get('User-Agent'));
   const expectedRPID = config.hostname;

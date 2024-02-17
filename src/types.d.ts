@@ -62,7 +62,7 @@ declare module 'express-session' {
     username: string;
     // User information if the user is signed in.
     user?: User;
-    // Last signed in time in epoc.
+    // Last signed in time in epoch;
     last_signedin_at?: number;
     // Enrollment session for the second step.
     challenge?: string;
@@ -84,12 +84,10 @@ declare global {
       ANDROID_SHA256HASH: string;
       FIRESTORE_EMULATOR_HOST: string;
       FIRESTORE_DATABASENAME: string;
-      HOSTNAME: string;
       ID_TOKEN_LIFETIME: number;
       SHORT_SESSION_DURATION: number;
       LONG_SESSION_DURATION: number;
       NODE_ENV: string;
-      ORIGIN: string;
       PROJECT_NAME: string;
       SECRET: string;
       PORT: number;
