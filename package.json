@@ -21,6 +21,7 @@
     "fedcm"
   ],
   "dependencies": {
+    "@github/webauthn-json": "^2.1.1",
     "@google-cloud/connect-firestore": "3.0.0",
     "@simplewebauthn/server": "9.0.1",
     "@simplewebauthn/types": "9.0.1",

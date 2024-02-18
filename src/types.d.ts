@@ -52,6 +52,21 @@ declare global {
       locals: ResLocals;
     }
   }
+  namespace NodeJS {
+    interface ProcessEnv {
+      ANDROID_PACKAGENAME: string;
+      ANDROID_SHA256HASH: string;
+      FIRESTORE_EMULATOR_HOST: string;
+      FIRESTORE_DATABASENAME: string;
+      ID_TOKEN_LIFETIME: number;
+      SHORT_SESSION_DURATION: number;
+      LONG_SESSION_DURATION: number;
+      NODE_ENV: string;
+      PROJECT_NAME: string;
+      SECRET: string;
+      PORT: number;
+    }
+  }
 }
 
 declare module 'express-session' {

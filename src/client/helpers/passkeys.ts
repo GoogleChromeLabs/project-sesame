@@ -31,6 +31,111 @@ import {
   AuthenticationExtensionsClientOutputs,
 } from '@simplewebauthn/types';
 
+if (PublicKeyCredential) {
+  // @ts-ignore
+  if (!PublicKeyCredential?.parseCreationOptionsFromJSON) {
+    // @ts-ignore
+    PublicKeyCredential.parseCreationOptionsFromJSON = (
+      options: PublicKeyCredentialCreationOptionsJSON
+    ): PublicKeyCredentialCreationOptions => {
+      const user = {
+        ...options.user,
+        id: base64url.decode(options.user.id),
+      } as PublicKeyCredentialUserEntity;
+      const challenge = base64url.decode(options.challenge);
+      const excludeCredentials =
+        options.excludeCredentials?.map((cred) => {
+          return {
+            ...cred,
+            id: base64url.decode(cred.id),
+          } as PublicKeyCredentialDescriptor;
+        }) ?? [];
+      return {
+        ...options,
+        user,
+        challenge,
+        excludeCredentials,
+      } as PublicKeyCredentialCreationOptions;
+    };
+  }
+  // @ts-ignore
+  if (!PublicKeyCredential?.parseRequestOptionsFromJSON) {
+    // @ts-ignore
+    PublicKeyCredential.parseRequestOptionsFromJSON = (
+      options: PublicKeyCredentialRequestOptionsJSON
+    ): PublicKeyCredentialRequestOptions => {
+      const challenge = base64url.decode(options.challenge);
+      const allowCredentials =
+        options.allowCredentials?.map((cred) => {
+          return {
+            ...cred,
+            id: base64url.decode(cred.id),
+          } as PublicKeyCredentialDescriptor;
+        }) ?? [];
+      return {
+        ...options,
+        allowCredentials,
+        challenge,
+      } as PublicKeyCredentialRequestOptions;
+    };
+  }
+  // if (!PublicKeyCredential.prototype.toJSON) {
+  //   // @ts-ignore
+  //   PublicKeyCredential.prototype.toJSON = (): AuthenticationResponseJSON | RegistrationResponseJSON => {
+  //     try {
+  //       // @ts-ignore
+  //       const id = this.id;
+  //       // @ts-ignore
+  //       const rawId = base64url.encode(this.rawId);
+  //       // @ts-ignore
+  //       const authenticatorAttachment = this.authenticatorAttachment;
+  //       const clientExtensionResults = {};
+  //       // @ts-ignore
+  //       const type = this.type;
+  //       // @ts-ignore
+  //       if (this.response.signature) {
+  //         return {
+  //           id,
+  //           rawId,
+  //           response: {
+  //             // @ts-ignore
+  //             authenticatorData: base64url.encode(this.response.authenticatorData),
+  //             // @ts-ignore
+  //             clientDataJSON: base64url.encode(this.response.clientDataJSON),
+  //             // @ts-ignore
+  //             signature: base64url.encode(this.response.signature),
+  //             // @ts-ignore
+  //             userHandle: base64url.encode(this.response.userHandle),
+  //           },
+  //           authenticatorAttachment,
+  //           clientExtensionResults,
+  //           type,
+  //         } as AuthenticationResponseJSON;
+  //       } else {
+  //         return {
+  //           id,
+  //           rawId,
+  //           response: {
+  //             // @ts-ignore
+  //             clientDataJSON: base64url.encode(this.response.clientDataJSON),
+  //             // @ts-ignore
+  //             attestationObject: base64url.encode(this.response.attestationObject),
+  //             // @ts-ignore
+  //             transports: this.response?.getTransports() || [],
+  //           },
+  //           authenticatorAttachment,
+  //           clientExtensionResults,
+  //           type,
+  //         } as RegistrationResponseJSON;
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //       throw error;
+  //     }
+  //   }
+  // }
+}
+
 /**
  * Create and register a new passkey
  * @returns A promise that resolves with a server response.
@@ -41,29 +146,20 @@ export async function registerCredential(): Promise<any> {
     '/webauthn/registerRequest'
   );
 
-  const user = {
-    ...options.user,
-    id: base64url.decode(options.user.id),
-  } as PublicKeyCredentialUserEntity;
-  const challenge = base64url.decode(options.challenge);
-  const excludeCredentials =
-    options.excludeCredentials?.map(cred => {
-      return {
-        ...cred,
-        id: base64url.decode(cred.id),
-      } as PublicKeyCredentialDescriptor;
-    }) ?? [];
-  const decodedOptions = {
-    ...options,
-    user,
-    challenge,
-    excludeCredentials,
-  } as PublicKeyCredentialCreationOptions;
+  // @ts-ignore
+  const decodedOptions = PublicKeyCredential.parseCreationOptionsFromJSON(options);
 
   // Invoke WebAuthn create
   const cred = (await navigator.credentials.create({
     publicKey: decodedOptions,
   })) as RegistrationCredential;
+
+  // if (!cred) {
+  //   throw new Error("Failed to create credential");
+  // }
+
+  // // @ts-ignore
+  // const encodedCredential = cred.toJSON();
 
   // Base64URL encode some values
   const rawId = base64url.encode(cred.rawId);
@@ -99,22 +195,8 @@ export async function authenticate(conditional = false): Promise<any> {
     '/webauthn/signinRequest'
   );
 
-  // Base64URL decode the challenge
-  const challenge = base64url.decode(options.challenge);
-
-  // `allowCredentials` empty array invokes an account selector by discoverable credentials.
-  const allowCredentials =
-    options.allowCredentials?.map(cred => {
-      return {
-        ...cred,
-        id: base64url.decode(cred.id),
-      } as PublicKeyCredentialDescriptor;
-    }) ?? [];
-  const decodedOptions = {
-    ...options,
-    allowCredentials,
-    challenge,
-  } as PublicKeyCredentialRequestOptions;
+  // @ts-ignore
+  const decodedOptions = PublicKeyCredential.parseRequestOptionsFromJSON(options);
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
@@ -122,6 +204,13 @@ export async function authenticate(conditional = false): Promise<any> {
     // Request a conditional UI
     mediation: conditional ? 'conditional' : 'optional',
   })) as AuthenticationCredential;
+
+  // if (!cred) {
+  //   throw new Error("Failed to get credential");
+  // }
+
+  // // @ts-ignore
+  // const encodedCredential = cred.toJSON();
 
   // Base64URL encode the credential
   const rawId = base64url.encode(cred.rawId);
