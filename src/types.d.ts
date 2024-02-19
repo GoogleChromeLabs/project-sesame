@@ -28,8 +28,8 @@ import {
 } from '@simplewebauthn/types';
 import { JwtPayload } from 'jsonwebtoken';
 import { StringDecoder } from 'string_decoder';
-import { SignInStatus } from './middlewares/session.ts';
-import { User } from './libs/users.js';
+import { SignInStatus } from './server/middlewares/session.ts';
+import { User } from './server/libs/users.ts';
 
 interface AppLocals {
   is_localhost?: boolean;

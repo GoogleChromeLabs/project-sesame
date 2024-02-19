@@ -19,7 +19,7 @@ import { Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { FirestoreStore } from "@google-cloud/connect-firestore";
 import { getTime } from "./common.js";
-import { store, config } from "../config.js";
+import { store, config } from "../../config.js";
 import { User } from "../libs/users.js";
 
 export enum SignInStatus {

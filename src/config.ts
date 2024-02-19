@@ -31,6 +31,7 @@ interface AppConfig {
   debug: boolean;
   is_localhost: boolean;
   origin: string;
+  port: number;
   hostname: string;
   title: string;
   repository_url: string;
@@ -39,7 +40,7 @@ interface AppConfig {
   long_session_duration: number;
 }
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost = process.env.NODE_ENV === 'localhost' || !process.env.NODE_ENV;
 
 if (is_localhost) {
   process.env.FIRESTORE_EMULATOR_HOST = `${firebaseJson.emulators.firestore.host}:${firebaseJson.emulators.firestore.port}`;
@@ -53,6 +54,7 @@ export const config: AppConfig = {
   debug: false,
   is_localhost,
   origin: '',
+  port: process.env.PORT || 8080,
   hostname: '',
   title: '',
   repository_url: '',
@@ -62,11 +64,10 @@ export const config: AppConfig = {
 };
 
 export function configureApp(app: Express) {
-  if (!process.env.ORIGIN) {
+  if (!config.is_localhost && !process.env.ORIGIN) {
     throw new Error('Environment variable `ORIGIN` is not set.');
   }
-  const port = process.env.PORT || 8080;
-  config.origin = is_localhost ? `http://localhost:${port}` : process.env.ORIGIN;
+  config.origin = is_localhost ? `http://localhost:${config.port}` : process.env.ORIGIN;
   config.hostname = (new URL(config.origin)).hostname;
   config.title = process.env.PROJECT_NAME;
   config.repository_url = npm_package.repository.url;

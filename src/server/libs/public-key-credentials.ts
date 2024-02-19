@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { store } from "../config.js";
+import { store } from "../../config.js";
 import {
   Base64URLString,
   CredentialDeviceType,

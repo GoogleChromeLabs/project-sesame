@@ -33,12 +33,12 @@ import {
   AuthenticatorAssertionResponseJSON,
 } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { config } from '../config.js';
+import { config } from '../../config.js';
 import { Users } from '../libs/users.js';
 import { sessionCheck, setChallenge, getChallenge, deleteChallenge, setSessionUser } from "./session.js";
 import { PublicKeyCredentials, SesamePublicKeyCredential } from '../libs/public-key-credentials.js';
 import { csrfCheck, getTime } from './common.js';
-import aaguids from '../static/aaguids.json' with { type: 'json' };
+import aaguids from '../../static/aaguids.json' with { type: 'json' };
 
 interface AAGUIDs {
   [key: string]: {

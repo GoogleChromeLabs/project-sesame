@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { config } from "../config.js";
+import { config } from "../../config.js";
 import express, { Request, Response } from "express";
 const router = express.Router();
 import { Users } from "../libs/users.js";

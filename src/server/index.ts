@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { __dirname, configureApp, config } from "./config.js";
+import { __dirname, configureApp, config } from "../config.js";
 import path from "path";
 import express from "express";
 import helmet from 'helmet';
@@ -164,4 +164,6 @@ app.use("/auth", auth);
 app.use("/webauthn", webauthn);
 app.use("/federation", federation);
 app.use("/.well-known", wellKnown);
-app.listen(process.env.PORT || 8080);
+
+app.listen(config.port);
+console.log(`App listening at ${config.origin}`);

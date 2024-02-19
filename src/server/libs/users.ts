@@ -16,7 +16,7 @@
  */
 
 import { getGravatarUrl } from "./helpers.js";
-import { store } from "../config.js";
+import { store } from "../../config.js";
 import crypto from "crypto";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { Base64URLString } from "@simplewebauthn/types";
