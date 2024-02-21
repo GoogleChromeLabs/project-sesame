@@ -15,4 +15,4 @@
  * limitations under the License
  */
 
-import '../layout.ts';
+import '~project-sesame/client/layout.ts';

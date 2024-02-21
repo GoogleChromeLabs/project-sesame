@@ -15,15 +15,16 @@
  * limitations under the License
  */
 
-import '../layout';
 import {Base64URLString} from '@simplewebauthn/types';
-import {$, _fetch, loading} from '../helpers/index';
+import {html, render} from 'lit';
+
+import {$, _fetch, loading} from '~project-sesame/client/helpers/index';
 import {
   registerCredential,
-  updateCredential,
   unregisterCredential,
-} from '../helpers/passkeys';
-import {html, render} from 'lit';
+  updateCredential,
+} from '~project-sesame/client/helpers/passkeys';
+import '~project-sesame/client/layout';
 
 const aaguids = await fetch('/aaguids.json');
 const icons = await aaguids.json();

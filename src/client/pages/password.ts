@@ -15,7 +15,9 @@
  * limitations under the License
  */
 
-import '../layout';
-import {postForm} from '../helpers';
 import '@material/web/textfield/outlined-text-field';
+
+import '~project-sesame/client/layout';
+import {postForm} from '~project-sesame/client/helpers';
+
 postForm('/home');

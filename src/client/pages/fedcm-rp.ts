@@ -15,8 +15,8 @@
  * limitations under the License
  */
 
-import '../layout';
-import {$, _fetch, postForm, toast} from '../helpers/index';
+import '~project-sesame/client/layout';
+import {$, _fetch, postForm, toast} from '~project-sesame/client/helpers/index';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
 const {IdentityProvider} = await import(

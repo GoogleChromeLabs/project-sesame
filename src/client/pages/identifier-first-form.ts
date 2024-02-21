@@ -15,10 +15,11 @@
  * limitations under the License
  */
 
-import '../layout';
-import {$, loading, redirect, postForm} from '../helpers/index';
-import {authenticate} from '../helpers/passkeys';
 import '@material/web/textfield/outlined-text-field';
+
+import '~project-sesame/client/layout';
+import {$, loading, redirect, postForm} from '~project-sesame/client/helpers';
+import {authenticate} from '~project-sesame/client/helpers/passkeys';
 
 postForm('/password');
 

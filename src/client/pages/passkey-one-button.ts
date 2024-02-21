@@ -15,9 +15,9 @@
  * limitations under the License
  */
 
-import '../layout';
-import {$, _fetch, loading, redirect} from '../helpers/index';
-import {authenticate} from '../helpers/passkeys';
+import '~project-sesame/client/layout';
+import {$, _fetch, loading, redirect} from '~project-sesame/client/helpers';
+import {authenticate} from '~project-sesame/client/helpers/passkeys';
 
 if (window.PublicKeyCredential) {
   $('#passkey-signin').addEventListener(
