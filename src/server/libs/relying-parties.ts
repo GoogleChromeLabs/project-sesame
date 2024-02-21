@@ -33,7 +33,7 @@ export class RelyingParties {
   ];
 
   static async findByClientID(
-    client_id: Base64URLString
+    client_id: Base64URLString,
   ): Promise<RelyingParty | undefined> {
     const rp = RelyingParties.rps.find((rp) => rp.client_id === client_id);
     const clone = structuredClone(rp);

@@ -53,7 +53,7 @@ export class Users {
       picture?: string;
       displayName?: string;
       email?: string;
-    } = {}
+    } = {},
   ): Promise<User> {
     let { picture, displayName, email }: any = options;
 

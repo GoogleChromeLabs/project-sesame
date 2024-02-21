@@ -38,7 +38,7 @@ import {
 export async function registerCredential(): Promise<any> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await _fetch(
-    "/webauthn/registerRequest"
+    "/webauthn/registerRequest",
   );
 
   const user = {
@@ -93,12 +93,10 @@ export async function registerCredential(): Promise<any> {
  * @param { boolean } conditional Set to `true` if this is for a conditional UI.
  * @returns A promise that resolves with a server response.
  */
-export async function authenticate(
-  conditional: boolean = false
-): Promise<any> {
+export async function authenticate(conditional = false): Promise<any> {
   // Fetch passkey request options from the server.
   const options: PublicKeyCredentialRequestOptionsJSON = await _fetch(
-    "/webauthn/signinRequest"
+    "/webauthn/signinRequest",
   );
 
   // Base64URL decode the challenge
@@ -150,7 +148,7 @@ export async function authenticate(
   } as AuthenticationResponseJSON;
 
   // Send the result to the server and return the promise.
-  return await _fetch(`/webauthn/signinResponse`, encodedCredential);
+  return await _fetch("/webauthn/signinResponse", encodedCredential);
 }
 
 /**
@@ -161,9 +159,9 @@ export async function authenticate(
  */
 export async function updateCredential(
   credId: Base64URLString,
-  newName: string
+  newName: string,
 ): Promise<any> {
-  return _fetch(`/webauthn/renameKey`, { credId, newName });
+  return _fetch("/webauthn/renameKey", { credId, newName });
 }
 
 /**
@@ -172,7 +170,7 @@ export async function updateCredential(
  * @returns a promise that resolves with a server response.
  */
 export async function unregisterCredential(
-  credId: Base64URLString
+  credId: Base64URLString,
 ): Promise<any> {
   return _fetch(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
 }

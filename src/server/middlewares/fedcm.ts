@@ -20,8 +20,14 @@ import express, { Request, Response } from "express";
 const router = express.Router();
 import { Users } from "~project-sesame/server/libs/users.ts";
 import * as jwt from "jsonwebtoken";
-import { csrfCheck, getTime } from "~project-sesame/server/middlewares/common.ts";
-import { SignInStatus, sessionCheck } from "~project-sesame/server/middlewares/session.ts";
+import {
+  csrfCheck,
+  getTime,
+} from "~project-sesame/server/middlewares/common.ts";
+import {
+  SignInStatus,
+  sessionCheck,
+} from "~project-sesame/server/middlewares/session.ts";
 import { RelyingParties } from "~project-sesame/server/libs/relying-parties.ts";
 import { compareUrls } from "~project-sesame/server/libs/helpers.ts";
 import { Base64URLString } from "@simplewebauthn/types";
@@ -68,7 +74,7 @@ router.get(
         },
       ],
     });
-  }
+  },
 );
 
 router.get("/metadata", (req: Request, res: Response): any => {
@@ -90,10 +96,10 @@ router.post(
       consent_acquired,
       disclosure_text_shown,
     } = req.body;
-    let { user, signin_status } = res.locals.user;
+    const { user, signin_status } = res.locals.user;
 
     if (signin_status < SignInStatus.SignedIn) {
-      return res.status(401).json({ error: { 'code': 'access_denied' }});
+      return res.status(401).json({ error: { code: 'access_denied' } });
     }
 
     const rp = await RelyingParties.findByClientID(client_id);
@@ -138,7 +144,7 @@ router.post(
           email: user.username,
           picture: user.picture,
         },
-        config.secret
+        config.secret,
       );
 
       return res.json({ token });
@@ -161,7 +167,7 @@ router.post(
         },
       });
     }
-  }
+  },
 );
 
 router.post(
@@ -186,11 +192,11 @@ router.post(
 
     // Remove the client ID from the `approved_clients` list.
     user.approved_clients = user.approved_clients.filter(
-      (_client_id: Base64URLString) => _client_id !== client_id
+      (_client_id: Base64URLString) => _client_id !== client_id,
     );
     Users.update(user);
     return res.json({ account_id: user.id });
-  }
+  },
 );
 
 export { router as fedcm };

@@ -29,5 +29,8 @@ import { Drawer } from '@material/mwc-drawer';
 
 document.addEventListener('DOMContentLoaded', () => {
   const drawer: Drawer | null = document.querySelector('mwc-drawer');
-  drawer?.addEventListener('MDCTopAppBar:nav', () => drawer.open = !drawer.open);
+  drawer?.addEventListener(
+    'MDCTopAppBar:nav',
+    () => (drawer.open = !drawer.open),
+  );
 });

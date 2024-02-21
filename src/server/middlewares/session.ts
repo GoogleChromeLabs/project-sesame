@@ -38,7 +38,7 @@ export enum SignInStatus {
 export async function sessionCheck(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
   if (res.locals.signin_status >= SignInStatus.SigningIn) {
@@ -53,7 +53,7 @@ export async function sessionCheck(
 export async function apiFilter(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
   if (res.locals.signin_status === SignInStatus.SignedOut) {
@@ -114,16 +114,16 @@ export function getSignInStatus(req: Request, res: Response): SignInStatus {
 /**
  * Sets the challenge value for the session.
  * If the challenge is not provided, a random challenge value is generated.
- * 
+ *
  * @param challenge - The challenge value to set (optional)
  * @param req - The request object
  * @param res - The response object
  * @returns The challenge value that was set
  */
 export function setChallenge(
-  challenge: string = "",
+  challenge = "",
   req: Request,
-  res: Response
+  res: Response,
 ): string {
   if (challenge === "") {
     challenge = Math.floor(Math.random() * 10e10).toString();
@@ -144,7 +144,7 @@ export function deleteChallenge(req: Request, res: Response): void {
 export function setUsername(
   username: string,
   req: Request,
-  res: Response
+  res: Response,
 ): void {
   if (!username) {
     throw new Error("Invalid username.");
@@ -161,7 +161,10 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
 
   // TODO: Do we really need this check?
-  if (req.session.username !== undefined && req.session.username !== user.username) {
+  if (
+    req.session.username !== undefined &&
+    req.session.username !== user.username
+  ) {
     throw new Error("The user is trying to sign in with a wrong username.");
   }
   req.session.username = user.username;
@@ -174,10 +177,7 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
   return;
 }
 
-export function getSessionUser(
-  req: Request,
-  res: Response
-): User {
+export function getSessionUser(req: Request, res: Response): User {
   if (res.locals.signin_status < SignInStatus.SignedIn || !req.session.user) {
     throw new Error('User is not signed in.');
   }

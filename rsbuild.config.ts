@@ -32,15 +32,15 @@ export default defineConfig({
       // this can be heavily cleaned up once the frontend code has
       // some more structure
       'fedcm-rp': './src/client/pages/fedcm-rp.ts',
-      'home': './src/client/pages/home.ts',
+      home: './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
-      'password': './src/client/pages/password.ts',
+      password: './src/client/pages/password.ts',
     },
   },
   html: {
     template: './src/client/layout.html',
-    title: '{{ title }} | Project Sesame'
+    title: '{{ title }} | Project Sesame',
   },
   output: {
     cleanDistPath: true,
@@ -57,7 +57,7 @@ export default defineConfig({
         from: './src/shared',
         to: '../shared',
       },
-    ]
+    ],
   },
   dev: {
     writeToDisk: true,
@@ -67,19 +67,19 @@ export default defineConfig({
     proxy: {
       '/': {
         target: 'http://localhost:8888',
-        // Requests to /static or related to hot-updates 
+        // Requests to /static or related to hot-updates
         // can be served directly by rsbuild's
         // DevServer and don't need to be proxied.
         bypass: function (req, res, proxyOptions) {
           if (req.url && req.url.includes('/static/')) {
-            return req.url
+            return req.url;
           }
 
           if (req.url && req.url.includes('.hot-update.json')) {
-            return req.url
+            return req.url;
           }
         },
-      }
+      },
     },
   },
 });

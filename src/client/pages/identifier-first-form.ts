@@ -23,8 +23,10 @@ import '@material/web/textfield/outlined-text-field';
 postForm('/password');
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
-if (window.PublicKeyCredential &&
-    PublicKeyCredential.isConditionalMediationAvailable) {
+if (
+  window.PublicKeyCredential &&
+  PublicKeyCredential.isConditionalMediationAvailable
+) {
   try {
     const cma = await PublicKeyCredential.isConditionalMediationAvailable();
     if (cma) {

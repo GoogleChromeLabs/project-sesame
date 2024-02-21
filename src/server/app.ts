@@ -53,29 +53,34 @@ function configureTemplateEngine(app: express.Application) {
       defaultLayout: 'index',
       layoutsDir: path.join(config.viewsRootFilePath, 'layouts'),
       partialsDir: path.join(config.viewsRootFilePath, 'partials'),
-    })
+    }),
   );
   app.set('views', path.join(config.viewsRootFilePath));
 }
 
 configureTemplateEngine(app);
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      connectSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
-      scriptSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
-      imgSrc: ["'self'", "https://www.gravatar.com", "https://gravatar.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        connectSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
+        scriptSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
+        imgSrc: ["'self'", "https://www.gravatar.com", "https://gravatar.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      },
+      // CSP is report-only if the app is running locally.
+      reportOnly: config.isLocalhost,
     },
-    // CSP is report-only if the app is running locally.
-    reportOnly: config.isLocalhost
-  }
-}));
+  }),
+);
 
 app.use(express.json());
 app.use(useragent.express());
-app.use('static', express.static(path.join(config.distRootFilePath, "client/static")));
+app.use(
+  'static',
+  express.static(path.join(config.distRootFilePath, 'client/static')),
+);
 app.use(express.static(path.join(config.distRootFilePath, "shared/public")));
 app.use(initializeSession());
 
@@ -96,8 +101,8 @@ app.get("/identifier-first-form", sessionCheck, (req, res) => {
   }
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render("identifier-first-form.html", {
-    "title": "Identifier-first form",
-    "layout": "identifier-first-form",
+    title: "Identifier-first form",
+    layout: "identifier-first-form",
   });
 });
 
@@ -113,10 +118,9 @@ app.get("/passkey-one-button", sessionCheck, (req, res) => {
     return res.redirect(307, "/home");
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render("passkey-one-button.html", 
-  {
-    "title": "Identifier-first form",
-    "layout": "identifier-first-form",
+  return res.render("passkey-one-button.html", {
+    title: "Identifier-first form",
+    layout: "identifier-first-form",
   });
 });
 

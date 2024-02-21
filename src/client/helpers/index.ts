@@ -21,7 +21,7 @@ export const $: any = document.querySelector.bind(document);
 
 export const redirect = (path: string) => {
   location.href = path;
-}
+};
 
 export function toast(text: string): void {
   $("#snackbar").labelText = text;

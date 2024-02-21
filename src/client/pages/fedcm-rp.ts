@@ -19,11 +19,15 @@ import '../layout';
 import { $, _fetch, postForm, toast } from '../helpers/index';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
-const { IdentityProvider } = await import(/* webpackIgnore: true */'https://fedcm-idp-demo.glitch.me/fedcm.js')
+const { IdentityProvider } = await import(
+  /* webpackIgnore: true */ 'https://fedcm-idp-demo.glitch.me/fedcm.js'
+);
 
 let idpInfo: any;
 try {
-  idpInfo = await _fetch('/federation/idp', { url: 'https://fedcm-idp-demo.glitch.me' });
+  idpInfo = await _fetch('/federation/idp', {
+    url: 'https://fedcm-idp-demo.glitch.me',
+  });
 } catch (error: any) {
   console.error(error);
   toast(error.message);
@@ -31,7 +35,7 @@ try {
 
 const idp = new IdentityProvider({
   configURL: idpInfo.configURL,
-  clientId: idpInfo.clientId
+  clientId: idpInfo.clientId,
 });
 
 postForm('/password');
@@ -54,7 +58,7 @@ const signIn = async () => {
     console.info(error);
     toast(error.message);
   }
-}
+};
 
 if ('IdentityCredential' in window) {
   await signIn();

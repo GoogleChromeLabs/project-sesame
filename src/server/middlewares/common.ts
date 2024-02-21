@@ -20,7 +20,11 @@ import { Request, Response, NextFunction } from "express";
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
  **/
-export function csrfCheck(req: Request, res: Response, next: NextFunction): any {
+export function csrfCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): any {
   if (req.header("X-Requested-With") != "XMLHttpRequest") {
     return res.status(400).json({ error: "invalid access." });
   }
@@ -28,6 +32,6 @@ export function csrfCheck(req: Request, res: Response, next: NextFunction): any 
   return next();
 }
 
-export function getTime(offset: number = 0): number {
-  return (new Date()).getTime() + offset;
+export function getTime(offset = 0): number {
+  return new Date().getTime() + offset;
 }

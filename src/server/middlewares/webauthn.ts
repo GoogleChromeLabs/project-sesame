@@ -35,7 +35,7 @@ import {
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { config } from '../config.js';
 import { Users } from '../libs/users.js';
-import { sessionCheck, setChallenge, getChallenge, deleteChallenge, setSessionUser } from "./session.js";
+import { sessionCheck, setChallenge, getChallenge, deleteChallenge, setSessionUser } from './session.js';
 import { PublicKeyCredentials, SesamePublicKeyCredential } from '../libs/public-key-credentials.js';
 import { csrfCheck, getTime } from './common.js';
 import aaguids from '../../shared/public/aaguids.json' with { type: 'json' };
@@ -54,19 +54,19 @@ interface AAGUIDs {
  * @returns A string that indicates an expected origin.
  */
 function getOrigin(
-  userAgent: string = ''
+  userAgent = ''
 ): string {
   let origin = config.origin;
-  
+
   const appRe = /^[a-zA-z0-9_.]+/;
   const match = userAgent.match(appRe);
   if (match) {
     // Check if UserAgent comes from a supported Android app.
     if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
       // `process.env.ANDROID_PACKAGENAME` is expected to have a comma separated package names.
-      const package_names = process.env.ANDROID_PACKAGENAME.split(",").map(name => name.trim());
+      const package_names = process.env.ANDROID_PACKAGENAME.split(',').map(name => name.trim());
       // `process.env.ANDROID_SHA256HASH` is expected to have a comma separated hash values.
-      const hashes = process.env.ANDROID_SHA256HASH.split(",").map(hash => hash.trim());
+      const hashes = process.env.ANDROID_SHA256HASH.split(',').map(hash => hash.trim());
       const appName = match[0];
       // Find and construct the expected origin string.
       for (let i = 0; i < package_names.length; i++) {
@@ -83,7 +83,7 @@ function getOrigin(
       }
     }
   }
-  
+
   return origin;
 }
 

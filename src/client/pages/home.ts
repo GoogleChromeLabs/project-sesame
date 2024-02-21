@@ -36,7 +36,7 @@ async function changeDisplayName(e: {
 }): Promise<void> {
   const newName = prompt(
     "Enter a new display name",
-    e.target.dataset.displayName
+    e.target.dataset.displayName,
   );
   if (!newName?.length) {
     loading.start();
@@ -67,7 +67,7 @@ async function renderDisplayName(): Promise<void> {
         </md-icon-button>
       </div>
     `,
-    $("#userinfo")
+    $("#userinfo"),
   );
 }
 
@@ -75,7 +75,10 @@ async function renderDisplayName(): Promise<void> {
  * Rename and update the credential name.
  */
 async function rename(e: { target: HTMLButtonElement }): Promise<void> {
-  const { credId, name } = e.target.dataset as { credId: Base64URLString, name: string };
+  const { credId, name } = e.target.dataset as {
+    credId: Base64URLString;
+    name: string;
+  };
   const newName = prompt("Enter a new credential name.", name);
   if (!newName?.length) return;
   try {
@@ -145,8 +148,8 @@ async function renderCredentials(): Promise<void> {
   const list = $("#list");
   const creds =
     res.length > 0
-      // TODO: Define `cred` type across the server and the client
-      ? html`${res.map((cred: any, i: number) => {
+      ? // TODO: Define `cred` type across the server and the client
+        html`${res.map((cred: any, i: number) => {
           const created = new Date(cred.registeredAt);
           const createdDate = created.toLocaleDateString(undefined, {
             month: "short",

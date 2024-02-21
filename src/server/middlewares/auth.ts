@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import {Router, Request, Response } from "express";
+import { Router, Request, Response } from "express";
 import { Users } from "~project-sesame/server/libs/users.ts";
 import {
   sessionCheck,
@@ -40,7 +40,7 @@ router.post("/username", async (req: Request, res: Response) => {
     // Only check username, no need to check password as this is a mock
     if (Users.isValidUsername(username)) {
       // See if account already exists
-      let user = await Users.findByUsername(username);
+      const user = await Users.findByUsername(username);
 
       // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
@@ -102,7 +102,7 @@ router.post(
   (req: Request, res: Response) => {
     const { user } = res.locals;
     return res.json(user);
-  }
+  },
 );
 
 /**
@@ -122,7 +122,7 @@ router.post(
     } else {
       return res.status(400);
     }
-  }
+  },
 );
 
 export { router as auth };

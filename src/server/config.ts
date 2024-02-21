@@ -67,7 +67,7 @@ function configureApp() {
   if (!origin) {
     throw new Error('Environment variable `ORIGIN` is not set.');
   }
-  
+
   return {
     debug: isLocalhost || process.env.NODE_ENV === 'development',
     projectRootFilePath,

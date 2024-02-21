@@ -35,17 +35,18 @@
     "jsonwebtoken": "9.0.2"
   },
   "devDependencies": {
-    "@rsbuild/core": "^0.4.4",
-    "esbuild": "^0.20.1",
-    "firebase-tools": "13.2.1",
-    "nodemon": "3.0.3",
-    "rimraf": "5.0.5",
     "@material/mwc-drawer": "0.27.0",
     "@material/mwc-snackbar": "0.27.0",
     "@material/mwc-top-app-bar": "0.27.0",
     "@material/textfield": "14.0.0",
     "@material/web": "1.2.0",
-    "lit": "3.1.2"
+    "@rsbuild/core": "0.4.4",
+    "esbuild": "0.20.1",
+    "firebase-tools": "13.2.1",
+    "gts": "5.2.0",
+    "lit": "3.1.2",
+    "nodemon": "3.0.3",
+    "rimraf": "5.0.5"
   },
   "optionalDependencies": {
     "@types/express": "4.17.21",
@@ -66,6 +67,7 @@
     "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
     "deploy:prod": "npm run build && gcloud app deploy app.yaml --project=google.com:project-sesame",
     "logs": "gcloud app logs tail --project=google.com:project-sesame",
-    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit"
+    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit",
+    "lint:fix": "eslint --fix ./src/**/*.ts ./src/**/*.js"
   }
 }

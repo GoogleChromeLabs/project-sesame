@@ -38,7 +38,7 @@ if (window.PublicKeyCredential) {
           alert(error.message);
         }
       }
-    }
+    },
   );
 } else {
   alert("WebAuthn isn't supported on this browser. Redirecting to a form.");

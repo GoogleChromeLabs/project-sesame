@@ -32,8 +32,12 @@ router.get('/assetlinks.json', (req, res) => {
     },
   });
   if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
-    const package_names = process.env.ANDROID_PACKAGENAME.split(",").map(name => name.trim());
-    const hashes = process.env.ANDROID_SHA256HASH.split(",").map(hash => hash.trim());
+    const package_names = process.env.ANDROID_PACKAGENAME.split(",").map(
+      (name) => name.trim(),
+    );
+    const hashes = process.env.ANDROID_SHA256HASH.split(",").map((hash) =>
+      hash.trim(),
+    );
     for (let i = 0; i < package_names.length; i++) {
       assetlinks.push({
         relation: relation,
@@ -51,7 +55,7 @@ router.get('/assetlinks.json', (req, res) => {
 router.get('/webidentity', (req, res) => {
   const fedcm_config_url = `${config.origin}/fedcm/config.json`;
   return res.json({
-    "provider_urls": [ fedcm_config_url ]
+    provider_urls: [fedcm_config_url],
   });
 });
 
