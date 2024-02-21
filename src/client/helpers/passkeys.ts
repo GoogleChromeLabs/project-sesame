@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { _fetch, base64url } from "~project-sesame/client/helpers";
+import {_fetch, base64url} from '~project-sesame/client/helpers';
 import {
   Base64URLString,
   RegistrationCredential,
@@ -29,7 +29,7 @@ import {
   PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
   AuthenticationExtensionsClientOutputs,
-} from "@simplewebauthn/types";
+} from '@simplewebauthn/types';
 
 /**
  * Create and register a new passkey
@@ -38,7 +38,7 @@ import {
 export async function registerCredential(): Promise<any> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await _fetch(
-    "/webauthn/registerRequest",
+    '/webauthn/registerRequest'
   );
 
   const user = {
@@ -47,7 +47,7 @@ export async function registerCredential(): Promise<any> {
   } as PublicKeyCredentialUserEntity;
   const challenge = base64url.decode(options.challenge);
   const excludeCredentials =
-    options.excludeCredentials?.map((cred) => {
+    options.excludeCredentials?.map(cred => {
       return {
         ...cred,
         id: base64url.decode(cred.id),
@@ -85,7 +85,7 @@ export async function registerCredential(): Promise<any> {
   } as RegistrationResponseJSON;
 
   // Send the result to the server and return the promise.
-  return await _fetch("/webauthn/registerResponse", encodedCredential);
+  return await _fetch('/webauthn/registerResponse', encodedCredential);
 }
 
 /**
@@ -96,7 +96,7 @@ export async function registerCredential(): Promise<any> {
 export async function authenticate(conditional = false): Promise<any> {
   // Fetch passkey request options from the server.
   const options: PublicKeyCredentialRequestOptionsJSON = await _fetch(
-    "/webauthn/signinRequest",
+    '/webauthn/signinRequest'
   );
 
   // Base64URL decode the challenge
@@ -104,7 +104,7 @@ export async function authenticate(conditional = false): Promise<any> {
 
   // `allowCredentials` empty array invokes an account selector by discoverable credentials.
   const allowCredentials =
-    options.allowCredentials?.map((cred) => {
+    options.allowCredentials?.map(cred => {
       return {
         ...cred,
         id: base64url.decode(cred.id),
@@ -120,7 +120,7 @@ export async function authenticate(conditional = false): Promise<any> {
   const cred = (await navigator.credentials.get({
     publicKey: decodedOptions,
     // Request a conditional UI
-    mediation: conditional ? "conditional" : "optional",
+    mediation: conditional ? 'conditional' : 'optional',
   })) as AuthenticationCredential;
 
   // Base64URL encode the credential
@@ -148,7 +148,7 @@ export async function authenticate(conditional = false): Promise<any> {
   } as AuthenticationResponseJSON;
 
   // Send the result to the server and return the promise.
-  return await _fetch("/webauthn/signinResponse", encodedCredential);
+  return await _fetch('/webauthn/signinResponse', encodedCredential);
 }
 
 /**
@@ -159,9 +159,9 @@ export async function authenticate(conditional = false): Promise<any> {
  */
 export async function updateCredential(
   credId: Base64URLString,
-  newName: string,
+  newName: string
 ): Promise<any> {
-  return _fetch("/webauthn/renameKey", { credId, newName });
+  return _fetch('/webauthn/renameKey', {credId, newName});
 }
 
 /**
@@ -170,7 +170,7 @@ export async function updateCredential(
  * @returns a promise that resolves with a server response.
  */
 export async function unregisterCredential(
-  credId: Base64URLString,
+  credId: Base64URLString
 ): Promise<any> {
   return _fetch(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
 }

@@ -15,12 +15,13 @@
  * limitations under the License
  */
 
-import { store } from "~project-sesame/server/config.ts";
 import {
   Base64URLString,
   CredentialDeviceType,
   AuthenticatorTransportFuture,
-} from "@simplewebauthn/types";
+} from '@simplewebauthn/types';
+
+import {store} from '~project-sesame/server/config.ts';
 
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
@@ -55,10 +56,10 @@ export interface SesamePublicKeyCredential {
  **/
 
 export class PublicKeyCredentials {
-  static collection = "public_key_credentials";
+  static collection = 'public_key_credentials';
 
   static async findById(
-    credential_id: Base64URLString,
+    credential_id: Base64URLString
   ): Promise<SesamePublicKeyCredential | undefined> {
     const doc = await store
       .collection(PublicKeyCredentials.collection)
@@ -73,22 +74,20 @@ export class PublicKeyCredentials {
   }
 
   static async findByUserId(
-    user_id: Base64URLString,
+    user_id: Base64URLString
   ): Promise<SesamePublicKeyCredential[] | undefined> {
     const results: SesamePublicKeyCredential[] = [];
     const refs = await store
       .collection(PublicKeyCredentials.collection)
-      .where("user_id", "==", user_id)
-      .orderBy("registeredAt", "desc")
+      .where('user_id', '==', user_id)
+      .orderBy('registeredAt', 'desc')
       .get();
-    refs.forEach((cred) =>
-      results.push(<SesamePublicKeyCredential>cred.data()),
-    );
+    refs.forEach(cred => results.push(<SesamePublicKeyCredential>cred.data()));
     return results;
   }
 
   static async update(
-    credential: SesamePublicKeyCredential,
+    credential: SesamePublicKeyCredential
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)
@@ -98,7 +97,7 @@ export class PublicKeyCredentials {
 
   static async remove(
     credential_id: Base64URLString,
-    user_id: Base64URLString,
+    user_id: Base64URLString
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)

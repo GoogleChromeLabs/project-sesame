@@ -21,13 +21,14 @@ import crypto from 'crypto';
 
 import dotenv from 'dotenv';
 
-import { initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import {initializeApp} from 'firebase-admin/app';
+import {getFirestore} from 'firebase-admin/firestore';
 
-import packageConfig from '../../package.json' with { type: 'json' };
-import firebaseConfig from '../../firebase.json' with { type: 'json' };
+import packageConfig from '../../package.json';
+import firebaseConfig from '../../firebase.json';
 
-const isLocalhost = process.env.NODE_ENV === 'localhost' || !process.env.NODE_ENV;
+const isLocalhost =
+  process.env.NODE_ENV === 'localhost' || !process.env.NODE_ENV;
 
 /**
  * During development, the server application only receives requests proxied
@@ -37,11 +38,14 @@ const isLocalhost = process.env.NODE_ENV === 'localhost' || !process.env.NODE_EN
  */
 const isDevelopmentProxy = process.env.PROXY;
 
-const projectRootFilePath = path.join(url.fileURLToPath(import.meta.url), '../../..');
+const projectRootFilePath = path.join(
+  url.fileURLToPath(import.meta.url),
+  '../../..'
+);
 const distRootFilePath = path.join(projectRootFilePath, 'dist');
 
 console.log('Reading config from', path.join(projectRootFilePath, '/.env'));
-dotenv.config({ path: path.join(projectRootFilePath, '/.env') });
+dotenv.config({path: path.join(projectRootFilePath, '/.env')});
 
 /**
  * Pulls together various configurations and returns the configured
@@ -56,7 +60,7 @@ function initializeFirestore() {
   initializeApp();
 
   const store = getFirestore(process.env.FIRESTORE_DATABASENAME || '');
-  store.settings({ ignoreUndefinedProperties: true });
+  store.settings({ignoreUndefinedProperties: true});
   return store;
 }
 
@@ -69,6 +73,7 @@ function configureApp() {
   }
 
   return {
+    projectName: process.env.PROJECT_NAME || 'sesame',
     debug: isLocalhost || process.env.NODE_ENV === 'development',
     projectRootFilePath,
     distRootFilePath,
@@ -77,13 +82,19 @@ function configureApp() {
     port: isDevelopmentProxy ? 8888 : process.env.PORT || 8080,
     origin,
     secret: process.env.SECRET || crypto.randomBytes(32).toString('hex'),
-    hostname: (new URL(origin)).hostname,
+    hostname: new URL(origin).hostname,
     title: process.env.PROJECT_NAME,
     repository_url: packageConfig.repository?.url,
-    id_token_lifetime: parseInt(process.env.ID_TOKEN_LIFETIME || `${1 * 24 * 60 * 60 * 1000}`),
-    short_session_duration: parseInt(process.env.SHORT_SESSION_DURATION || `${3 * 60 * 1000}`),
-    long_session_duration: parseInt(process.env.LONG_SESSION_DURATION || `${1000 * 60 * 60 * 24 * 365}`),
-  }
+    id_token_lifetime: parseInt(
+      process.env.ID_TOKEN_LIFETIME || `${1 * 24 * 60 * 60 * 1000}`
+    ),
+    short_session_duration: parseInt(
+      process.env.SHORT_SESSION_DURATION || `${3 * 60 * 1000}`
+    ),
+    long_session_duration: parseInt(
+      process.env.LONG_SESSION_DURATION || `${1000 * 60 * 60 * 24 * 365}`
+    ),
+  };
 }
 
 export const config = configureApp();

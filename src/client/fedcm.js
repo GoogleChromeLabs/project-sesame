@@ -1,9 +1,13 @@
-export class IdentityProvider {
+/* eslint-disable no-undef */
 
+export class IdentityProvider {
   constructor(options) {
-    let { configURL, clientId = '' } = options;
+    const {configURL} = options;
+    let {clientId = ''} = options;
     if (clientId === '') {
-      clientId = document.querySelector('meta[name="fedcm_demo_client_id"]')?.content
+      clientId = document.querySelector(
+        'meta[name="fedcm_demo_client_id"]'
+      )?.content;
     }
     if (clientId === '') {
       throw new Error('client ID is not declared.');
@@ -15,7 +19,8 @@ export class IdentityProvider {
   }
 
   async signIn(options = {}) {
-    let { loginHint, context, nonce } = options;
+    const {loginHint, context} = options;
+    let {nonce} = options;
     if (!nonce) {
       nonce = document.querySelector('meta[name="nonce"]')?.content;
     }
@@ -27,20 +32,22 @@ export class IdentityProvider {
     try {
       credential = await navigator.credentials.get({
         identity: {
-          providers: [{
-            configURL: this.configURL,
-            clientId: this.clientId,
-            nonce,
-            loginHint
-          }],
+          providers: [
+            {
+              configURL: this.configURL,
+              clientId: this.clientId,
+              nonce,
+              loginHint,
+            },
+          ],
           context,
         },
         mediation: 'optional',
-      })
+      });
     } catch (e) {
       console.error(e);
       throw new Error(e.message);
-    };
+    }
     const token = credential.token;
     return token;
   }
@@ -80,13 +87,13 @@ export class IdentityProvider {
       return await IdentityCredential.disconnect({
         configURL: this.configURL,
         clientId: this.clientId,
-        accountHint: accountId
-      });      
+        accountHint: accountId,
+      });
     } catch (e) {
       throw new Error('Failed disconnecting.');
     }
   }
-};
+}
 
 // const tokenElement = document.createElement('meta');
 // tokenElement.httpEquiv = 'origin-trial';

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 import express from 'express';
-import { config } from '~project-sesame/server/config.ts';
+import {config} from '~project-sesame/server/config.ts';
 const router = express.Router();
 
 router.get('/assetlinks.json', (req, res) => {
@@ -32,11 +32,11 @@ router.get('/assetlinks.json', (req, res) => {
     },
   });
   if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
-    const package_names = process.env.ANDROID_PACKAGENAME.split(",").map(
-      (name) => name.trim(),
+    const package_names = process.env.ANDROID_PACKAGENAME.split(',').map(name =>
+      name.trim()
     );
-    const hashes = process.env.ANDROID_SHA256HASH.split(",").map((hash) =>
-      hash.trim(),
+    const hashes = process.env.ANDROID_SHA256HASH.split(',').map(hash =>
+      hash.trim()
     );
     for (let i = 0; i < package_names.length; i++) {
       assetlinks.push({
@@ -61,7 +61,7 @@ router.get('/webidentity', (req, res) => {
 
 router.get('/passkey-endpoints', (req, res) => {
   const web_endpoint = `${config.origin}/home`;
-  return res.json({ enroll: web_endpoint, manage: web_endpoint });
+  return res.json({enroll: web_endpoint, manage: web_endpoint});
 });
 
-export { router as wellKnown };
+export {router as wellKnown};

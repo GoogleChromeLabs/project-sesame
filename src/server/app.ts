@@ -15,14 +15,14 @@
  * limitations under the License
  */
 
-import express from "express";
-import { engine } from "express-handlebars";
-import useragent from "express-useragent";
+import express from 'express';
+import {engine} from 'express-handlebars';
+import useragent from 'express-useragent';
 import helmet from 'helmet';
-import path from "path";
-import config from "~project-sesame/server/config.ts";
-import { auth } from "~project-sesame/server/middlewares/auth.ts";
-import { federation } from "~project-sesame/server/middlewares/federation.ts";
+import path from 'path';
+import config from '~project-sesame/server/config.ts';
+import {auth} from '~project-sesame/server/middlewares/auth.ts';
+import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {
   SignInStatus,
   getEntrancePath,
@@ -31,9 +31,9 @@ import {
   setChallenge,
   setEntrancePath,
   signOut,
-} from "~project-sesame/server/middlewares/session.ts";
-import { webauthn } from "~project-sesame/server/middlewares/webauthn.ts";
-import { wellKnown } from "~project-sesame/server/middlewares/well-known.ts";
+} from '~project-sesame/server/middlewares/session.ts';
+import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
+import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 
 const app = express();
 
@@ -53,7 +53,7 @@ function configureTemplateEngine(app: express.Application) {
       defaultLayout: 'index',
       layoutsDir: path.join(config.viewsRootFilePath, 'layouts'),
       partialsDir: path.join(config.viewsRootFilePath, 'partials'),
-    }),
+    })
   );
   app.set('views', path.join(config.viewsRootFilePath));
 }
@@ -64,120 +64,120 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
-        connectSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
-        scriptSrc: ["'self'", "https://fedcm-idp-demo.glitch.me"],
-        imgSrc: ["'self'", "https://www.gravatar.com", "https://gravatar.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
+        scriptSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
+        imgSrc: ["'self'", 'https://www.gravatar.com', 'https://gravatar.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       },
       // CSP is report-only if the app is running locally.
       reportOnly: config.isLocalhost,
     },
-  }),
+  })
 );
 
 app.use(express.json());
 app.use(useragent.express());
 app.use(
   'static',
-  express.static(path.join(config.distRootFilePath, 'client/static')),
+  express.static(path.join(config.distRootFilePath, 'client/static'))
 );
-app.use(express.static(path.join(config.distRootFilePath, "shared/public")));
+app.use(express.static(path.join(config.distRootFilePath, 'shared/public')));
 app.use(initializeSession());
 
-app.get("/", (req, res) => {
-  return res.render("index.html");
+app.get('/', (req, res) => {
+  return res.render('index.html');
 });
 
-app.get("/identifier-first-form", sessionCheck, (req, res) => {
+app.get('/identifier-first-form', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, "/password");
+    return res.redirect(307, '/password');
   }
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, "/home");
+    return res.redirect(307, '/home');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render("identifier-first-form.html", {
-    title: "Identifier-first form",
-    layout: "identifier-first-form",
+  return res.render('identifier-first-form.html', {
+    title: 'Identifier-first form',
+    layout: 'identifier-first-form',
   });
 });
 
-app.get("/passkey-one-button", sessionCheck, (req, res) => {
+app.get('/passkey-one-button', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, "/password");
+    return res.redirect(307, '/password');
   }
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, "/home");
+    return res.redirect(307, '/home');
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render("passkey-one-button.html", {
-    title: "Identifier-first form",
-    layout: "identifier-first-form",
+  return res.render('passkey-one-button.html', {
+    title: 'Identifier-first form',
+    layout: 'identifier-first-form',
   });
 });
 
-app.get("/fedcm-rp", sessionCheck, (req, res) => {
+app.get('/fedcm-rp', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, "/password");
+    return res.redirect(307, '/password');
   }
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, "/home");
+    return res.redirect(307, '/home');
   }
 
   // Generate a new nonce.
   const nonce = setChallenge('', req, res);
 
   // If the user is not signed in, show `fedcm-rp.html` with id/password form.
-  return res.render("fedcm-rp.html", { nonce });
+  return res.render('fedcm-rp.html', {nonce});
 });
 
-app.get("/password", sessionCheck, (req, res) => {
+app.get('/password', sessionCheck, (req, res) => {
   if (res.locals.signin_status < SignInStatus.SigningIn) {
     // If the user has not started signing in, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, "/home");
+    return res.redirect(307, '/home');
   }
   // Show `reauth.html`.
   // User is supposed to enter a password (which will be ignored)
   // Make XHR POST to `/signin`
-  res.render("password.html");
+  res.render('password.html');
 });
 
-app.get("/home", sessionCheck, (req, res) => {
+app.get('/home', sessionCheck, (req, res) => {
   if (res.locals.signin_status < SignInStatus.SignedIn) {
     // If the user has not signed in yet, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
   // `home.html` shows sign-out link
-  return res.render("home.html");
+  return res.render('home.html');
 });
 
-app.get("/signout", signOut);
+app.get('/signout', signOut);
 
-app.use("/auth", auth);
-app.use("/webauthn", webauthn);
-app.use("/federation", federation);
-app.use("/.well-known", wellKnown);
+app.use('/auth', auth);
+app.use('/webauthn', webauthn);
+app.use('/federation', federation);
+app.use('/.well-known', wellKnown);
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
-app.get("/__health-check", (req, res) => {
-  return res.send("OK");
+app.get('/__health-check', (req, res) => {
+  return res.send('OK');
 });
 
 app.listen(config.port, () => {

@@ -26,10 +26,10 @@ import {
   AuthenticatorAttachment,
   AuthenticatorTransportFuture,
 } from '@simplewebauthn/types';
-import { JwtPayload } from 'jsonwebtoken';
-import { StringDecoder } from 'string_decoder';
-import { SignInStatus } from './server/middlewares/session.ts';
-import { User } from './server/libs/users.ts';
+import {JwtPayload} from 'jsonwebtoken';
+import {StringDecoder} from 'string_decoder';
+import {SignInStatus} from './server/middlewares/session.ts';
+import {User} from './server/libs/users.ts';
 
 interface AppLocals {
   is_localhost?: boolean;

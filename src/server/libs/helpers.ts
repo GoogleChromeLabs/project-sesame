@@ -15,15 +15,15 @@
  * limitations under the License
  */
 
-import crypto from "crypto";
+import crypto from 'crypto';
 
 export function getGravatarUrl(username: string): string {
-  const pictureURL = new URL("https://www.gravatar.com/");
+  const pictureURL = new URL('https://www.gravatar.com/');
   pictureURL.pathname = `/avatar/${crypto
-    .createHash("md5")
+    .createHash('md5')
     .update(username)
-    .digest("hex")}`;
-  pictureURL.searchParams.append("s", "200");
+    .digest('hex')}`;
+  pictureURL.searchParams.append('s', '200');
   return pictureURL.toString();
 }
 

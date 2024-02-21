@@ -15,11 +15,12 @@
  * limitations under the License
  */
 
-import { getGravatarUrl } from "~project-sesame/server/libs/helpers.ts";
-import { store } from "~project-sesame/server/config.ts";
-import crypto from "crypto";
-import { isoBase64URL } from "@simplewebauthn/server/helpers";
-import { Base64URLString } from "@simplewebauthn/types";
+import crypto from 'crypto';
+import {isoBase64URL} from '@simplewebauthn/server/helpers';
+import {Base64URLString} from '@simplewebauthn/types';
+
+import {getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
+import {store} from '~project-sesame/server/config.ts';
 
 export interface User {
   id: Base64URLString;
@@ -41,10 +42,10 @@ export interface User {
  **/
 
 export class Users {
-  static collection = "users";
+  static collection = 'users';
 
   static isValidUsername(username: string): boolean {
-    return !!username && /^[a-zA-Z0-9@\.\-_]+$/.test(username);
+    return !!username && /^[a-zA-Z0-9@.\-_]+$/.test(username);
   }
 
   static async create(
@@ -53,9 +54,9 @@ export class Users {
       picture?: string;
       displayName?: string;
       email?: string;
-    } = {},
+    } = {}
   ): Promise<User> {
-    let { picture, displayName, email }: any = options;
+    let {picture, displayName, email} = options;
 
     // TODO: Examine why gravatar is not registered.
     if (!picture) {
@@ -93,10 +94,10 @@ export class Users {
     const results: User[] = [];
     const refs = await store
       .collection(Users.collection)
-      .where("username", "==", username)
+      .where('username', '==', username)
       .get();
     if (refs) {
-      refs.forEach((user) => results.push(<User>user.data()));
+      refs.forEach(user => results.push(<User>user.data()));
     }
     return results.length > 0 ? results[0] : undefined;
   }

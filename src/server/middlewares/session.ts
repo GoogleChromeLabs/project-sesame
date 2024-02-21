@@ -15,12 +15,12 @@
  * limitations under the License
  */
 
-import { Request, Response, NextFunction } from "express";
-import session from "express-session";
-import { FirestoreStore } from "@google-cloud/connect-firestore";
-import { getTime } from "./common.ts";
-import { store, config } from "../config.ts";
-import { User } from "../libs/users.ts";
+import {Request, Response, NextFunction} from 'express';
+import session from 'express-session';
+import {FirestoreStore} from '@google-cloud/connect-firestore';
+import {getTime} from '~project-sesame/server/middlewares/common.ts';
+import {store, config} from '~project-sesame/server/config.ts';
+import {User} from '~project-sesame/server/libs/users.ts';
 
 export enum SignInStatus {
   Unregistered = 0,
@@ -38,7 +38,7 @@ export enum SignInStatus {
 export async function sessionCheck(
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
   if (res.locals.signin_status >= SignInStatus.SigningIn) {
@@ -53,11 +53,11 @@ export async function sessionCheck(
 export async function apiFilter(
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
   if (res.locals.signin_status === SignInStatus.SignedOut) {
-    return res.status(401).json({ error: "not signed in." });
+    return res.status(401).json({error: 'not signed in.'});
   }
   if (res.locals.signin_status >= SignInStatus.SigningIn) {
     res.locals.username = getUsername(req, res);
@@ -70,16 +70,16 @@ export async function apiFilter(
 
 export function initializeSession() {
   return session({
-    secret: process.env.SECRET,
+    secret: config.secret,
     resave: true,
     saveUninitialized: false,
     proxy: true,
     store: new FirestoreStore({
       dataset: store,
-      kind: "sessions",
+      kind: 'sessions',
     }),
     cookie: {
-      path: "/",
+      path: '/',
       httpOnly: true,
       secure: !config.isLocalhost, // `false` on localhost
       maxAge: config.long_session_duration,
@@ -88,7 +88,7 @@ export function initializeSession() {
 }
 
 export function getSignInStatus(req: Request, res: Response): SignInStatus {
-  const { username, signed_in, last_signedin_at, user } = req.session;
+  const {username, signed_in, last_signedin_at, user} = req.session;
 
   // TODO: Think about strict conditions and patterns of whether a user is signed in.
 
@@ -121,11 +121,11 @@ export function getSignInStatus(req: Request, res: Response): SignInStatus {
  * @returns The challenge value that was set
  */
 export function setChallenge(
-  challenge = "",
+  challenge = '',
   req: Request,
-  res: Response,
+  res: Response
 ): string {
-  if (challenge === "") {
+  if (challenge === '') {
     challenge = Math.floor(Math.random() * 10e10).toString();
   }
   req.session.challenge = challenge;
@@ -144,10 +144,10 @@ export function deleteChallenge(req: Request, res: Response): void {
 export function setUsername(
   username: string,
   req: Request,
-  res: Response,
+  res: Response
 ): void {
   if (!username) {
-    throw new Error("Invalid username.");
+    throw new Error('Invalid username.');
   }
   req.session.username = username;
   return;
@@ -165,7 +165,7 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
     req.session.username !== undefined &&
     req.session.username !== user.username
   ) {
-    throw new Error("The user is trying to sign in with a wrong username.");
+    throw new Error('The user is trying to sign in with a wrong username.');
   }
   req.session.username = user.username;
   req.session.signed_in = true;
@@ -173,7 +173,7 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
   req.session.user = user;
 
   // Set a login status using the Login Status API
-  res.set("Set-Login", "logged-in");
+  res.set('Set-Login', 'logged-in');
   return;
 }
 
@@ -189,7 +189,7 @@ export function signOut(req: Request, res: Response) {
   req.session.destroy(() => {});
 
   // Set a login status using the Login Status API
-  res.set("Set-Login", "logged-out");
+  res.set('Set-Login', 'logged-out');
 
   // Redirect to the original entrance.
   return res.redirect(307, getEntrancePath(req, res));

@@ -25,15 +25,15 @@ export interface IdentityProvider {
 export class IdentityProviders {
   static idps: IdentityProvider[] = [
     {
-      origin: "https://fedcm-idp-demo.glitch.me",
-      configURL: "https://fedcm-idp-demo.glitch.me/fedcm.json",
-      clientId: "https://identity-demos.dev",
-      secret: "xxxxx",
+      origin: 'https://fedcm-idp-demo.glitch.me',
+      configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
+      clientId: 'https://identity-demos.dev',
+      secret: 'xxxxx',
     },
   ];
 
   static async findByURL(url: string): Promise<IdentityProvider | undefined> {
-    const idp = IdentityProviders.idps.find((idp) => {
+    const idp = IdentityProviders.idps.find(idp => {
       return idp.origin === new URL(url).origin;
     });
     return Promise.resolve(structuredClone(idp));

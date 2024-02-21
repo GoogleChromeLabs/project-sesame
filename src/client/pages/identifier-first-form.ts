@@ -16,8 +16,8 @@
  */
 
 import '../layout';
-import { $, loading, redirect, postForm } from '../helpers/index';
-import { authenticate } from '../helpers/passkeys';
+import {$, loading, redirect, postForm} from '../helpers/index';
+import {authenticate} from '../helpers/passkeys';
 import '@material/web/textfield/outlined-text-field';
 
 postForm('/password');

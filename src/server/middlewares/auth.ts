@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import { Router, Request, Response } from "express";
-import { Users } from "~project-sesame/server/libs/users.ts";
+import {Router, Request, Response} from 'express';
+
+import {Users} from '~project-sesame/server/libs/users.ts';
 import {
   sessionCheck,
   signOut,
@@ -24,8 +25,8 @@ import {
   SignInStatus,
   setSessionUser,
   getEntrancePath,
-} from "~project-sesame/server/middlewares/session.ts";
-import { csrfCheck } from "~project-sesame/server/middlewares/common.ts";
+} from '~project-sesame/server/middlewares/session.ts';
+import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
 
@@ -33,8 +34,8 @@ const router = Router();
  * Check username, create a new account if it doesn't exist.
  * Set a `username` in the session.
  **/
-router.post("/username", async (req: Request, res: Response) => {
-  const { username } = <{ username: string }>req.body;
+router.post('/username', async (req: Request, res: Response) => {
+  const {username} = <{username: string}>req.body;
 
   try {
     // Only check username, no need to check password as this is a mock
@@ -49,11 +50,11 @@ router.post("/username", async (req: Request, res: Response) => {
 
       return res.json({});
     } else {
-      throw new Error("Invalid username");
+      throw new Error('Invalid username');
     }
   } catch (error: any) {
     console.error(error);
-    return res.status(400).send({ error: error.message });
+    return res.status(400).send({error: error.message});
   }
 });
 
@@ -62,15 +63,15 @@ router.post("/username", async (req: Request, res: Response) => {
  * No preceding registration required.
  * This only checks if `username` is not empty string and ignores the password.
  **/
-router.post("/password", sessionCheck, async (req: Request, res: Response) => {
+router.post('/password', sessionCheck, async (req: Request, res: Response) => {
   // TODO: Validate entered parameter.
   if (!req.body.password) {
-    return res.status(401).json({ error: "Enter at least one random letter." });
+    return res.status(401).json({error: 'Enter at least one random letter.'});
   }
   if (res.locals.signin_status !== SignInStatus.SigningIn) {
     return res
       .status(400)
-      .json({ error: "The user is not signing in or already signed in." });
+      .json({error: 'The user is not signing in or already signed in.'});
   }
   const username = getUsername(req, res);
   if (!username) {
@@ -96,33 +97,33 @@ router.post("/password", sessionCheck, async (req: Request, res: Response) => {
  * Response with user information.
  */
 router.post(
-  "/userinfo",
+  '/userinfo',
   csrfCheck,
   sessionCheck,
   (req: Request, res: Response) => {
-    const { user } = res.locals;
+    const {user} = res.locals;
     return res.json(user);
-  },
+  }
 );
 
 /**
  * Update the user's display name.
  */
 router.post(
-  "/updateDisplayName",
+  '/updateDisplayName',
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
-    const { newName } = req.body;
+    const {newName} = req.body;
     if (newName) {
-      const { user } = res.locals;
+      const {user} = res.locals;
       user.displayName = newName;
       await Users.update(user);
       return res.json(user);
     } else {
       return res.status(400);
     }
-  },
+  }
 );
 
-export { router as auth };
+export {router as auth};

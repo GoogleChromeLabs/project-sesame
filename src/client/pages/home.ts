@@ -16,16 +16,16 @@
  */
 
 import '../layout';
-import { Base64URLString } from "@simplewebauthn/types";
-import { $, _fetch, loading } from "../helpers/index";
+import {Base64URLString} from '@simplewebauthn/types';
+import {$, _fetch, loading} from '../helpers/index';
 import {
   registerCredential,
   updateCredential,
   unregisterCredential,
-} from "../helpers/passkeys";
-import { html, render } from "lit";
+} from '../helpers/passkeys';
+import {html, render} from 'lit';
 
-const aaguids = await fetch("/aaguids.json");
+const aaguids = await fetch('/aaguids.json');
 const icons = await aaguids.json();
 
 /**
@@ -35,12 +35,12 @@ async function changeDisplayName(e: {
   target: HTMLButtonElement;
 }): Promise<void> {
   const newName = prompt(
-    "Enter a new display name",
-    e.target.dataset.displayName,
+    'Enter a new display name',
+    e.target.dataset.displayName
   );
   if (!newName?.length) {
     loading.start();
-    await _fetch("/auth/updateDisplayName", { newName });
+    await _fetch('/auth/updateDisplayName', {newName});
     loading.stop();
     renderDisplayName();
   }
@@ -50,7 +50,7 @@ async function changeDisplayName(e: {
  * Render the user's display name.
  */
 async function renderDisplayName(): Promise<void> {
-  const res = await _fetch("/auth/userinfo");
+  const res = await _fetch('/auth/userinfo');
   render(
     html`
       <img class="profile-image" src="${res.picture}" width="80" height="80" />
@@ -67,19 +67,19 @@ async function renderDisplayName(): Promise<void> {
         </md-icon-button>
       </div>
     `,
-    $("#userinfo"),
+    $('#userinfo')
   );
 }
 
 /**
  * Rename and update the credential name.
  */
-async function rename(e: { target: HTMLButtonElement }): Promise<void> {
-  const { credId, name } = e.target.dataset as {
+async function rename(e: {target: HTMLButtonElement}): Promise<void> {
+  const {credId, name} = e.target.dataset as {
     credId: Base64URLString;
     name: string;
   };
-  const newName = prompt("Enter a new credential name.", name);
+  const newName = prompt('Enter a new credential name.', name);
   if (!newName?.length) return;
   try {
     loading.start();
@@ -96,8 +96,8 @@ async function rename(e: { target: HTMLButtonElement }): Promise<void> {
 /**
  * Remove and delete a credential.
  */
-async function remove(event: { target: HTMLButtonElement }): Promise<void> {
-  if (!confirm("Do you really want to remove this credential?")) return;
+async function remove(event: {target: HTMLButtonElement}): Promise<void> {
+  if (!confirm('Do you really want to remove this credential?')) return;
 
   try {
     loading.start();
@@ -111,7 +111,7 @@ async function remove(event: { target: HTMLButtonElement }): Promise<void> {
   }
 }
 
-const createPasskey = $("#create-passkey");
+const createPasskey = $('#create-passkey');
 
 // Is WebAuthn available on this browser?
 if (
@@ -125,44 +125,44 @@ if (
       PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
       PublicKeyCredential.isConditionalMediationAvailable(),
     ]);
-    if (results.every((r) => r === true)) {
+    if (results.every(r => r === true)) {
       // If both are available, reveal the "Create a passkey" button.
-      createPasskey.classList.remove("hidden");
+      createPasskey.classList.remove('hidden');
     } else {
       // If either is not available, show a message.
-      $("#message").innerText = "This device does not support passkeys.";
+      $('#message').innerText = 'This device does not support passkeys.';
     }
   } catch (e) {
     console.error(e);
   }
 } else {
   // If the condition does not match, show a message.
-  $("#message").innerText = "This device does not support passkeys.";
+  $('#message').innerText = 'This device does not support passkeys.';
 }
 
 /**
  * Render the list of saved credentials.
  */
 async function renderCredentials(): Promise<void> {
-  const res = await _fetch("/webauthn/getKeys");
-  const list = $("#list");
+  const res = await _fetch('/webauthn/getKeys');
+  const list = $('#list');
   const creds =
     res.length > 0
       ? // TODO: Define `cred` type across the server and the client
         html`${res.map((cred: any, i: number) => {
           const created = new Date(cred.registeredAt);
           const createdDate = created.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
+            month: 'short',
+            day: 'numeric',
           });
           const createdTime = created.toLocaleTimeString(undefined, {
-            timeStyle: "short",
+            timeStyle: 'short',
             hour12: false,
           });
           const createdStr = `Created: ${createdDate}, ${createdTime}`;
           return html`${i > 0 && i < res.length
               ? html` <md-divider></md-divider> `
-              : ""}
+              : ''}
             <md-list-item>
               <img
                 slot="start"
@@ -171,12 +171,12 @@ async function renderCredentials(): Promise<void> {
                 width="24"
                 height="24"
               />
-              <span slot="headline">${cred.name || "Unnamed"}</span>
+              <span slot="headline">${cred.name || 'Unnamed'}</span>
               <span slot="supporting-text">${createdStr}</span>
               <md-icon-button
                 slot="end"
                 data-cred-id="${cred.id}"
-                data-name="${cred.name || "Unnamed"}"
+                data-name="${cred.name || 'Unnamed'}"
                 @click="${rename}"
               >
                 <md-icon>edit</md-icon>
@@ -207,10 +207,10 @@ async function register(): Promise<void> {
     // Stop the loading UI
     loading.stop();
     // 'InvalidStateError' indicates a passkey already exists on the device.
-    if (error.name === "InvalidStateError") {
-      alert("A passkey already exists for this device.");
+    if (error.name === 'InvalidStateError') {
+      alert('A passkey already exists for this device.');
       // `NotAllowedError` indicates the user canceled the operation.
-    } else if (error.name === "NotAllowedError") {
+    } else if (error.name === 'NotAllowedError') {
       return;
       // Show other errors in an alert.
     } else {
@@ -225,4 +225,4 @@ renderDisplayName();
 await renderCredentials();
 loading.stop();
 
-createPasskey.addEventListener("click", register);
+createPasskey.addEventListener('click', register);

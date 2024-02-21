@@ -25,12 +25,12 @@ import '@material/web/list/list-item.js';
 import '@material/web/icon/icon.js';
 import '@material/web/iconbutton/icon-button.js';
 import '@material/web/progress/linear-progress.js';
-import { Drawer } from '@material/mwc-drawer';
+import {Drawer} from '@material/mwc-drawer';
 
 document.addEventListener('DOMContentLoaded', () => {
   const drawer: Drawer | null = document.querySelector('mwc-drawer');
   drawer?.addEventListener(
     'MDCTopAppBar:nav',
-    () => (drawer.open = !drawer.open),
+    () => (drawer.open = !drawer.open)
   );
 });

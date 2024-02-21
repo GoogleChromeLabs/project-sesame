@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { MdLinearProgress } from "@material/web/progress/linear-progress";
+import {MdLinearProgress} from '@material/web/progress/linear-progress';
 
 export const $: any = document.querySelector.bind(document);
 
@@ -24,8 +24,8 @@ export const redirect = (path: string) => {
 };
 
 export function toast(text: string): void {
-  $("#snackbar").labelText = text;
-  $("#snackbar").show();
+  $('#snackbar').labelText = text;
+  $('#snackbar').show();
 }
 
 /**
@@ -34,17 +34,17 @@ export function toast(text: string): void {
  * @param payload The payload JSON object.
  * @returns
  */
-export async function _fetch(path: string, payload: any = ""): Promise<any> {
+export async function _fetch(path: string, payload: any = ''): Promise<any> {
   const headers: any = {
-    "X-Requested-With": "XMLHttpRequest",
+    'X-Requested-With': 'XMLHttpRequest',
   };
   if (payload && !(payload instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
+    headers['Content-Type'] = 'application/json';
     payload = JSON.stringify(payload);
   }
   const res = await fetch(path, {
-    method: "POST",
-    credentials: "same-origin",
+    method: 'POST',
+    credentials: 'same-origin',
     headers: headers,
     body: payload,
   });
@@ -64,11 +64,11 @@ export async function _fetch(path: string, payload: any = ""): Promise<any> {
 export class base64url {
   static encode(buffer: ArrayBuffer): string {
     const base64 = window.btoa(String.fromCharCode(...new Uint8Array(buffer)));
-    return base64.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+    return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   }
 
   static decode(base64url: string): ArrayBuffer {
-    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
     const binStr = window.atob(base64);
     const bin = new Uint8Array(binStr.length);
     for (let i = 0; i < binStr.length; i++) {
@@ -85,22 +85,22 @@ class Loading {
   progress: MdLinearProgress;
 
   constructor() {
-    this.progress = $("#progress");
+    this.progress = $('#progress');
   }
 
   start() {
     this.progress.indeterminate = true;
-    const inputs = document.querySelectorAll("input");
+    const inputs = document.querySelectorAll('input');
     if (inputs) {
-      inputs.forEach((input) => (input.disabled = true));
+      inputs.forEach(input => (input.disabled = true));
     }
   }
 
   stop() {
     this.progress.indeterminate = false;
-    const inputs = document.querySelectorAll("input");
+    const inputs = document.querySelectorAll('input');
     if (inputs) {
-      inputs.forEach((input) => (input.disabled = false));
+      inputs.forEach(input => (input.disabled = false));
     }
   }
 }
@@ -108,18 +108,18 @@ class Loading {
 export const loading = new Loading();
 
 export function postForm(path: string) {
-  const form = $("#form");
+  const form = $('#form');
   // When the form is submitted, proceed to the password form.
-  form.addEventListener("submit", async (s: any) => {
+  form.addEventListener('submit', async (s: any) => {
     s.preventDefault();
     const form = new FormData(s.target);
     const cred = {} as any;
     form.forEach((v, k) => (cred[k] = v));
     _fetch(s.target.action, cred)
-      .then((user) => {
+      .then(user => {
         redirect(path);
       })
-      .catch((e) => {
+      .catch(e => {
         loading.stop();
         console.error(e.message);
         toast(e.message);

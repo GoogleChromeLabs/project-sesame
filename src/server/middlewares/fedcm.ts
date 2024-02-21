@@ -15,33 +15,32 @@
  * limitations under the License
  */
 
-import { config } from "~project-sesame/server/config.ts";
-import express, { Request, Response } from "express";
-const router = express.Router();
-import { Users } from "~project-sesame/server/libs/users.ts";
-import * as jwt from "jsonwebtoken";
-import {
-  csrfCheck,
-  getTime,
-} from "~project-sesame/server/middlewares/common.ts";
+import {Base64URLString} from '@simplewebauthn/types';
+import express, {Request, Response} from 'express';
+import * as jwt from 'jsonwebtoken';
+
+import {config} from '~project-sesame/server/config.ts';
+import {compareUrls} from '~project-sesame/server/libs/helpers.ts';
+import {RelyingParties} from '~project-sesame/server/libs/relying-parties.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
+import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   SignInStatus,
   sessionCheck,
-} from "~project-sesame/server/middlewares/session.ts";
-import { RelyingParties } from "~project-sesame/server/libs/relying-parties.ts";
-import { compareUrls } from "~project-sesame/server/libs/helpers.ts";
-import { Base64URLString } from "@simplewebauthn/types";
+} from '~project-sesame/server/middlewares/session.ts';
 
-router.get("/config.json", (req: Request, res: Response): any => {
+const router = express.Router();
+
+router.get('/config.json', (req: Request, res: Response): Response => {
   return res.json({
-    accounts_endpoint: "/fedcm/accounts",
-    client_metadata_endpoint: "/fedcm/metadata",
-    id_assertion_endpoint: "/fedcm/idtokens",
-    disconnect_endpoint: "/fedcm/disconnect",
-    login_url: "/identifier-first-form",
+    accounts_endpoint: '/fedcm/accounts',
+    client_metadata_endpoint: '/fedcm/metadata',
+    id_assertion_endpoint: '/fedcm/idtokens',
+    disconnect_endpoint: '/fedcm/disconnect',
+    login_url: '/identifier-first-form',
     branding: {
-      background_color: "#6200ee",
-      color: "#ffffff",
+      background_color: '#6200ee',
+      color: '#ffffff',
       icons: [
         {
           url: `${config.origin}/images/favicon.svg`,
@@ -53,14 +52,14 @@ router.get("/config.json", (req: Request, res: Response): any => {
 });
 
 router.get(
-  "/accounts",
+  '/accounts',
   csrfCheck,
   sessionCheck,
-  (req: Request, res: Response): any => {
+  (req: Request, res: Response): Response => {
     const user = res.locals.user;
 
     if (res.locals.signin_status < SignInStatus.SignedIn) {
-      return res.status(401).json({ error: "not signed in" });
+      return res.status(401).json({error: 'not signed in'});
     }
 
     return res.json({
@@ -74,10 +73,10 @@ router.get(
         },
       ],
     });
-  },
+  }
 );
 
-router.get("/metadata", (req: Request, res: Response): any => {
+router.get('/metadata', (req: Request, res: Response): Response => {
   return res.json({
     privacy_policy_url: `${config.origin}/privacy_policy`,
     terms_of_service_url: `${config.origin}/terms_of_service`,
@@ -85,10 +84,10 @@ router.get("/metadata", (req: Request, res: Response): any => {
 });
 
 router.post(
-  "/idtokens",
+  '/idtokens',
   csrfCheck,
   sessionCheck,
-  async (req: Request, res: Response): Promise<any> => {
+  async (req: Request, res: Response): Promise<Response> => {
     const {
       client_id,
       nonce,
@@ -96,10 +95,10 @@ router.post(
       consent_acquired,
       disclosure_text_shown,
     } = req.body;
-    const { user, signin_status } = res.locals.user;
+    const {user, signin_status} = res.locals.user;
 
     if (signin_status < SignInStatus.SignedIn) {
-      return res.status(401).json({ error: { code: 'access_denied' } });
+      return res.status(401).json({error: {code: 'access_denied'}});
     }
 
     const rp = await RelyingParties.findByClientID(client_id);
@@ -114,24 +113,24 @@ router.post(
       !compareUrls(rp.origin, req.headers.origin) ||
       account_id !== user.id
     ) {
-      console.error("Invalid request.", req.body);
-      return res.status(400).json({ error: "Invalid request." });
+      console.error('Invalid request.', req.body);
+      return res.status(400).json({error: 'Invalid request.'});
     }
 
     // TODO: Should it reject if consent is not acquired?
     if (
-      consent_acquired === "true" ||
-      disclosure_text_shown === "true" ||
+      consent_acquired === 'true' ||
+      disclosure_text_shown === 'true' ||
       !user.approved_clients.includes(rp.client_id)
     ) {
-      console.log("The user is registering to the RP.");
+      console.log('The user is registering to the RP.');
       user.approved_clients.push(rp.client_id);
       Users.update(user);
     } else {
-      console.log("The user is signing in to the RP.");
+      console.log('The user is signing in to the RP.');
     }
 
-    if (user.status === "") {
+    if (user.status === '') {
       const token = jwt.sign(
         {
           iss: config.origin,
@@ -144,17 +143,17 @@ router.post(
           email: user.username,
           picture: user.picture,
         },
-        config.secret,
+        config.secret
       );
 
-      return res.json({ token });
+      return res.json({token});
     } else {
       let error_code = 401;
       switch (user.status) {
-        case "server_error":
+        case 'server_error':
           error_code = 500;
           break;
-        case "temporarily_unavailable":
+        case 'temporarily_unavailable':
           error_code = 503;
           break;
         default:
@@ -167,36 +166,36 @@ router.post(
         },
       });
     }
-  },
+  }
 );
 
 router.post(
-  "/disconnect",
+  '/disconnect',
   csrfCheck,
   sessionCheck,
-  (req: Request, res: Response): any => {
-    const { account_hint, client_id } = req.body;
+  (req: Request, res: Response): Response => {
+    const {account_hint, client_id} = req.body;
 
     const user = res.locals.user;
 
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
       console.error("Account hint doesn't match.");
-      return res.status(401).json({ error: "Account hint doesn't match." });
+      return res.status(401).json({error: "Account hint doesn't match."});
     }
 
     if (!user.approved_clients.has(client_id)) {
-      console.error("The client is not connected.");
-      return res.status(400).json({ error: "The client is not connected." });
+      console.error('The client is not connected.');
+      return res.status(400).json({error: 'The client is not connected.'});
     }
 
     // Remove the client ID from the `approved_clients` list.
     user.approved_clients = user.approved_clients.filter(
-      (_client_id: Base64URLString) => _client_id !== client_id,
+      (_client_id: Base64URLString) => _client_id !== client_id
     );
     Users.update(user);
-    return res.json({ account_id: user.id });
-  },
+    return res.json({account_id: user.id});
+  }
 );
 
-export { router as fedcm };
+export {router as fedcm};

@@ -1,14 +1,14 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2019",
     "module": "es6",
     "lib": [ "ESNext", "DOM" ],
     "baseUrl": "./",
     "outDir": "../dist",
     "strict": true,
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noImplicitThis": false,

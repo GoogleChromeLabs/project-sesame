@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { Request, Response, NextFunction } from "express";
+import {Request, Response, NextFunction} from 'express';
 
 /**
  * Checks CSRF protection using custom header `X-Requested-With`
@@ -23,10 +23,10 @@ import { Request, Response, NextFunction } from "express";
 export function csrfCheck(
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): any {
-  if (req.header("X-Requested-With") != "XMLHttpRequest") {
-    return res.status(400).json({ error: "invalid access." });
+  if (req.header('X-Requested-With') != 'XMLHttpRequest') {
+    return res.status(400).json({error: 'invalid access.'});
   }
   // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
   return next();

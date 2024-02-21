@@ -15,14 +15,19 @@
  * limitations under the License
  */
 
-import express from "express";
+import express from 'express';
+import jwt, {JwtPayload} from 'jsonwebtoken';
+import {FederationMappings} from '~project-sesame/server/libs/federation-mappings.ts';
+import {IdentityProviders} from '~project-sesame/server/libs/identity-providers.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
+import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
+import {
+  getChallenge,
+  sessionCheck,
+  setSessionUser,
+} from '~project-sesame/server/middlewares/session.ts';
+
 const router = express.Router();
-import { Users } from "../libs/users.ts";
-import { sessionCheck, setSessionUser, getChallenge } from "./session.ts";
-import { IdentityProviders } from "../libs/identity-providers.ts";
-import { FederationMappings } from "../libs/federation-mappings.ts";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { csrfCheck } from "./common.ts";
 
 interface IdToken extends JwtPayload {
   email?: string;
@@ -31,33 +36,33 @@ interface IdToken extends JwtPayload {
   picture?: string;
 }
 
-router.post("/idp", async (req, res) => {
-  const { url } = req.body;
+router.post('/idp', async (req, res) => {
+  const {url} = req.body;
   const idp = await IdentityProviders.findByURL(url);
   if (!idp) {
     return res
       .status(404)
-      .json({ error: "No matching identity provider found." });
+      .json({error: 'No matching identity provider found.'});
   }
-  idp.secret = "";
+  idp.secret = '';
   return res.json(idp);
 });
 
-router.post("/verify", csrfCheck, async (req, res) => {
-  const { token: raw_token, url } = req.body;
+router.post('/verify', csrfCheck, async (req, res) => {
+  const {token: raw_token, url} = req.body;
   // console.error(raw_token);
 
   try {
     const expected_nonce = getChallenge(req, res);
 
     if (!expected_nonce || typeof expected_nonce !== 'string') {
-      throw new Error("Invalid nonce.");
+      throw new Error('Invalid nonce.');
     }
 
     const idp = await IdentityProviders.findByURL(url);
 
     if (!idp) {
-      throw new Error("Identity provider not found.");
+      throw new Error('Identity provider not found.');
     }
 
     const token = <IdToken>jwt.verify(raw_token, idp.secret, {
@@ -67,7 +72,7 @@ router.post("/verify", csrfCheck, async (req, res) => {
     });
 
     if (!token.email) {
-      throw new Error("`email` is missing in the ID token.");
+      throw new Error('`email` is missing in the ID token.');
     }
 
     /*
@@ -114,8 +119,8 @@ router.post("/verify", csrfCheck, async (req, res) => {
     return res.status(200).json(user);
   } catch (error: any) {
     console.error(error.message);
-    return res.status(401).json({ error: "ID token verification failed." });
+    return res.status(401).json({error: 'ID token verification failed.'});
   }
 });
 
-export { router as federation };
+export {router as federation};

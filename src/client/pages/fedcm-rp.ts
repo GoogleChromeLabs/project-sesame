@@ -16,10 +16,10 @@
  */
 
 import '../layout';
-import { $, _fetch, postForm, toast } from '../helpers/index';
+import {$, _fetch, postForm, toast} from '../helpers/index';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
-const { IdentityProvider } = await import(
+const {IdentityProvider} = await import(
   /* webpackIgnore: true */ 'https://fedcm-idp-demo.glitch.me/fedcm.js'
 );
 
@@ -52,7 +52,7 @@ const signIn = async () => {
   }
 
   try {
-    await _fetch('/federation/verify', { token, url: idpInfo.origin });
+    await _fetch('/federation/verify', {token, url: idpInfo.origin});
     location.href = '/home';
   } catch (error: any) {
     console.info(error);
