@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "es2019",
-    "module": "es6",
+    "module": "esnext",
     "lib": [ "ESNext", "DOM" ],
     "baseUrl": "./",
     "outDir": "../dist",

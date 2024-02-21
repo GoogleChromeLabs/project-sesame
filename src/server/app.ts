@@ -77,15 +77,14 @@ app.use(
 
 app.use(express.json());
 app.use(useragent.express());
-app.use(
-  'static',
-  express.static(path.join(config.distRootFilePath, 'client/static'))
-);
-app.use(express.static(path.join(config.distRootFilePath, 'shared/public')));
+
 app.use(initializeSession());
 
 app.get('/', (req, res) => {
-  return res.render('index.html');
+  return res.render('index.html', {
+    title: 'Welcome!',
+    layout: 'index',
+  });
 });
 
 app.get('/identifier-first-form', sessionCheck, (req, res) => {
@@ -119,8 +118,8 @@ app.get('/passkey-one-button', sessionCheck, (req, res) => {
   }
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('passkey-one-button.html', {
-    title: 'Identifier-first form',
-    layout: 'identifier-first-form',
+    title: 'Passkey one button',
+    layout: 'passkey-one-button',
   });
 });
 
@@ -140,7 +139,11 @@ app.get('/fedcm-rp', sessionCheck, (req, res) => {
   const nonce = setChallenge('', req, res);
 
   // If the user is not signed in, show `fedcm-rp.html` with id/password form.
-  return res.render('fedcm-rp.html', {nonce});
+  return res.render('fedcm-rp.html', {
+    title: 'FedCM RP',
+    layout: 'fedcm-rp',
+    nonce,
+  });
 });
 
 app.get('/password', sessionCheck, (req, res) => {
@@ -155,7 +158,10 @@ app.get('/password', sessionCheck, (req, res) => {
   // Show `reauth.html`.
   // User is supposed to enter a password (which will be ignored)
   // Make XHR POST to `/signin`
-  res.render('password.html');
+  res.render('password.html', {
+    title: 'Password',
+    layout: 'password',
+  });
 });
 
 app.get('/home', sessionCheck, (req, res) => {
@@ -164,7 +170,10 @@ app.get('/home', sessionCheck, (req, res) => {
     return res.redirect(307, getEntrancePath(req, res));
   }
   // `home.html` shows sign-out link
-  return res.render('home.html');
+  return res.render('home.html', {
+    title: 'home',
+    layout: 'home',
+  });
 });
 
 app.get('/signout', signOut);
@@ -173,6 +182,12 @@ app.use('/auth', auth);
 app.use('/webauthn', webauthn);
 app.use('/federation', federation);
 app.use('/.well-known', wellKnown);
+
+app.use(
+  'static',
+  express.static(path.join(config.distRootFilePath, 'client/static'))
+);
+app.use(express.static(path.join(config.distRootFilePath, 'shared/public')));
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
