@@ -17,12 +17,12 @@
 
 import '../layout';
 import { Base64URLString } from "@simplewebauthn/types";
-import { $, _fetch, loading } from "../common";
+import { $, _fetch, loading } from "../helpers/index";
 import {
   registerCredential,
   updateCredential,
   unregisterCredential,
-} from "../passkeys";
+} from "../helpers/passkeys";
 import { html, render } from "lit";
 
 const aaguids = await fetch("/aaguids.json");

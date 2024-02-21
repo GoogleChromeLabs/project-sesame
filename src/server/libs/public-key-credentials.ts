@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { store } from "../../config.js";
+import { store } from "~project-sesame/server/config.ts";
 import {
   Base64URLString,
   CredentialDeviceType,

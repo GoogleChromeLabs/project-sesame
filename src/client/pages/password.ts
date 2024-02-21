@@ -16,6 +16,6 @@
  */
 
 import '../layout';
-import { postForm } from '../common';
+import { postForm } from '../helpers';
 import '@material/web/textfield/outlined-text-field';
 postForm("/home");

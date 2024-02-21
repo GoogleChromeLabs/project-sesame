@@ -15,28 +15,50 @@
  * limitations under the License
  */
 
-import { __dirname, configureApp, config } from "../config.js";
-import path from "path";
 import express from "express";
-import helmet from 'helmet';
-import useragent from "express-useragent";
 import { engine } from "express-handlebars";
-import { auth } from "./middlewares/auth.js";
+import useragent from "express-useragent";
+import helmet from 'helmet';
+import path from "path";
+import config from "~project-sesame/server/config.ts";
+import { auth } from "~project-sesame/server/middlewares/auth.ts";
+import { federation } from "~project-sesame/server/middlewares/federation.ts";
 import {
   SignInStatus,
   getEntrancePath,
   initializeSession,
-  setEntrancePath,
   sessionCheck,
   setChallenge,
+  setEntrancePath,
   signOut,
-} from "./middlewares/session.js";
-import { webauthn } from "./middlewares/webauthn.js";
-import { federation } from "./middlewares/federation.js";
-import { wellKnown } from "./middlewares/well-known.js";
+} from "~project-sesame/server/middlewares/session.ts";
+import { webauthn } from "~project-sesame/server/middlewares/webauthn.ts";
+import { wellKnown } from "~project-sesame/server/middlewares/well-known.ts";
 
 const app = express();
-configureApp(app);
+
+/**
+ * Authentication often needs to add server-side data to the rendered HTML. In order
+ * to achieve this, the HTML output from the frontend tooling is used as a base template
+ * for SSR templating.
+
+ * @param app The express.js app instance
+ */
+function configureTemplateEngine(app: express.Application) {
+  app.set('view engine', 'html');
+  app.engine(
+    'html',
+    engine({
+      extname: 'html',
+      defaultLayout: 'index',
+      layoutsDir: path.join(config.viewsRootFilePath, 'layouts'),
+      partialsDir: path.join(config.viewsRootFilePath, 'partials'),
+    })
+  );
+  app.set('views', path.join(config.viewsRootFilePath));
+}
+
+configureTemplateEngine(app);
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -47,39 +69,15 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
     },
     // CSP is report-only if the app is running locally.
-    reportOnly: config.is_localhost
+    reportOnly: config.isLocalhost
   }
 }));
 
-const views = path.join(__dirname, "views");
-app.set("view engine", "html");
-app.engine(
-  "html",
-  engine({
-    extname: "html",
-    defaultLayout: "index",
-    layoutsDir: path.join(views, "layouts"),
-    partialsDir: path.join(views, "partials"),
-  })
-);
-app.set("views", path.join(__dirname, "views"));
 app.use(express.json());
 app.use(useragent.express());
-app.use(express.static(path.join(__dirname, "static")));
+app.use('static', express.static(path.join(config.distRootFilePath, "client/static")));
+app.use(express.static(path.join(config.distRootFilePath, "shared/public")));
 app.use(initializeSession());
-
-app.use((req, res, next) => {
-  // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
-  res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
-  res.locals.title = config.title;
-  res.locals.repository_url = config.repository_url;
-
-  if (config.debug && !/(\.css|\.js|\.map|\.svg|\.json)$/.test(req.path)) {
-    console.log(`Accessing: ${res.locals.pagename}`);
-    console.log(req.session);
-  }
-  return next();
-});
 
 app.get("/", (req, res) => {
   return res.render("index.html");
@@ -97,7 +95,10 @@ app.get("/identifier-first-form", sessionCheck, (req, res) => {
     return res.redirect(307, "/home");
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render("identifier-first-form.html");
+  return res.render("identifier-first-form.html", {
+    "title": "Identifier-first form",
+    "layout": "identifier-first-form",
+  });
 });
 
 app.get("/passkey-one-button", sessionCheck, (req, res) => {
@@ -112,7 +113,11 @@ app.get("/passkey-one-button", sessionCheck, (req, res) => {
     return res.redirect(307, "/home");
   }
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render("passkey-one-button.html");
+  return res.render("passkey-one-button.html", 
+  {
+    "title": "Identifier-first form",
+    "layout": "identifier-first-form",
+  });
 });
 
 app.get("/fedcm-rp", sessionCheck, (req, res) => {
@@ -165,5 +170,12 @@ app.use("/webauthn", webauthn);
 app.use("/federation", federation);
 app.use("/.well-known", wellKnown);
 
-app.listen(config.port);
-console.log(`App listening at ${config.origin}`);
+// After successfully registering all routes, add a health check endpoint.
+// Do it last, as previous routes may throw errors during start-up.
+app.get("/__health-check", (req, res) => {
+  return res.send("OK");
+});
+
+app.listen(config.port, () => {
+  console.log(`Server listening at ${config.origin}`);
+});

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { _fetch, base64url } from "./common";
+import { _fetch, base64url } from "~project-sesame/client/helpers";
 import {
   Base64URLString,
   RegistrationCredential,

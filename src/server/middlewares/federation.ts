@@ -17,12 +17,12 @@
 
 import express from "express";
 const router = express.Router();
-import { Users } from "../libs/users.js";
-import { sessionCheck, setSessionUser, getChallenge } from "./session.js";
-import { IdentityProviders } from "../libs/identity-providers.js";
-import { FederationMappings } from "../libs/federation-mappings.js";
+import { Users } from "../libs/users.ts";
+import { sessionCheck, setSessionUser, getChallenge } from "./session.ts";
+import { IdentityProviders } from "../libs/identity-providers.ts";
+import { FederationMappings } from "../libs/federation-mappings.ts";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { csrfCheck } from "./common.js";
+import { csrfCheck } from "./common.ts";
 
 interface IdToken extends JwtPayload {
   email?: string;

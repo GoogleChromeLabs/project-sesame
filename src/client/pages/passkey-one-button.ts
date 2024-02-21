@@ -16,8 +16,8 @@
  */
 
 import '../layout';
-import { $, _fetch, loading, redirect } from "../common";
-import { authenticate } from "../passkeys";
+import { $, _fetch, loading, redirect } from "../helpers/index";
+import { authenticate } from "../helpers/passkeys";
 
 if (window.PublicKeyCredential) {
   $("#passkey-signin").addEventListener(

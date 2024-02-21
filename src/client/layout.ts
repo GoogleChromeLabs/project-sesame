@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
+import './styles/main.scss';
+
 import '@material/mwc-top-app-bar';
 import '@material/mwc-drawer';
 import '@material/mwc-snackbar';

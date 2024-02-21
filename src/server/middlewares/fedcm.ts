@@ -15,15 +15,15 @@
  * limitations under the License
  */
 
-import { config } from "../../config.js";
+import { config } from "~project-sesame/server/config.ts";
 import express, { Request, Response } from "express";
 const router = express.Router();
-import { Users } from "../libs/users.js";
+import { Users } from "~project-sesame/server/libs/users.ts";
 import * as jwt from "jsonwebtoken";
-import { csrfCheck, getTime } from "./common.js";
-import { SignInStatus, sessionCheck } from "./session.js";
-import { RelyingParties } from "../libs/relying-parties.js";
-import { compareUrls } from "../libs/helpers.js";
+import { csrfCheck, getTime } from "~project-sesame/server/middlewares/common.ts";
+import { SignInStatus, sessionCheck } from "~project-sesame/server/middlewares/session.ts";
+import { RelyingParties } from "~project-sesame/server/libs/relying-parties.ts";
+import { compareUrls } from "~project-sesame/server/libs/helpers.ts";
 import { Base64URLString } from "@simplewebauthn/types";
 
 router.get("/config.json", (req: Request, res: Response): any => {
@@ -138,7 +138,7 @@ router.post(
           email: user.username,
           picture: user.picture,
         },
-        process.env.SECRET
+        config.secret
       );
 
       return res.json({ token });

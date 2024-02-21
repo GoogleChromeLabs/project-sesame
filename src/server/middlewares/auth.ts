@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import express, { Request, Response } from "express";
-const router = express.Router();
-import { Users } from "../libs/users.js";
+import {Router, Request, Response } from "express";
+import { Users } from "~project-sesame/server/libs/users.ts";
 import {
   sessionCheck,
   signOut,
@@ -25,8 +24,10 @@ import {
   SignInStatus,
   setSessionUser,
   getEntrancePath,
-} from "./session.js";
-import { csrfCheck } from "./common.js";
+} from "~project-sesame/server/middlewares/session.ts";
+import { csrfCheck } from "~project-sesame/server/middlewares/common.ts";
+
+const router = Router();
 
 /**
  * Check username, create a new account if it doesn't exist.

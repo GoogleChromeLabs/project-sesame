@@ -15,8 +15,8 @@
  * limitations under the License
  */
 
-import { getGravatarUrl } from "./helpers.js";
-import { store } from "../../config.js";
+import { getGravatarUrl } from "~project-sesame/server/libs/helpers.ts";
+import { store } from "~project-sesame/server/config.ts";
 import crypto from "crypto";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { Base64URLString } from "@simplewebauthn/types";

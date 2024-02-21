@@ -16,7 +16,7 @@
  */
 
 import '../layout';
-import { $, _fetch, postForm, toast } from '../common';
+import { $, _fetch, postForm, toast } from '../helpers/index';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
 const { IdentityProvider } = await import(/* webpackIgnore: true */'https://fedcm-idp-demo.glitch.me/fedcm.js')

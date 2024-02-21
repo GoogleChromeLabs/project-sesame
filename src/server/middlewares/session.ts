@@ -18,9 +18,9 @@
 import { Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { FirestoreStore } from "@google-cloud/connect-firestore";
-import { getTime } from "./common.js";
-import { store, config } from "../../config.js";
-import { User } from "../libs/users.js";
+import { getTime } from "./common.ts";
+import { store, config } from "../config.ts";
+import { User } from "../libs/users.ts";
 
 export enum SignInStatus {
   Unregistered = 0,
@@ -81,7 +81,7 @@ export function initializeSession() {
     cookie: {
       path: "/",
       httpOnly: true,
-      secure: !config.is_localhost, // `false` on localhost
+      secure: !config.isLocalhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },
   });
