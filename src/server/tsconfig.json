@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": "./",
+    "paths": {
+      "~project-sesame/server/*": ["./*"],
+      "~project-sesame/shared/*": ["../shared/*"],
+    }
+  }
+}

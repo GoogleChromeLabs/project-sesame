@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "esnext",
+    "lib": [ "ESNext", "DOM" ],
+    "baseUrl": "./",
+    "outDir": "../dist",
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "paths": {
+      "~project-sesame/client/*": ["./*"],
+      "~project-sesame/shared/*": ["../shared/*"],
+    }
+  }
+}
