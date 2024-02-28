@@ -157,10 +157,12 @@ router.post(
   sessionCheck,
   async (req: Request, res: Response) => {
     const {user} = res.locals;
+    // TODO: If this is sign-up, fill these without user info.
+    const {id: userId, username, displayName} = user;
     try {
       // Create `excludeCredentials` from a list of stored credentials.
       const excludeCredentials = [];
-      const credentials = await PublicKeyCredentials.findByUserId(user.id);
+      const credentials = await PublicKeyCredentials.findByUserId(userId);
       for (const cred of credentials || []) {
         excludeCredentials.push({
           id: isoBase64URL.toBuffer(cred.id),
@@ -179,9 +181,9 @@ router.post(
       const options = await generateRegistrationOptions({
         rpName: config.projectName,
         rpID: config.hostname,
-        userID: user.id,
-        userName: user.username,
-        userDisplayName: user.displayName || user.username,
+        userID: userId,
+        userName: username,
+        userDisplayName: displayName || username,
         // Prompt users for additional information about the authenticator.
         attestationType,
         // Prevent users from re-registering existing authenticators
@@ -209,6 +211,9 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
+    const {user} = res.locals;
+    const userId = user.id;
+
     // Set expected values.
     const credential = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
@@ -246,7 +251,6 @@ router.post(
         isoBase64URL.fromBuffer(credentialID)
       );
 
-      const {user} = res.locals;
       const name =
         registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000'
           ? req.useragent?.platform
@@ -255,7 +259,7 @@ router.post(
       // Store the registration result.
       await PublicKeyCredentials.update({
         id: base64CredentialID,
-        user_id: user.id,
+        user_id: userId,
         name,
         credentialPublicKey: base64PublicKey,
         aaguid: registrationInfo.aaguid,

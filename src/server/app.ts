@@ -87,6 +87,21 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/signup-form', sessionCheck, (req, res) => {
+  // TODO: Set `/identifier-first-form` as the entrance path.
+  // setEntrancePath(req, res);
+
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    // If the user is signed in, redirect to `/home`.
+    return res.redirect(307, '/home');
+  }
+  // If the user is not signed in, show `index.html` with id/password form.
+  return res.render('signup-form.html', {
+    title: 'Sign-Up Form',
+    layout: 'signup-form',
+  });
+});
+
 app.get('/signin-form', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 

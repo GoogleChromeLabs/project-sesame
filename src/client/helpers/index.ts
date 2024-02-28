@@ -19,8 +19,10 @@ import {MdLinearProgress} from '@material/web/progress/linear-progress';
 
 export const $: any = document.querySelector.bind(document);
 
-export const redirect = (path: string) => {
-  location.href = path;
+export const redirect = (path: string = '') => {
+  if (path !== '') {
+    location.href = path;
+  }
 };
 
 export function toast(text: string): void {
@@ -107,22 +109,25 @@ class Loading {
 
 export const loading = new Loading();
 
-export function postForm(path: string) {
-  const form = $('#form');
-  // When the form is submitted, proceed to the password form.
-  form.addEventListener('submit', async (s: any) => {
-    s.preventDefault();
-    const form = new FormData(s.target);
-    const cred = {} as any;
-    form.forEach((v, k) => (cred[k] = v));
-    _fetch(s.target.action, cred)
-      .then(user => {
-        redirect(path);
-      })
-      .catch(e => {
-        loading.stop();
-        console.error(e.message);
-        toast(e.message);
-      });
+export function postForm(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const form = $('#form');
+    // When the form is submitted, proceed to the password form.
+    form.addEventListener('submit', async (s: any) => {
+      s.preventDefault();
+      loading.start();
+      const form = new FormData(s.target);
+      const cred = {} as any;
+      form.forEach((v, k) => (cred[k] = v));
+      _fetch(s.target.action, cred)
+        .then(user => {
+          resolve();
+        })
+        .catch(e => {
+          loading.stop();
+          console.error(e.message);
+          reject();
+        });
+    });
   });
 }

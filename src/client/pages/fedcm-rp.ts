@@ -16,7 +16,7 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, _fetch, postForm, toast} from '~project-sesame/client/helpers/index';
+import {$, _fetch, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 import '@material/web/textfield/outlined-text-field';
 // @ts-ignore
 const {IdentityProvider} = await import(
@@ -38,7 +38,11 @@ const idp = new IdentityProvider({
   clientId: idpInfo.clientId,
 });
 
-postForm('/password');
+postForm().then(() => {
+  redirect('/password');
+}).catch(error => {
+  toast(error.message);
+});
 
 const signIn = async () => {
   let token;

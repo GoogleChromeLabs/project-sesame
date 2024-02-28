@@ -37,6 +37,7 @@ export default defineConfig({
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       password: './src/client/pages/password.ts',
       'signin-form': './src/client/pages/signin-form.ts',
+      'signup-form': './src/client/pages/signup-form.ts',
     },
   },
   html: {
