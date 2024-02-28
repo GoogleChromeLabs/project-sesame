@@ -64,9 +64,11 @@ router.post('/username', async (req: Request, res: Response) => {
  * This only checks if `username` is not empty string and ignores the password.
  **/
 router.post('/password', sessionCheck, async (req: Request, res: Response) => {
+  const {password} = req.body;
+
   // TODO: Validate entered parameter.
-  if (!req.body.password) {
-    return res.status(401).json({error: 'Enter at least one random letter.'});
+  if (!Users.isValidPassword(password)) {
+    return res.status(401).json({error: 'Invalid password.'});
   }
   if (res.locals.signin_status !== SignInStatus.SigningIn) {
     return res
@@ -74,23 +76,34 @@ router.post('/password', sessionCheck, async (req: Request, res: Response) => {
       .json({error: 'The user is not signing in or already signed in.'});
   }
   const username = getUsername(req, res);
-  if (!username) {
-    return res.redirect(307, getEntrancePath(req, res));
+  if (username) {
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      setSessionUser(user, req, res);
+
+      return res.json(user);
+    }
+  }
+  return res.status(401).json({error: 'Failed to sign in.'});
+});
+
+router.post('/username-password', sessionCheck, async (req: Request, res: Response) => {
+  const {username, password} = req.body;
+  // TODO: Validate entered parameter.
+  if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
+    return res.status(401).json({error: 'Enter at least one random letter.'});
   }
 
-  let user = await Users.findByUsername(username);
+  const user = await Users.validatePassword(username, password);
+  if (user) {
+    // Set the user as a signed in status
+    setSessionUser(user, req, res);
 
-  // TODO: Compare the entered password against the registered password.
-  // This is skipped for now.
-
-  if (!user) {
-    user = await Users.create(username);
+    return res.json(user);
+  } else {
+    return res.status(401).json({error: 'Failed to sign in.'});
   }
-
-  // Set the user as a signed in status
-  setSessionUser(user, req, res);
-
-  return res.json(user);
 });
 
 /**

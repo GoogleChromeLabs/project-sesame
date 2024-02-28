@@ -28,24 +28,20 @@ export interface User {
   displayName?: string;
   email?: string;
   picture?: string;
+  password?: string;
 }
-
-/**
- * User data schema
- * {
- *   id: string Base64URL encoded user ID,
- *   username: string username,
- *   displayName: string display name,
- *   email: string email address,
- *   picture: string avatar image url,
- * }
- **/
 
 export class Users {
   static collection = 'users';
 
   static isValidUsername(username: string): boolean {
+    // TODO: Detremine the allowed username pattern
     return !!username && /^[a-zA-Z0-9@.\-_]+$/.test(username);
+  }
+
+  static isValidPassword(password: string): boolean {
+    // TODO: Follow the best practice to detremine the password strength
+    return !!password && /^[a-zA-Z0-9@.\-_]+$/.test(password);
   }
 
   static async create(
@@ -54,8 +50,10 @@ export class Users {
       picture?: string;
       displayName?: string;
       email?: string;
+      password?: string;
     } = {}
   ): Promise<User> {
+    const {password} = options;
     let {picture, displayName, email} = options;
 
     // TODO: Examine why gravatar is not registered.
@@ -71,6 +69,7 @@ export class Users {
       email = username;
     }
 
+    // TODO: Check duplicates
     const user = {
       id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
       username,
@@ -78,7 +77,11 @@ export class Users {
       displayName,
       email,
     };
-    return Users.update(user);
+    await Users.update(user);
+    if (password) {
+      Users.setPassword(username, password);
+    }
+    return user;
   }
 
   static async findById(user_id: Base64URLString): Promise<User | undefined> {
@@ -100,6 +103,32 @@ export class Users {
       refs.forEach(user => results.push(<User>user.data()));
     }
     return results.length > 0 ? results[0] : undefined;
+  }
+
+  static async setPassword(username: string, password: string): Promise<User | undefined> {
+    const user = await Users.findByUsername(username);
+    if (user) {
+      // TODO: Hash the password
+      user.password = password;
+      return Users.update(user);
+    }
+    return;
+  }
+
+  static async validatePassword(username: string, password: string): Promise<User | undefined> {
+    const user = await Users.findByUsername(username);
+    if (user) {
+      // TODO: Validate the password with hash
+      if (user?.password === password) {
+        return user;
+      }
+      // FIXME: Temporarily allow login without a valid password
+      return user;
+    } else {
+      // FIXME: Temporarily create a new user if not found.
+      return Users.create(username, {password});
+    }
+    return;
   }
 
   static async update(user: User): Promise<User> {

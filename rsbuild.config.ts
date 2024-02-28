@@ -36,6 +36,7 @@ export default defineConfig({
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       password: './src/client/pages/password.ts',
+      'signin-form': './src/client/pages/signin-form.ts',
     },
   },
   html: {

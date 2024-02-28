@@ -68,6 +68,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  >* {
+    margin: 1.5em 0 0 0;
+  }
 }
 
 .hidden {
@@ -101,6 +104,10 @@ body {
   flex-direction: column;
   align-items: stretch;
   background-color: var(--mdc-theme-primary);
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
   header {
     display: flex;
     flex-direction: column;
@@ -122,11 +129,6 @@ h3 {
   padding: 0 16px;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 div[slot="appContent"] {
   background-color: var(--mdc-theme-background);
   height: 100%;
@@ -143,10 +145,12 @@ div[slot="appContent"] {
       }
     }
   }
+  md-outlined-text-field {
+    width: 350px;
+  }
 }
 
-mwc-button, .mdc-button, md-filled-button {
-  margin: 1em 0;
+md-filled-button {
   a {
     text-decoration: none;
     color: inherit;
