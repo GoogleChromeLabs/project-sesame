@@ -185,6 +185,8 @@ export function getSessionUser(req: Request, res: Response): User {
 }
 
 export function signOut(req: Request, res: Response) {
+  const entrancePath = getEntrancePath(req, res);
+
   // Destroy the session
   req.session.destroy(() => {});
 
@@ -192,7 +194,7 @@ export function signOut(req: Request, res: Response) {
   res.set('Set-Login', 'logged-out');
 
   // Redirect to the original entrance.
-  return res.redirect(307, getEntrancePath(req, res));
+  return res.redirect(307, entrancePath);
 }
 
 export function setEntrancePath(req: Request, res: Response) {
