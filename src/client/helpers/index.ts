@@ -131,3 +131,12 @@ export function postForm(): Promise<void> {
     });
   });
 }
+
+export function passwordToggle() {
+  const toggle = $('#password-toggle');
+  // Toggle password visibility when visibility icon is clicked.
+  toggle.addEventListener('click', (e: any) => {
+    e.preventDefault();
+    toggle.parentNode.type = toggle.selected ? 'text' : 'password';
+  });
+}

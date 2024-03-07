@@ -18,15 +18,17 @@
 import '@material/web/textfield/outlined-text-field';
 
 import '~project-sesame/client/layout';
-import {$, loading, redirect, postForm, toast} from '~project-sesame/client/helpers';
+import {$, loading, redirect, postForm, passwordToggle, toast} from '~project-sesame/client/helpers';
 import {authenticate} from '~project-sesame/client/helpers/passkeys';
 
 postForm().then(() => {
   redirect('/home');
 }).catch(error => {
+  // FIXME: `error.message` is not included.
   toast(error.message);
 });
 
+passwordToggle();
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 if (
