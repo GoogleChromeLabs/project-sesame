@@ -243,7 +243,7 @@ router.post(
 
     try {
       if (!expectedChallenge) {
-        throw new Error('Invalid challenge');
+        return res.status(400).send({error: 'Invalid challenge'});
       }
 
       // Use SimpleWebAuthn's handy function to verify the registration request.
@@ -259,6 +259,7 @@ router.post(
 
       // If the verification failed, throw.
       if (!verified || !registrationInfo) {
+        deleteChallenge(req, res);
         throw new Error('User verification failed.');
       }
 
@@ -349,21 +350,23 @@ router.post(
 
     try {
       if (!expectedChallenge) {
-        throw new Error('Invalid challenge');
+        return res.status(401).json({error: 'Invalid challenge.'});
       }
 
       // Find the matching credential from the credential ID
       const cred = await PublicKeyCredentials.findById(credential.id);
       if (!cred) {
-        throw new Error(
+        deleteChallenge(req, res);
+        return res.status(401).json({error:
           'Matching credential not found on the server. Try signing in with a password.'
-        );
+        });
       }
 
       // Find the matching user from the user ID contained in the credential.
       const user = await Users.findByPasskeyUserId(cred.passkey_user_id);
       if (!user) {
-        throw new Error('User not found.');
+        deleteChallenge(req, res);
+        return res.status(401).json({error: 'User not found.'});
       }
 
       // Decode ArrayBuffers and construct an authenticator object.
@@ -387,7 +390,8 @@ router.post(
 
       // If the authentication failed, throw.
       if (!verified) {
-        throw new Error('User verification failed.');
+        deleteChallenge(req, res);
+        return res.status(401).json({error: 'User verification failed.'});
       }
 
       // TODO: Use the `uv` flag as the risk signal.
@@ -407,7 +411,7 @@ router.post(
       deleteChallenge(req, res);
 
       console.error(error);
-      return res.status(400).json({error: error.message});
+      return res.status(500).json({error: error.message});
     }
   }
 );
