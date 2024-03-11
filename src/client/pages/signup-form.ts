@@ -21,37 +21,42 @@ import '~project-sesame/client/layout';
 import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers';
 import {registerCredential} from '~project-sesame/client/helpers/passkeys';
 
-// Feature detection: check if WebAuthn and conditional UI are supported.
-if (
-  window.PublicKeyCredential &&
-  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
-  PublicKeyCredential.isConditionalMediationAvailable
-) {
-  // Are UVPAA and conditional UI available on this browser?
-  const results = await Promise.all([
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
-    PublicKeyCredential.isConditionalMediationAvailable(),
-  ]);
-  if (results.every(r => r === true)) {
-    postForm().then(async () => {
-      return registerCredential();
-    }).then(() => {
-      redirect('/home');
-    }).catch(error => {
-      // 'InvalidStateError' indicates a passkey already exists on the device.
-      if (error.name === 'InvalidStateError') {
-        toast('A passkey already exists for this device.');
-        // `NotAllowedError` indicates the user canceled the operation.
-      } else if (error.name === 'NotAllowedError') {
-        return;
-        // Show other errors in an alert.
-      } else {
-        loading.stop();
-        toast(error.message);
-        console.error(error);
-      }
-    });
-  } else {
-    // TODO: Sign-up without a passkey.
+postForm().then(async () => {
+  // WebAuthn and conditional UI are supported.
+  if (
+    window.PublicKeyCredential &&
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
+    PublicKeyCredential.isConditionalMediationAvailable
+  ) {
+    // Are UVPAA and conditional UI available on this browser?
+    const available = await Promise.all([
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
+      PublicKeyCredential.isConditionalMediationAvailable(),
+    ]);
+    if (available.every(r => r === true)) {
+      return registerCredential().then(() => {
+        redirect('/home');
+      }).catch(error => {
+        // 'InvalidStateError' indicates a passkey already exists on the device.
+        if (error.name === 'InvalidStateError') {
+          toast('A passkey already exists for this device.');
+          // `NotAllowedError` indicates the user canceled the operation.
+        } else if (error.name === 'NotAllowedError') {
+          return;
+          // Show other errors in an alert.
+        } else {
+          loading.stop();
+          toast(error.message);
+          console.error(error);
+        }
+      });
+    } else {
+      loading.stop();
+      redirect('/new-password');
+    }
   }
-}
+}).catch(error => {
+  loading.stop();
+  toast(error.message);
+  console.error(error);
+});

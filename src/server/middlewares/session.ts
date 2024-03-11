@@ -25,9 +25,10 @@ import {User} from '~project-sesame/server/libs/users.ts';
 export enum SignInStatus {
   Unregistered = 0,
   SignedOut = 1,
-  SigningIn = 2,
-  SignedIn = 3,
-  RecentlySignedIn = 4,
+  SigningUp = 2,
+  SigningIn = 3,
+  SignedIn = 4,
+  RecentlySignedIn = 5,
 }
 
 /**
@@ -88,13 +89,17 @@ export function initializeSession() {
 }
 
 export function getSignInStatus(req: Request, res: Response): SignInStatus {
-  const {username, signed_in, last_signedin_at, user} = req.session;
+  const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
 
   // TODO: Think about strict conditions and patterns of whether a user is signed in.
 
   if (!username) {
     // The user is signed out.
     return SignInStatus.SignedOut;
+  }
+  if (passkey_user_id) {
+    // The user is signing up.
+    return SignInStatus.SigningUp;
   }
   if (!signed_in) {
     // The user is signing in, but not signed in yet.
@@ -141,6 +146,37 @@ export function deleteChallenge(req: Request, res: Response): void {
   return;
 }
 
+export function setPasskeyUserId(
+  passkey_user_id: string,
+  req: Request,
+  res: Response
+): void {
+  if (!passkey_user_id) {
+    throw new Error('Invalid passkey_user_id.');
+  }
+  req.session.passkey_user_id = passkey_user_id;
+  return;
+}
+
+export function getPasskeyUserId(req: Request, res: Response): string | undefined {
+  return req.session.passkey_user_id;
+} 
+
+export function deletePasskeyUserId(req: Request, res: Response): void {
+  delete req.session.passkey_user_id;
+  return;
+}
+
+// export function setSigningUp(req: Request, res: Response): void {
+//   req.session.signing_up = true;
+//   return;
+// }
+
+// export function unsetSigningUp(req: Request, res: Response): void {
+//   delete req.session.signing_up;
+//   return;
+// }
+
 export function setUsername(
   username: string,
   req: Request,
@@ -159,6 +195,7 @@ export function getUsername(req: Request, res: Response): string | undefined {
 
 export function setSessionUser(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
+  deletePasskeyUserId(req, res);
 
   // TODO: Do we really need this check?
   if (
@@ -197,8 +234,8 @@ export function signOut(req: Request, res: Response) {
   return res.redirect(307, entrancePath);
 }
 
-export function setEntrancePath(req: Request, res: Response) {
-  req.session.entrance = req.path;
+export function setEntrancePath(req: Request, res: Response, path = '/') {
+  req.session.entrance = path || req.path;
   return;
 }
 

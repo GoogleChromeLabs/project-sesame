@@ -120,13 +120,13 @@ export function postForm(): Promise<void> {
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
       _fetch(s.target.action, cred)
-        .then(user => {
-          resolve();
+        .then(results => {
+          resolve(results);
         })
         .catch(e => {
           loading.stop();
           console.error(e.message);
-          reject();
+          reject(e);
         });
     });
   });

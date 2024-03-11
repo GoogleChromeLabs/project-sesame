@@ -29,7 +29,16 @@ export interface User {
   email?: string;
   picture?: string;
   password?: string;
+  passkey_user_id?: string;
 }
+
+/**
+ * Generates a passkey user ID.
+ * @returns The generated passkey user ID as a Base64URLString.
+ */
+export function generatePasskeyUserId(): Base64URLString {
+  return isoBase64URL.fromBuffer(crypto.randomBytes(32));
+};
 
 export class Users {
   static collection = 'users';
@@ -51,23 +60,17 @@ export class Users {
       displayName?: string;
       email?: string;
       password?: string;
+      passkey_user_id?: string;
     } = {}
   ): Promise<User> {
     const {password} = options;
-    let {picture, displayName, email} = options;
-
     // TODO: Examine why gravatar is not registered.
-    if (!picture) {
-      picture = getGravatarUrl(username);
-    }
-
-    if (!displayName) {
-      displayName = username;
-    }
-
-    if (!email) {
-      email = username;
-    }
+    let {
+      picture = getGravatarUrl(username),
+      displayName = username,
+      email = username,
+      passkey_user_id = generatePasskeyUserId(),
+    } = options;
 
     // TODO: Check duplicates
     const user = {
@@ -76,6 +79,7 @@ export class Users {
       picture,
       displayName,
       email,
+      passkey_user_id,
     };
     await Users.update(user);
     if (password) {
@@ -91,6 +95,18 @@ export class Users {
     } else {
       return;
     }
+  }
+
+  static async findByPasskeyUserId(passkey_user_id: Base64URLString): Promise<User | undefined> {
+    const results: User[] = [];
+    const refs = await store
+      .collection(Users.collection)
+      .where('passkey_user_id', '==', passkey_user_id)
+      .get();
+    if (refs) {
+      refs.forEach(user => results.push(<User>user.data()));
+    }
+    return results.length > 0 ? results[0] : undefined;
   }
 
   static async findByUsername(username: string): Promise<User | undefined> {

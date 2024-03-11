@@ -10,6 +10,6 @@
     "paths": {
       "~project-sesame/server/*": ["./*"],
       "~project-sesame/shared/*": ["../shared/*"],
-    }
+    },
   }
 }

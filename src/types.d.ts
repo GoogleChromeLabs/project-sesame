@@ -28,8 +28,8 @@ import {
 } from '@simplewebauthn/types';
 import {JwtPayload} from 'jsonwebtoken';
 import {StringDecoder} from 'string_decoder';
-import {SignInStatus} from './server/middlewares/session.ts';
-import {User} from './server/libs/users.ts';
+import {SignInStatus} from './server/middlewares/session.js';
+import {User} from './server/libs/users.js';
 
 interface AppLocals {
   is_localhost?: boolean;
@@ -83,6 +83,8 @@ declare module 'express-session' {
     challenge?: string;
     // The path from which the user signed in.
     entrance?: string;
+    // A new passkey user ID upon sign-up.
+    passkey_user_id?: string;
   }
 }
 

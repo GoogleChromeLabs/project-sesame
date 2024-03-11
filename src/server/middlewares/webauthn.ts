@@ -41,13 +41,18 @@ import {
 import {Users} from '~project-sesame/server/libs/users.ts';
 import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
+  SignInStatus,
   deleteChallenge,
+  deletePasskeyUserId,
   getChallenge,
+  getPasskeyUserId,
+  getUsername,
   sessionCheck,
   setChallenge,
   setSessionUser,
 } from '~project-sesame/server/middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json';
+import { get } from 'http';
 
 interface AAGUIDs {
   [key: string]: {
@@ -105,7 +110,7 @@ router.post(
   sessionCheck,
   async (req: Request, res: Response) => {
     const {user} = res.locals;
-    const credentials = await PublicKeyCredentials.findByUserId(user.id);
+    const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkey_user_id);
     return res.json(credentials || []);
   }
 );
@@ -121,7 +126,7 @@ router.post(
     const {credId, newName} = req.body;
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
-    if (!user || !credential || user.id !== credential?.user_id) {
+    if (!user || !credential || user.passkey_user_id !== credential?.passkey_user_id) {
       return res.status(401).json({error: 'User not authorized.'});
     }
     credential.name = newName;
@@ -139,10 +144,10 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
+    // TODO: Check if the user is authorized to remove the credential.  
     const credId = <Base64URLString>req.query.credId;
-    const {user} = res.locals;
 
-    await PublicKeyCredentials.remove(credId, user.id);
+    await PublicKeyCredentials.remove(credId);
 
     return res.json({});
   }
@@ -156,13 +161,22 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
-    const {user} = res.locals;
-    // TODO: If this is sign-up, fill these without user info.
-    const {id: userId, username, displayName} = user;
+    let passkeyUserId, username, displayName;
+    if (res.locals.signin_status === SignInStatus.SigningUp) {
+      passkeyUserId = getPasskeyUserId(req, res);
+      username = getUsername(req, res);
+      displayName = username;
+    } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      const {user} = res.locals;
+      passkeyUserId = user.passkey_user_id;
+      username = user.username;
+      displayName = user.displayName;
+    }
+
     try {
       // Create `excludeCredentials` from a list of stored credentials.
       const excludeCredentials = [];
-      const credentials = await PublicKeyCredentials.findByUserId(userId);
+      const credentials = await PublicKeyCredentials.findByPasskeyUserId(passkeyUserId);
       for (const cred of credentials || []) {
         excludeCredentials.push({
           id: isoBase64URL.toBuffer(cred.id),
@@ -181,7 +195,7 @@ router.post(
       const options = await generateRegistrationOptions({
         rpName: config.projectName,
         rpID: config.hostname,
-        userID: userId,
+        userID: passkeyUserId,
         userName: username,
         userDisplayName: displayName || username,
         // Prompt users for additional information about the authenticator.
@@ -211,8 +225,15 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
-    const {user} = res.locals;
-    const userId = user.id;
+    let user, username, passkeyUserId;
+    if (res.locals.signin_status === SignInStatus.SigningUp) {
+      username = getUsername(req, res);
+      passkeyUserId = getPasskeyUserId(req, res);
+    } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      user = res.locals.user;
+      username = res.locals.username;
+      passkeyUserId = user.passkey_user_id;
+    }
 
     // Set expected values.
     const credential = <RegistrationResponseJSON>req.body;
@@ -259,7 +280,7 @@ router.post(
       // Store the registration result.
       await PublicKeyCredentials.update({
         id: base64CredentialID,
-        user_id: userId,
+        passkey_user_id: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
         aaguid: registrationInfo.aaguid,
@@ -270,6 +291,11 @@ router.post(
 
       // Delete the challenge from the session.
       deleteChallenge(req, res);
+
+      if (res.locals.signin_status === SignInStatus.SigningUp) {
+        user = await Users.create(username, {passkey_user_id: passkeyUserId});
+        setSessionUser(user, req, res);
+      }
 
       // Respond with the user information.
       return res.json(user);
@@ -335,7 +361,7 @@ router.post(
       }
 
       // Find the matching user from the user ID contained in the credential.
-      const user = await Users.findById(cred.user_id);
+      const user = await Users.findByPasskeyUserId(cred.passkey_user_id);
       if (!user) {
         throw new Error('User not found.');
       }
@@ -363,6 +389,8 @@ router.post(
       if (!verified) {
         throw new Error('User verification failed.');
       }
+
+      // TODO: Use the `uv` flag as the risk signal.
 
       // Update the last used timestamp.
       cred.last_used = getTime();

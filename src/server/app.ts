@@ -88,8 +88,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/signup-form', sessionCheck, (req, res) => {
-  // TODO: Set `/identifier-first-form` as the entrance path.
-  // setEntrancePath(req, res);
+  // Set `/identifier-first-form` as the entrance path.
+  setEntrancePath(req, res, '/identifier-first-form');
 
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.

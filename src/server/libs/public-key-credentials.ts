@@ -25,7 +25,7 @@ import {store} from '~project-sesame/server/config.ts';
 
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
-  user_id: Base64URLString;
+  passkey_user_id: Base64URLString;
   name?: string;
   // User visible identifier.
   credentialPublicKey: Base64URLString; // public key,
@@ -73,13 +73,13 @@ export class PublicKeyCredentials {
     }
   }
 
-  static async findByUserId(
-    user_id: Base64URLString
+  static async findByPasskeyUserId(
+    passkey_user_id: Base64URLString
   ): Promise<SesamePublicKeyCredential[] | undefined> {
     const results: SesamePublicKeyCredential[] = [];
     const refs = await store
       .collection(PublicKeyCredentials.collection)
-      .where('user_id', '==', user_id)
+      .where('passkey_user_id', '==', passkey_user_id)
       .orderBy('registeredAt', 'desc')
       .get();
     refs.forEach(cred => results.push(<SesamePublicKeyCredential>cred.data()));
@@ -97,7 +97,6 @@ export class PublicKeyCredentials {
 
   static async remove(
     credential_id: Base64URLString,
-    user_id: Base64URLString
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)

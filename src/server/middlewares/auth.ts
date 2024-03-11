@@ -16,7 +16,7 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users} from '~project-sesame/server/libs/users.ts';
+import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts';
 import {
   sessionCheck,
   signOut,
@@ -25,10 +25,43 @@ import {
   SignInStatus,
   setSessionUser,
   getEntrancePath,
+  setPasskeyUserId,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
+
+router.post('/new-user', sessionCheck, async (req: Request, res: Response) => {
+  const {username} = <{username: string}>req.body;
+  // TODO: Use Captcha to block bots.
+
+  try {
+    // Only check username, no need to check password as this is a mock
+    if (Users.isValidUsername(username)) {
+      // See if account already exists
+      const user = await Users.findByUsername(username);
+
+      if (user) {
+        // User already exists
+        return res.status(400).send({error: 'The username is already taken.'});
+      }
+
+      // Set username in the session
+      setUsername(username, req, res);
+
+      // Generate a new passkey user id
+      const passkey_user_id = generatePasskeyUserId();
+      setPasskeyUserId(passkey_user_id, req, res);
+
+      return res.json({});
+    } else {
+      return res.status(400).send({error: 'Invalid username.'});
+    }
+  } catch (error: any) {
+    console.error(error);
+    return res.status(400).send({error: error.message});
+  }
+});
 
 /**
  * Check username, create a new account if it doesn't exist.
