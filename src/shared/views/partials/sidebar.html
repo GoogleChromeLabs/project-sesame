@@ -13,10 +13,12 @@
             Sidebar content
           </md-list-item>
         </md-list>
+        {{#if (isSignedIn)}}
         <md-list id="signout" class="flex-bottom">
           <md-list-item href="/signout">
             SIGN OUT
             <md-icon slot="start">logout</md-icon>
           </md-list-item>
         </md-list>
+        {{/if}}
       </div>

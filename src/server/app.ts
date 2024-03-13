@@ -16,7 +16,7 @@
  */
 
 import express from 'express';
-import {engine} from 'express-handlebars';
+import {engine, create} from 'express-handlebars';
 import useragent from 'express-useragent';
 import helmet from 'helmet';
 import path from 'path';
@@ -79,6 +79,20 @@ app.use(express.json());
 app.use(useragent.express());
 
 app.use(initializeSession());
+
+app.use((req, res, next) => {
+  res.locals.helpers = {
+    isSignedIn: () => res.locals.signin_status >= SignInStatus.SignedIn
+  };
+  return next();
+});
+
+app.use((req, res, next) => {
+  // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
+  res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
+
+  return next();
+});
 
 app.get('/', (req, res) => {
   return res.render('index.html', {
