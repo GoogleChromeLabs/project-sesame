@@ -116,6 +116,22 @@ app.get('/signup-form', sessionCheck, (req, res) => {
   });
 });
 
+app.get('/new-password', sessionCheck, (req, res) => {
+  if (res.locals.signin_status < SignInStatus.SigningUp) {
+    // If the user has not started signing in, redirect to the original entrance.
+    return res.redirect(307, getEntrancePath(req, res));
+  }
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    // If the user is signed in, redirect to `/home`.
+    return res.redirect(307, '/home');
+  }
+
+  res.render('new-password.html', {
+    title: 'Password',
+    layout: 'new-password',
+  });
+});
+
 app.get('/signin-form', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
@@ -202,9 +218,7 @@ app.get('/password', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
-  // Show `reauth.html`.
-  // User is supposed to enter a password (which will be ignored)
-  // Make XHR POST to `/signin`
+
   res.render('password.html', {
     title: 'Password',
     layout: 'password',
