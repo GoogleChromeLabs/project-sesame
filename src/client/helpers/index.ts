@@ -92,7 +92,7 @@ class Loading {
 
   start() {
     this.progress.indeterminate = true;
-    const inputs = document.querySelectorAll('input');
+    const inputs = document.querySelectorAll('md-outlined-text-field');
     if (inputs) {
       inputs.forEach(input => (input.disabled = true));
     }
@@ -100,7 +100,7 @@ class Loading {
 
   stop() {
     this.progress.indeterminate = false;
-    const inputs = document.querySelectorAll('input');
+    const inputs = document.querySelectorAll('md-outlined-text-field');
     if (inputs) {
       inputs.forEach(input => (input.disabled = false));
     }
@@ -115,10 +115,10 @@ export function postForm(): Promise<void> {
     // When the form is submitted, proceed to the password form.
     form.addEventListener('submit', async (s: any) => {
       s.preventDefault();
-      loading.start();
       const form = new FormData(s.target);
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
+      loading.start();
       _fetch(s.target.action, cred)
         .then(results => {
           resolve(results);

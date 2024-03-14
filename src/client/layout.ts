@@ -20,6 +20,7 @@ import '@material/mwc-top-app-bar';
 import '@material/mwc-drawer';
 import '@material/mwc-snackbar';
 import '@material/web/button/filled-button.js';
+import '@material/web/button/outlined-button.js';
 import '@material/web/list/list.js';
 import '@material/web/list/list-item.js';
 import '@material/web/icon/icon.js';

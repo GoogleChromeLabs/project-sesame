@@ -73,6 +73,12 @@ body {
   }
 }
 
+.split {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
 .hidden {
   display: none !important;
 }
