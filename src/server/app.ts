@@ -245,7 +245,7 @@ app.use('/federation', federation);
 app.use('/.well-known', wellKnown);
 
 app.use(
-  'static',
+  '/static',
   express.static(path.join(config.distRootFilePath, 'client/static'))
 );
 app.use(express.static(path.join(config.distRootFilePath, 'shared/public')));
