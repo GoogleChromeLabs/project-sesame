@@ -110,7 +110,7 @@ router.post(
   sessionCheck,
   async (req: Request, res: Response) => {
     const {user} = res.locals;
-    const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkey_user_id);
+    const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkeyUserId);
     return res.json(credentials || []);
   }
 );
@@ -126,7 +126,7 @@ router.post(
     const {credId, newName} = req.body;
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
-    if (!user || !credential || user.passkey_user_id !== credential?.passkey_user_id) {
+    if (!user || !credential || user.passkeyUserId !== credential?.passkeyUserId) {
       return res.status(401).json({error: 'User not authorized.'});
     }
     credential.name = newName;
@@ -168,7 +168,7 @@ router.post(
       displayName = username;
     } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
       const {user} = res.locals;
-      passkeyUserId = user.passkey_user_id;
+      passkeyUserId = user.passkeyUserId;
       username = user.username;
       displayName = user.displayName;
     }
@@ -232,7 +232,7 @@ router.post(
     } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
       user = res.locals.user;
       username = res.locals.username;
-      passkeyUserId = user.passkey_user_id;
+      passkeyUserId = user.passkeyUserId;
     }
 
     // Set expected values.
@@ -281,7 +281,7 @@ router.post(
       // Store the registration result.
       await PublicKeyCredentials.update({
         id: base64CredentialID,
-        passkey_user_id: passkeyUserId,
+        passkeyUserId: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
         credentialType: registrationInfo.credentialType,
@@ -297,7 +297,7 @@ router.post(
       deleteChallenge(req, res);
 
       if (res.locals.signin_status === SignInStatus.SigningUp) {
-        user = await Users.create(username, {passkey_user_id: passkeyUserId});
+        user = await Users.create(username, {passkeyUserId: passkeyUserId});
         setSessionUser(user, req, res);
       }
 
@@ -366,7 +366,7 @@ router.post(
       }
 
       // Find the matching user from the user ID contained in the credential.
-      const user = await Users.findByPasskeyUserId(cred.passkey_user_id);
+      const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
         deleteChallenge(req, res);
         return res.status(401).json({error: 'User not found.'});
@@ -400,7 +400,7 @@ router.post(
       // TODO: Use the `uv` flag as the risk signal.
 
       // Update the last used timestamp.
-      cred.last_used = getTime();
+      cred.lastUsedAt = getTime();
       await PublicKeyCredentials.update(cred);
 
       // Delete the challenge from the session.

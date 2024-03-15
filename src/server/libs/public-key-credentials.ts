@@ -25,7 +25,7 @@ import {store} from '~project-sesame/server/config.ts';
 
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
-  passkey_user_id: Base64URLString;
+  passkeyUserId: Base64URLString;
   name?: string;
   // User visible identifier.
   credentialPublicKey: Base64URLString; // public key,
@@ -37,24 +37,11 @@ export interface SesamePublicKeyCredential {
   browser?: string;
   os?: string;
   platform?: string;
-  last_used?: number; // last used epoc time,
+  lastUsedAt?: number; // last used epoc time,
   credentialDeviceType?: CredentialDeviceType;
   credentialBackedUp?: boolean;
   registeredAt: number;
 }
-
-/**
- * PublicKeyCredentials data schema
- * {
- *   id: string Base64URL encoded CredentialID,
- *   publicKey: string Base64URL encoded PublicKey,
- *   name: string name of the credential,
- *   transports: an array of transports,
- *   registeredAt: timestamp,
- *   last_used: timestamp,
- *   user_id: string Base64URL encoded user ID of the owner,
- * }
- **/
 
 export class PublicKeyCredentials {
   static collection = 'public_key_credentials';
@@ -80,7 +67,7 @@ export class PublicKeyCredentials {
     const results: SesamePublicKeyCredential[] = [];
     const refs = await store
       .collection(PublicKeyCredentials.collection)
-      .where('passkey_user_id', '==', passkey_user_id)
+      .where('passkeyUserId', '==', passkey_user_id)
       .orderBy('registeredAt', 'desc')
       .get();
     refs.forEach(cred => results.push(<SesamePublicKeyCredential>cred.data()));
