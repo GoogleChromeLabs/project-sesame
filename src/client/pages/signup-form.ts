@@ -43,7 +43,7 @@ postForm().then(async () => {
           // `NotAllowedError` indicates the user canceled the operation.
         } else if (error.name === 'NotAllowedError') {
           return;
-          // Show other errors in an alert.
+          // Show other errors in an toast.
         } else {
           loading.stop();
           toast(error.message);

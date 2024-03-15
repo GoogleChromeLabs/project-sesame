@@ -18,7 +18,7 @@
 import {Base64URLString} from '@simplewebauthn/types';
 import {html, render} from 'lit';
 
-import {$, _fetch, loading} from '~project-sesame/client/helpers/index';
+import {$, _fetch, loading, toast} from '~project-sesame/client/helpers/index';
 import {
   registerCredential,
   unregisterCredential,
@@ -90,7 +90,7 @@ async function rename(e: {target: HTMLButtonElement}): Promise<void> {
   } catch (error: any) {
     loading.stop();
     console.error(error);
-    alert(error.message);
+    toast(error.message);
   }
 }
 
@@ -108,7 +108,7 @@ async function remove(event: {target: HTMLButtonElement}): Promise<void> {
   } catch (error: any) {
     loading.stop();
     console.error(error);
-    alert(error.message);
+    toast(error.message);
   }
 }
 
@@ -209,13 +209,13 @@ async function register(): Promise<void> {
     loading.stop();
     // 'InvalidStateError' indicates a passkey already exists on the device.
     if (error.name === 'InvalidStateError') {
-      alert('A passkey already exists for this device.');
+      toast('A passkey already exists for this device.');
       // `NotAllowedError` indicates the user canceled the operation.
     } else if (error.name === 'NotAllowedError') {
       return;
-      // Show other errors in an alert.
+      // Show other errors in an toast.
     } else {
-      alert(error.message);
+      toast(error.message);
       console.error(error);
     }
   }

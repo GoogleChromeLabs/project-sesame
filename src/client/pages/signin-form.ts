@@ -54,7 +54,7 @@ if (
     console.error(error);
     // `NotAllowedError` indicates a user cancellation.
     if (error.name !== 'NotAllowedError') {
-      alert(error.message);
+      toast(error.message);
     }
   }
 }

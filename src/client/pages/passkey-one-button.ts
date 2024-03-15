@@ -35,12 +35,12 @@ if (window.PublicKeyCredential) {
         loading.stop();
         console.error(error);
         if (error.name !== 'NotAllowedError') {
-          alert(error.message);
+          toast(error.message);
         }
       }
     }
   );
 } else {
-  alert("WebAuthn isn't supported on this browser. Redirecting to a form.");
+  toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
   redirect('/');
 }
