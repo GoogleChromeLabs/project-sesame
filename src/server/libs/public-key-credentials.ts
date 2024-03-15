@@ -26,20 +26,21 @@ import {store} from '~project-sesame/server/config.ts';
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
   passkeyUserId: Base64URLString;
+  deviceId?: Base64URLString;
   name?: string;
   // User visible identifier.
   credentialPublicKey: Base64URLString; // public key,
   credentialType: string; // type of credential,
   counter?: number; // previous counter,
-  aaguid?: string; // AAGUID,
+  aaguid: string; // AAGUID,
   userVerified: boolean; // user verifying authenticator,
   transports: AuthenticatorTransportFuture[]; // list of transports,
   browser?: string;
   os?: string;
   platform?: string;
   lastUsedAt?: number; // last used epoc time,
-  credentialDeviceType?: CredentialDeviceType;
-  credentialBackedUp?: boolean;
+  credentialDeviceType: CredentialDeviceType;
+  credentialBackedUp: boolean;
   registeredAt: number;
 }
 

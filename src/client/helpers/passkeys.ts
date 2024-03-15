@@ -198,6 +198,11 @@ export async function authenticate(conditional = false): Promise<any> {
   // @ts-ignore
   const decodedOptions = PublicKeyCredential.parseRequestOptionsFromJSON(options);
 
+  // Empty `allowCredentials` if `conditional` is true.
+  if (conditional) {
+    decodedOptions.allowCredentials = [];
+  }
+
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
     publicKey: decodedOptions,

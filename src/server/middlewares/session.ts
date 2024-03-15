@@ -234,7 +234,7 @@ export function signOut(req: Request, res: Response) {
   return res.redirect(307, entrancePath);
 }
 
-export function setEntrancePath(req: Request, res: Response, path = '/') {
+export function setEntrancePath(req: Request, res: Response, path: string) {
   req.session.entrance = path || req.path;
   return;
 }

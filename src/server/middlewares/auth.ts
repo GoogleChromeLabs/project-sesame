@@ -103,10 +103,10 @@ router.post('/password', sessionCheck, async (req: Request, res: Response) => {
   if (!Users.isValidPassword(password)) {
     return res.status(401).json({error: 'Invalid password.'});
   }
-  if (res.locals.signin_status !== SignInStatus.SigningIn) {
+  if (res.locals.signin_status < SignInStatus.SigningIn) {
     return res
       .status(400)
-      .json({error: 'The user is not signing in or already signed in.'});
+      .json({error: 'The user is not signing in.'});
   }
   const username = getUsername(req, res);
   if (username) {

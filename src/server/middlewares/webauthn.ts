@@ -318,12 +318,25 @@ router.post(
 router.post(
   '/signinRequest',
   csrfCheck,
+  sessionCheck,
   async (req: Request, res: Response) => {
+    const allowCredentials = [];
+    if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      // TODO: If the device ID is known, pick the credential by the device ID.
+      const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
+      for (const cred of credentials || []) {
+        allowCredentials.push({
+          id: isoBase64URL.toBuffer(cred.id),
+          type: 'public-key',
+          transports: cred.transports,
+        } as PublicKeyCredentialDescriptor);
+      }
+    }
     try {
       // Use SimpleWebAuthn's handy function to create a new authentication request.
       const options = await generateAuthenticationOptions({
         rpID: config.hostname,
-        allowCredentials: [],
+        allowCredentials,
       } as GenerateAuthenticationOptionsOpts);
 
       // Keep the challenge value in a session.
@@ -344,6 +357,7 @@ router.post(
 router.post(
   '/signinResponse',
   csrfCheck,
+  sessionCheck,
   async (req: Request, res: Response) => {
     // Set expected values.
     const credential = <AuthenticationResponseJSON>req.body;

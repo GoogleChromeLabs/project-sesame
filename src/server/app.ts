@@ -33,6 +33,7 @@ import {
   signOut,
 } from '~project-sesame/server/middlewares/session.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
+import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 
 const app = express();
@@ -186,6 +187,22 @@ app.get('/passkey-one-button', sessionCheck, (req, res) => {
   });
 });
 
+app.get('/passkey-reauth', sessionCheck, (req, res) => {
+  if (res.locals.signin_status < SignInStatus.SigningIn) {
+    // If the user has not started signing in, redirect to the original entrance.
+    return res.redirect(307, getEntrancePath(req, res));
+  }
+  // if (res.locals.signin_status === SignInStatus.RecentlySignedIn) {
+  //   // If the user is signed in, redirect to `/home`.
+  //   return res.redirect(307, '/home');
+  // }
+
+  res.render('passkey-reauth.html', {
+    title: 'Passkey reauth',
+    layout: 'passkey-reauth',
+  });
+});
+
 app.get('/fedcm-rp', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
@@ -214,7 +231,7 @@ app.get('/password', sessionCheck, (req, res) => {
     // If the user has not started signing in, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+  if (res.locals.signin_status === SignInStatus.RecentlySignedIn) {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
@@ -242,6 +259,7 @@ app.get('/signout', signOut);
 app.use('/auth', auth);
 app.use('/webauthn', webauthn);
 app.use('/federation', federation);
+app.use('/settings', settings);
 app.use('/.well-known', wellKnown);
 
 app.use(

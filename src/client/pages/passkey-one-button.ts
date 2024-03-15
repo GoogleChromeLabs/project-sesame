@@ -16,7 +16,7 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, _fetch, loading, redirect} from '~project-sesame/client/helpers';
+import {$, _fetch, loading, redirect, toast} from '~project-sesame/client/helpers';
 import {authenticate} from '~project-sesame/client/helpers/passkeys';
 
 if (window.PublicKeyCredential) {

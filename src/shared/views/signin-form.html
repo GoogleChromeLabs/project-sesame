@@ -1,32 +1,32 @@
-<main class="content center">
-  <h2>
-    Log in
-  </h2>
-  <form id="form" method="POST" action="/auth/username-password" class="center">
-    <p class="instructions">Don't have an account yet? <a href="#">Register now</a></p>
-    <md-outlined-text-field
-      type="text"
-      id="username"
-      name="username"
-      autocomplete="username"
-      label="username"
-      width="100"
-      autofocus>
-    </md-outlined-text-field>
-    <md-outlined-text-field
-      type="password"
-      id="password"
-      name="password"
-      autocomplete="current-password"
-      label="password"
-      width="100"
-      autofocus>
-      <md-icon-button id="password-toggle" toggle slot="trailing-icon">
-        <md-icon slot="selected">visibility</md-icon>
-        <md-icon>visibility_off</md-icon>
-      </md-icon-button>
-    </md-outlined-text-field>
-    <md-filled-button type="submit">Login</md-filled-button>
-    <a href="#">Forgot password?</a>
-  </form>
-</main>
+    <main class="content center">
+      <h2>
+        Log in
+      </h2>
+      <form id="form" method="POST" action="/auth/username-password" class="center">
+        <p class="instructions">Don't have an account yet? <a href="#">Register now</a></p>
+        <md-outlined-text-field
+          type="text"
+          id="username"
+          name="username"
+          autocomplete="username"
+          label="username"
+          width="100"
+          autofocus>
+        </md-outlined-text-field>
+        <md-outlined-text-field
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          label="password"
+          width="100"
+          autofocus>
+          <md-icon-button id="password-toggle" toggle slot="trailing-icon">
+            <md-icon slot="selected">visibility</md-icon>
+            <md-icon>visibility_off</md-icon>
+          </md-icon-button>
+        </md-outlined-text-field>
+        <md-filled-button type="submit">Login</md-filled-button>
+        <a href="#">Forgot password?</a>
+      </form>
+    </main>
