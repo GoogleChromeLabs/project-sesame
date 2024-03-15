@@ -66,7 +66,7 @@ app.use(
       directives: {
         connectSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
         scriptSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
-        imgSrc: ["'self'", 'https://www.gravatar.com', 'https://gravatar.com'],
+        imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       },
       // CSP is report-only if the app is running locally.
