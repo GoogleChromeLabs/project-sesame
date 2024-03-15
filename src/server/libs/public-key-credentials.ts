@@ -29,9 +29,10 @@ export interface SesamePublicKeyCredential {
   name?: string;
   // User visible identifier.
   credentialPublicKey: Base64URLString; // public key,
+  credentialType: string; // type of credential,
   counter?: number; // previous counter,
   aaguid?: string; // AAGUID,
-  user_verifying: boolean; // user verifying authenticator,
+  userVerified: boolean; // user verifying authenticator,
   transports: AuthenticatorTransportFuture[]; // list of transports,
   browser?: string;
   os?: string;

@@ -160,7 +160,17 @@ async function renderCredentials(): Promise<void> {
             timeStyle: 'short',
             hour12: false,
           });
+          const lastUsed = new Date(cred.registeredAt);
+          const lastUsedDate = lastUsed.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          });
+          const lastUsedTime = lastUsed.toLocaleTimeString(undefined, {
+            timeStyle: 'short',
+            hour12: false,
+          });
           const createdStr = `Created: ${createdDate}, ${createdTime}`;
+          const lastUsedStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
           return html`${i > 0 && i < res.length
               ? html` <md-divider></md-divider> `
               : ''}
@@ -172,8 +182,8 @@ async function renderCredentials(): Promise<void> {
                 width="24"
                 height="24"
               />
-              <span slot="headline">${cred.name || 'Unnamed'}</span>
-              <span slot="supporting-text">${createdStr}</span>
+              <span slot="headline">${cred.name || 'Unnamed'} ${cred.credentialBackedUp?'(synced)':''}</span>
+              <span slot="supporting-text">${createdStr}, ${lastUsedStr}</span>
               <md-icon-button
                 slot="end"
                 data-cred-id="${cred.id}"

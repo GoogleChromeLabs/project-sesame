@@ -284,9 +284,12 @@ router.post(
         passkey_user_id: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
+        credentialType: registrationInfo.credentialType,
         aaguid: registrationInfo.aaguid,
         transports: credential.response.transports || [],
-        user_verifying: registrationInfo.userVerified,
+        userVerified: registrationInfo.userVerified,
+        credentialDeviceType: registrationInfo.credentialDeviceType,
+        credentialBackedUp: registrationInfo.credentialBackedUp,
         registeredAt: getTime(),
       } as SesamePublicKeyCredential);
 
