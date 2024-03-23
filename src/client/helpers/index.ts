@@ -137,8 +137,26 @@ async function signOut(e: MouseEvent) {
   redirect('/signout');
 }
 
+function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
+  const drawer = $('mwc-drawer');
+  const topAppBar = $('mwc-top-app-bar');
+
+  if (e.matches) {
+    // Mobile display
+    topAppBar.style.display = 'block';
+    drawer.type = 'dismissible';
+    drawer.open = false;
+
+  } else {
+    // Desktop display
+    topAppBar.style.display = 'none';
+    drawer.type = '';
+    drawer.open = false;
+  }
+};
+
 document.addEventListener('DOMContentLoaded', e => {
-  const drawer: Drawer | null = document.querySelector('mwc-drawer');
+  const drawer: Drawer | null = $('mwc-drawer');
   drawer?.addEventListener(
     'MDCTopAppBar:nav',
     () => (drawer.open = !drawer.open)
@@ -151,4 +169,10 @@ document.addEventListener('DOMContentLoaded', e => {
   if (toggle) {
     toggle.addEventListener('click', togglePasswordVisibility);
   }
+
+  const mediaQuery = window.matchMedia('(max-width: 768px)');
+  mediaQuery.addEventListener('change', changeLayout);
+
+  // Initialize
+  changeLayout(mediaQuery);
 });

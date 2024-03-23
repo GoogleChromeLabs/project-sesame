@@ -22,12 +22,12 @@
     <mwc-drawer open>
       {{> sidebar this}}
       <div slot="appContent">
-        <!-- <mwc-top-app-bar>
+        <mwc-top-app-bar style="display:none;">
           <md-icon-button slot="navigationIcon">
             <md-icon id="menu">menu</md-icon>
           </md-icon-button>
           <span slot="title"><a href="/">{{title}}</a></span>
-        </mwc-top-app-bar> -->
+        </mwc-top-app-bar>
         <md-linear-progress id="progress"></md-linear-progress>
         {{{body}}}
       </div>
