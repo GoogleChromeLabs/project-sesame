@@ -52,8 +52,16 @@ body {
   height: 100%;
 }
 
+h3 {
+  padding: 0 16px;
+}
+
 .content {
   margin: 0 16px 20px 16px;
+}
+
+main section {
+  margin-top: 2em;
 }
 
 .instructions {
@@ -124,15 +132,14 @@ body {
   md-list {
     background-color: var(--mdc-theme-primary);
     flex: 1 0 auto;
+    &.flex-bottom {
+      flex: 0 1 auto;
+    }
+    md-list-item {
+      cursor: pointer;
+      background-color: var(--mdc-theme-secondary);
+    }
   }
-  #signout {
-    background-color: var(--mdc-theme-secondary);
-    flex: 0 1 auto;
-  }
-}
-
-h3 {
-  padding: 0 16px;
 }
 
 div[slot="appContent"] {
@@ -161,10 +168,6 @@ md-filled-button {
     text-decoration: none;
     color: inherit;
   }
-}
-
-main section {
-  margin-top: 2em;
 }
 
 .profile-image {

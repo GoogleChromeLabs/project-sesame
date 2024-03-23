@@ -16,6 +16,7 @@
  */
 
 import {MdLinearProgress} from '@material/web/progress/linear-progress';
+import {Drawer} from '@material/mwc-drawer';
 
 export const $: any = document.querySelector.bind(document);
 
@@ -144,3 +145,19 @@ export function passwordToggle() {
     toggle.parentNode.type = toggle.selected ? 'text' : 'password';
   });
 }
+
+export async function signOut() {
+  // Prevent auto-sign-in the next time the user comes back.
+  await navigator.credentials.preventSilentAccess();
+
+  redirect('/signout');
+}
+
+document.addEventListener('DOMContentLoaded', e => {
+  const drawer: Drawer | null = document.querySelector('mwc-drawer');
+  drawer?.addEventListener(
+    'MDCTopAppBar:nav',
+    () => (drawer.open = !drawer.open)
+  );
+  $('#signout').addEventListener('click', signOut);
+});
