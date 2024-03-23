@@ -44,19 +44,23 @@ export async function _fetch(path: string, payload: any = ''): Promise<any> {
     headers['Content-Type'] = 'application/json';
     payload = JSON.stringify(payload);
   }
-  const res = await fetch(path, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: headers,
-    body: payload,
-  });
-  if (res.status === 200) {
-    // Server authentication succeeded
-    return res.json();
-  } else {
-    // Server authentication failed
-    const result = await res.json();
-    throw new Error(result.error);
+  try {
+    const res = await fetch(path, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: headers,
+      body: payload,
+    });
+    if (res.status === 200) {
+      // Server authentication succeeded
+      return res.json();
+    } else {
+      // Server authentication failed
+      const result = await res.json();
+      throw new Error(result.error); 
+    }
+  } catch (error) {
+    throw error;
   }
 }
 

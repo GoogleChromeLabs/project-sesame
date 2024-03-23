@@ -32,11 +32,11 @@ export default defineConfig({
       // this can be heavily cleaned up once the frontend code has
       // some more structure
       'fedcm-rp': './src/client/pages/fedcm-rp.ts',
-      home: './src/client/pages/home.ts',
+      'home': './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
-      password: './src/client/pages/password.ts',
+      'password': './src/client/pages/password.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
     },
