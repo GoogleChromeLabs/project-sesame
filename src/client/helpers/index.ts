@@ -16,6 +16,7 @@
  */
 
 import {MdLinearProgress} from '@material/web/progress/linear-progress';
+import {MdIconButton} from '@material/web/iconbutton/icon-button';
 import {Drawer} from '@material/mwc-drawer';
 
 export const $: any = document.querySelector.bind(document);
@@ -62,26 +63,6 @@ export async function _fetch(path: string, payload: any = ''): Promise<any> {
     }
   } catch (error) {
     throw error;
-  }
-}
-
-/**
- * Encode given buffer or decode given string with Base64URL.
- */
-export class base64url {
-  static encode(buffer: ArrayBuffer): string {
-    const base64 = window.btoa(String.fromCharCode(...new Uint8Array(buffer)));
-    return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  }
-
-  static decode(base64url: string): ArrayBuffer {
-    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-    const binStr = window.atob(base64);
-    const bin = new Uint8Array(binStr.length);
-    for (let i = 0; i < binStr.length; i++) {
-      bin[i] = binStr.charCodeAt(i);
-    }
-    return bin.buffer;
   }
 }
 
@@ -137,19 +118,22 @@ export function postForm(): Promise<void> {
   });
 }
 
-export function passwordToggle() {
-  const toggle = $('#password-toggle');
-  // Toggle password visibility when visibility icon is clicked.
-  toggle.addEventListener('click', (e: any) => {
-    e.preventDefault();
-    toggle.parentNode.type = toggle.selected ? 'text' : 'password';
-  });
+function togglePasswordVisibility(e: MouseEvent) {
+  e.preventDefault();
+  if (e.target instanceof MdIconButton &&
+      e.target.parentNode instanceof HTMLInputElement) {
+    // Toggle password visibility when visibility icon is clicked.
+    e.target.parentNode.type = e.target.selected ? 'text' : 'password';
+  }
 }
 
-export async function signOut() {
+async function signOut(e: MouseEvent) {
+  e.preventDefault();
+
   // Prevent auto-sign-in the next time the user comes back.
   await navigator.credentials.preventSilentAccess();
 
+  // Sign out.
   redirect('/signout');
 }
 
@@ -159,5 +143,12 @@ document.addEventListener('DOMContentLoaded', e => {
     'MDCTopAppBar:nav',
     () => (drawer.open = !drawer.open)
   );
-  $('#signout').addEventListener('click', signOut);
+  const signout = $('#signout');
+  if (signout) {
+    signout.addEventListener('click', signOut);
+  }
+  const toggle = $('#password-toggle');
+  if (toggle) {
+    toggle.addEventListener('click', togglePasswordVisibility);
+  }
 });

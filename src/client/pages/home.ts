@@ -75,7 +75,10 @@ async function renderDisplayName(): Promise<void> {
 /**
  * Rename and update the credential name.
  */
-async function rename(e: {target: HTMLButtonElement}): Promise<void> {
+async function rename(e: MouseEvent): Promise<void> {
+  if (!(e.target instanceof HTMLButtonElement)) {
+    return;
+  }
   const {credId, name} = e.target.dataset as {
     credId: Base64URLString;
     name: string;
