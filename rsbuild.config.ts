@@ -39,6 +39,7 @@ export default defineConfig({
       'password': './src/client/pages/password.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
+      'settings/passkeys': './src/client/pages/settings/passkeys.ts',
     },
   },
   html: {

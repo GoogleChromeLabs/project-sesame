@@ -8,16 +8,25 @@
           <a href="/"><img src="/images/icon.svg" width="34" height="34"></a>
           <h2><a href="/">SHRINE</a></h2>
         </header>
+        {{#if (isSignedIn)}}
+        <md-list>
+          <md-list-item type="link" href="/home">
+            Home
+          </md-list-item>
+          <md-list-item type="link" href="/settings/passkeys">
+            Passkey Management
+          </md-list-item>
+        </md-list>
+        <md-list class="flex-bottom">
+          <md-list-item type="button" id="signout">
+            SIGN OUT
+            <md-icon slot="start">logout</md-icon>
+          </md-list-item>
+        </md-list>
+        {{else}}
         <md-list>
           <md-list-item>
             Sidebar content
-          </md-list-item>
-        </md-list>
-        {{#if (isSignedIn)}}
-        <md-list class="flex-bottom">
-          <md-list-item id="signout">
-            SIGN OUT
-            <md-icon slot="start">logout</md-icon>
           </md-list-item>
         </md-list>
         {{/if}}

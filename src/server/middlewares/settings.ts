@@ -31,16 +31,21 @@ import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
 
-router.get('/', sessionCheck, (req: Request, res: Response) => {
+// There's nothing here.
+router.get('/', (req: Request, res: Response) => {
+  return res.redirect(307, '/home');
+});
+
+router.get('/passkeys', sessionCheck, (req: Request, res: Response) => {
   if (res.locals.signin_status < SignInStatus.SignedIn) {
     // If the user has not signed in yet, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
   // Temporarily show the home screen
-  // TODO: Create a settings page UI
-  return res.render('home.html', {
-    title: 'Settings',
-    layout: 'home',
+  return res.render('settings/passkeys.html', {
+    title: 'Passkey Management',
+    // TODO: Create a settings page UI
+    layout: 'settings/passkeys',
   });
 });
 
