@@ -16,6 +16,11 @@
  */
 
 import crypto from 'crypto';
+import {isoBase64URL} from '@simplewebauthn/server/helpers';
+
+export function generateRandomString(num_of_bytes: number = 32): string {
+  return isoBase64URL.fromBuffer(crypto.randomBytes(num_of_bytes));
+}
 
 export function getGravatarUrl(username: string): string {
   const pictureURL = new URL('https://www.gravatar.com/');

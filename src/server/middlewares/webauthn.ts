@@ -193,7 +193,7 @@ router.post(
 
       // Use SimpleWebAuthn's handy function to create registration options.
       const options = await generateRegistrationOptions({
-        rpName: config.projectName,
+        rpName: config.project_name,
         rpID: config.hostname,
         userID: passkeyUserId,
         userName: username,

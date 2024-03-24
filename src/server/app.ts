@@ -18,6 +18,7 @@
 import express from 'express';
 import {engine, create} from 'express-handlebars';
 import useragent from 'express-useragent';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
 import config from '~project-sesame/server/config.ts';
@@ -52,11 +53,11 @@ function configureTemplateEngine(app: express.Application) {
     engine({
       extname: 'html',
       defaultLayout: 'index',
-      layoutsDir: path.join(config.viewsRootFilePath, 'layouts'),
-      partialsDir: path.join(config.viewsRootFilePath, 'partials'),
+      layoutsDir: path.join(config.views_root_file_path, 'layouts'),
+      partialsDir: path.join(config.views_root_file_path, 'partials'),
     })
   );
-  app.set('views', path.join(config.viewsRootFilePath));
+  app.set('views', path.join(config.views_root_file_path));
 }
 
 configureTemplateEngine(app);
@@ -71,7 +72,7 @@ app.use(
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       },
       // CSP is report-only if the app is running locally.
-      reportOnly: config.isLocalhost,
+      reportOnly: config.is_localhost,
     },
   })
 );
@@ -80,6 +81,7 @@ app.use(express.json());
 app.use(useragent.express());
 
 app.use(initializeSession());
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   res.locals.helpers = {
@@ -264,9 +266,9 @@ app.use('/.well-known', wellKnown);
 
 app.use(
   '/static',
-  express.static(path.join(config.distRootFilePath, 'client/static'))
+  express.static(path.join(config.dist_root_file_path, 'client/static'))
 );
-app.use(express.static(path.join(config.distRootFilePath, 'shared/public')));
+app.use(express.static(path.join(config.dist_root_file_path, 'shared/public')));
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.

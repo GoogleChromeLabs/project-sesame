@@ -27,7 +27,7 @@ import {getFirestore} from 'firebase-admin/firestore';
 import packageConfig from '../../package.json';
 import firebaseConfig from '../../firebase.json';
 
-const isLocalhost =
+const is_localhost =
   process.env.NODE_ENV === 'localhost' || !process.env.NODE_ENV;
 
 /**
@@ -36,16 +36,16 @@ const isLocalhost =
  * is responsible for serving the frontend application during development, to
  * enable hot module reloading and other development features.
  */
-const isDevelopmentProxy = process.env.PROXY;
+const is_development_proxy = process.env.PROXY;
 
-const projectRootFilePath = path.join(
+const project_root_file_path = path.join(
   url.fileURLToPath(import.meta.url),
   '../../..'
 );
-const distRootFilePath = path.join(projectRootFilePath, 'dist');
+const dist_root_file_path = path.join(project_root_file_path, 'dist');
 
-console.log('Reading config from', path.join(projectRootFilePath, '/.env'));
-dotenv.config({path: path.join(projectRootFilePath, '/.env')});
+console.log('Reading config from', path.join(project_root_file_path, '/.env'));
+dotenv.config({path: path.join(project_root_file_path, '/.env')});
 
 /**
  * Pulls together various configurations and returns the configured
@@ -53,7 +53,7 @@ dotenv.config({path: path.join(projectRootFilePath, '/.env')});
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (isLocalhost) {
+  if (is_localhost) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -73,13 +73,13 @@ function configureApp() {
   }
 
   return {
-    projectName: process.env.PROJECT_NAME || 'sesame',
-    debug: isLocalhost || process.env.NODE_ENV === 'development',
-    projectRootFilePath,
-    distRootFilePath,
-    viewsRootFilePath: path.join(distRootFilePath, 'shared/views'),
-    isLocalhost,
-    port: isDevelopmentProxy ? 8888 : process.env.PORT || 8080,
+    project_name: process.env.PROJECT_NAME || 'sesame',
+    debug: is_localhost || process.env.NODE_ENV === 'development',
+    project_root_file_path,
+    dist_root_file_path,
+    views_root_file_path: path.join(dist_root_file_path, 'shared/views'),
+    is_localhost,
+    port: is_development_proxy ? 8888 : process.env.PORT || 8080,
     origin,
     secret: process.env.SECRET || crypto.randomBytes(32).toString('hex'),
     hostname: new URL(origin).hostname,
@@ -88,6 +88,7 @@ function configureApp() {
     id_token_lifetime: parseInt(
       process.env.ID_TOKEN_LIFETIME || `${1 * 24 * 60 * 60 * 1000}`
     ),
+    forever_cookie_duration: 1000 * 60 * 60 * 24 * 365,
     short_session_duration: parseInt(
       process.env.SHORT_SESSION_DURATION || `${3 * 60 * 1000}`
     ),

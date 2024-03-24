@@ -21,6 +21,7 @@ import {FirestoreStore} from '@google-cloud/connect-firestore';
 import {getTime} from '~project-sesame/server/middlewares/common.ts';
 import {store, config} from '~project-sesame/server/config.ts';
 import {User} from '~project-sesame/server/libs/users.ts';
+import { generateRandomString } from '../libs/helpers.ts';
 
 export enum SignInStatus {
   Unregistered = 0,
@@ -42,6 +43,7 @@ export async function sessionCheck(
   next: NextFunction
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
+  res.locals.device_id = getDeviceId(req, res);
   if (res.locals.signin_status >= SignInStatus.SigningIn) {
     res.locals.username = getUsername(req, res);
   }
@@ -82,16 +84,29 @@ export function initializeSession() {
     cookie: {
       path: '/',
       httpOnly: true,
-      secure: !config.isLocalhost, // `false` on localhost
+      secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },
   });
 }
 
+export function getDeviceId(req: Request, res: Response): string {
+  let {device_id} = req.cookies;
+
+  if (!device_id) {
+    device_id = generateRandomString();
+    res.cookie('device_id', device_id, {
+      path: '/',
+      httpOnly: true,
+      secure: !config.is_localhost, // `false` on localhost
+      maxAge: config.forever_cookie_duration
+    });
+  }
+  return device_id;
+}
+
 export function getSignInStatus(req: Request, res: Response): SignInStatus {
   const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
-
-  // TODO: Think about strict conditions and patterns of whether a user is signed in.
 
   if (!username) {
     // The user is signed out.
@@ -131,7 +146,7 @@ export function setChallenge(
   res: Response
 ): string {
   if (challenge === '') {
-    challenge = Math.floor(Math.random() * 10e10).toString();
+    challenge = generateRandomString();
   }
   req.session.challenge = challenge;
   return challenge;

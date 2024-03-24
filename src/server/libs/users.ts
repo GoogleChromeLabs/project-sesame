@@ -15,11 +15,9 @@
  * limitations under the License
  */
 
-import crypto from 'crypto';
-import {isoBase64URL} from '@simplewebauthn/server/helpers';
 import {Base64URLString} from '@simplewebauthn/types';
 
-import {getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
+import {generateRandomString, getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
 import {store} from '~project-sesame/server/config.ts';
 
 export interface User {
@@ -37,7 +35,7 @@ export interface User {
  * @returns The generated passkey user ID as a Base64URLString.
  */
 export function generatePasskeyUserId(): Base64URLString {
-  return isoBase64URL.fromBuffer(crypto.randomBytes(32));
+  return generateRandomString();
 };
 
 export class Users {
@@ -74,7 +72,7 @@ export class Users {
 
     // TODO: Check duplicates
     const user = {
-      id: isoBase64URL.fromBuffer(crypto.randomBytes(32)),
+      id: generateRandomString(),
       username,
       picture,
       displayName,
