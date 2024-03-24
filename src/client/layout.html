@@ -25,10 +25,12 @@
         <mwc-top-app-bar style="display:none;">
           <md-icon-button slot="navigationIcon">
             <md-icon id="menu">menu</md-icon>
+            <img id="nav-brand-icon" src="/images/icon.svg" width="34" height="34">
           </md-icon-button>
-          <span slot="title"><a href="/">{{title}}</a></span>
+          <span slot="title">SHRINE</span>
         </mwc-top-app-bar>
         <md-linear-progress id="progress"></md-linear-progress>
+        <div class="corner-triangle"></div>
         {{{body}}}
       </div>
     </mwc-drawer>
