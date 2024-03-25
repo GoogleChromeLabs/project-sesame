@@ -97,7 +97,7 @@ router.post('/username', async (req: Request, res: Response) => {
  * This only checks if `username` is not empty string and ignores the password.
  **/
 router.post('/password', sessionCheck, async (req: Request, res: Response) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
+  if (res.locals.signin_status !== SignInStatus.SigningIn) {
     // If the user is not signing in, return an error.
     return res.status(400).json({error: 'The user is not signing in.'});
   }
