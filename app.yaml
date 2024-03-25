@@ -15,10 +15,6 @@ runtime: nodejs20
 env_variables:
   NODE_ENV: production
 handlers:
-# - url: /scripts
-#   static_dir: static/scripts
-# - url: /styles
-#   static_dir: static/styles
 - url: /.*
   secure: always
   redirect_http_response_code: 301
