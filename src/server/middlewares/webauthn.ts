@@ -45,6 +45,7 @@ import {
   deleteChallenge,
   deletePasskeyUserId,
   getChallenge,
+  getDeviceId,
   getPasskeyUserId,
   getUsername,
   sessionCheck,
@@ -206,7 +207,7 @@ router.post(
       });
 
       // Keep the challenge value in a session.
-      setChallenge(options.challenge, req, res);
+      setChallenge(req, res, options.challenge);
 
       // Respond with the registration options.
       return res.json(options);
@@ -278,9 +279,12 @@ router.post(
           ? req.useragent?.platform
           : (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
 
+      const deviceId = getDeviceId(req, res);
+
       // Store the registration result.
       await PublicKeyCredentials.update({
         id: base64CredentialID,
+        deviceId,
         passkeyUserId: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
@@ -321,15 +325,28 @@ router.post(
   sessionCheck,
   async (req: Request, res: Response) => {
     const allowCredentials = [];
+
     if (res.locals.signin_status >= SignInStatus.SignedIn) {
-      // TODO: If the device ID is known, pick the credential by the device ID.
+
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
-      for (const cred of credentials || []) {
-        allowCredentials.push({
-          id: isoBase64URL.toBuffer(cred.id),
-          type: 'public-key',
-          transports: cred.transports,
-        } as PublicKeyCredentialDescriptor);
+      if (!credentials?.length) {
+        return res.status(404).json({error: 'No credentials found.'});
+      }
+
+      // If the device ID is known, pick the credential by the device ID.
+      const device_id = getDeviceId(req, res);
+      const creds = credentials.filter(cred => cred.deviceId === device_id);
+
+      // If a credential with a matching device ID is found, use it.
+      // Otherwise, return an empty `allowCredentials` array.
+      if (creds.length > 0) {
+        for (let cred of creds) {
+          allowCredentials.push({
+            id: isoBase64URL.toBuffer(cred.id),
+            type: 'public-key',
+            transports: cred.transports,
+          } as PublicKeyCredentialDescriptor);
+        }
       }
     }
     try {
@@ -340,13 +357,13 @@ router.post(
       } as GenerateAuthenticationOptionsOpts);
 
       // Keep the challenge value in a session.
-      setChallenge(options.challenge, req, res);
+      setChallenge(req, res, options.challenge);
 
       return res.json(options);
     } catch (error: any) {
       console.error(error);
 
-      return res.status(400).json({error: error.message});
+      return res.status(500).json({error: error.message});
     }
   }
 );
@@ -377,6 +394,14 @@ router.post(
         return res.status(401).json({error:
           'Matching credential not found on the server. Try signing in with a password.'
         });
+      }
+
+      // If the user is already signed in and passkey user ID doesn't match,
+      // return an error.
+      if (res.locals.signin_status >= SignInStatus.SignedIn &&
+          res.locals.user.passkeyUserId !== cred.passkeyUserId) {
+        deleteChallenge(req, res);
+        return res.status(400).json({error: 'Wrong sign-in account.'});
       }
 
       // Find the matching user from the user ID contained in the credential.
@@ -416,9 +441,6 @@ router.post(
       // Update the last used timestamp.
       cred.lastUsedAt = getTime();
       await PublicKeyCredentials.update(cred);
-
-      // Delete the challenge from the session.
-      deleteChallenge(req, res);
 
       // Set the user as a signed in status
       await setSessionUser(user, req, res);

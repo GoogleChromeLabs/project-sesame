@@ -41,6 +41,13 @@ router.get('/passkeys', sessionCheck, (req: Request, res: Response) => {
     // If the user has not signed in yet, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
+  if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+    // Redirect to reauthenticate.
+    // TODO: How do we determine the reauthentication method?
+    // TODO: Remember the destination before the redirect and redirect
+    // the user back to the destination after reauthentication.  
+    return res.redirect(307, '/passkey-reauth');
+  }
   // Temporarily show the home screen
   return res.render('settings/passkeys.html', {
     title: 'Passkey Management',

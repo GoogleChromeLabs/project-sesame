@@ -194,10 +194,6 @@ app.get('/passkey-reauth', sessionCheck, (req, res) => {
     // If the user has not started signing in, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
-  // if (res.locals.signin_status === SignInStatus.RecentlySignedIn) {
-  //   // If the user is signed in, redirect to `/home`.
-  //   return res.redirect(307, '/home');
-  // }
 
   res.render('passkey-reauth.html', {
     title: 'Passkey reauth',
@@ -218,7 +214,7 @@ app.get('/fedcm-rp', sessionCheck, (req, res) => {
   }
 
   // Generate a new nonce.
-  const nonce = setChallenge('', req, res);
+  const nonce = setChallenge(req, res);
 
   // If the user is not signed in, show `fedcm-rp.html` with id/password form.
   return res.render('fedcm-rp.html', {

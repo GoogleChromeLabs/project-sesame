@@ -43,7 +43,6 @@ export async function sessionCheck(
   next: NextFunction
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
-  res.locals.device_id = getDeviceId(req, res);
   if (res.locals.signin_status >= SignInStatus.SigningIn) {
     res.locals.username = getUsername(req, res);
   }
@@ -106,6 +105,7 @@ export function getDeviceId(req: Request, res: Response): string {
 }
 
 export function getSignInStatus(req: Request, res: Response): SignInStatus {
+  console.log(req.session);
   const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
 
   if (!username) {
@@ -141,22 +141,23 @@ export function getSignInStatus(req: Request, res: Response): SignInStatus {
  * @returns The challenge value that was set
  */
 export function setChallenge(
-  challenge = '',
   req: Request,
-  res: Response
+  res: Response,
+  challenge: string,
 ): string {
-  if (challenge === '') {
-    challenge = generateRandomString();
-  }
+  challenge ??= generateRandomString();
+  console.log('set challenge:', challenge);
   req.session.challenge = challenge;
   return challenge;
 }
 
 export function getChallenge(req: Request, res: Response): string | undefined {
+  console.log('get challenge:', req.session.challenge);
   return req.session.challenge;
 }
 
 export function deleteChallenge(req: Request, res: Response): void {
+  console.log('delete challenge:', req.session.challenge);
   delete req.session.challenge;
   return;
 }
