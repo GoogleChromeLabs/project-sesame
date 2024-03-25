@@ -92,4 +92,15 @@ export class PublicKeyCredentials {
       .doc(credential_id);
     return ref.delete();
   }
+
+  static async deleteByPasskeyUserId(
+    passkey_user_id: Base64URLString
+  ): Promise<void> {
+    const creds = await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);
+    if (creds) {
+      creds.forEach(async cred => {
+        await PublicKeyCredentials.remove(cred.id);
+      });
+    }
+  }
 }

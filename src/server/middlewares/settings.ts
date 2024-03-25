@@ -62,14 +62,17 @@ router.get('/delete-account', sessionCheck, (req: Request, res: Response) => {
     return res.redirect(307, getEntrancePath(req, res));
   }
   if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
-    // TODO: What's the best way to reauthenticate the user?
-    return res.redirect(307, getEntrancePath(req, res));
+    // Redirect to reauthenticate.
+    // TODO: How do we determine the reauthentication method?
+    // TODO: Remember the destination before the redirect and redirect
+    // the user back to the destination after reauthentication.  
+    return res.redirect(307, '/passkey-reauth');
   }
   // Temporarily show the home screen
   // TODO: Create a settings page UI
-  return res.render('home.html', {
-    title: 'Settings',
-    layout: 'home',
+  return res.render('settings/delete-account.html', {
+    title: 'Delete account',
+    layout: 'settings/delete-account',
   });
 });
 

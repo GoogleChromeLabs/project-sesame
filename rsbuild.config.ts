@@ -40,6 +40,7 @@ export default defineConfig({
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
       'settings/passkeys': './src/client/pages/settings/passkeys.ts',
+      'settings/delete-account': './src/client/pages/settings/delete-account.ts',
     },
   },
   html: {

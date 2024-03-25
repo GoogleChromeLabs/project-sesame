@@ -52,24 +52,6 @@ export async function sessionCheck(
   return next();
 }
 
-export async function apiFilter(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<any> {
-  res.locals.signin_status = getSignInStatus(req, res);
-  if (res.locals.signin_status === SignInStatus.SignedOut) {
-    return res.status(401).json({error: 'not signed in.'});
-  }
-  if (res.locals.signin_status >= SignInStatus.SigningIn) {
-    res.locals.username = getUsername(req, res);
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    res.locals.user = getSessionUser(req, res);
-  }
-  return next();
-}
-
 export function initializeSession() {
   return session({
     secret: config.secret,

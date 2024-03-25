@@ -15,19 +15,10 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/types';
 import {html, render} from 'lit';
 
-import {$, _fetch, loading, toast} from '~project-sesame/client/helpers/index';
-import {
-  registerCredential,
-  unregisterCredential,
-  updateCredential,
-} from '~project-sesame/client/helpers/passkeys';
+import {$, _fetch, loading} from '~project-sesame/client/helpers/index';
 import '~project-sesame/client/layout';
-
-const aaguids = await fetch('/aaguids.json');
-const icons = await aaguids.json();
 
 /**
  * Change and update the user's display name.
@@ -70,31 +61,6 @@ async function renderDisplayName(): Promise<void> {
     `,
     $('#userinfo')
   );
-}
-
-/**
- * Rename and update the credential name.
- */
-async function rename(e: MouseEvent): Promise<void> {
-  if (!(e.target instanceof HTMLButtonElement)) {
-    return;
-  }
-  const {credId, name} = e.target.dataset as {
-    credId: Base64URLString;
-    name: string;
-  };
-  const newName = prompt('Enter a new credential name.', name);
-  if (!newName?.length) return;
-  try {
-    loading.start();
-    await updateCredential(credId, newName);
-    await renderCredentials();
-    loading.stop();
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    toast(error.message);
-  }
 }
 
 loading.start();

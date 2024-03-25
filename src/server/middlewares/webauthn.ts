@@ -326,6 +326,7 @@ router.post(
   async (req: Request, res: Response) => {
     const allowCredentials = [];
 
+    // For reauthentication
     if (res.locals.signin_status >= SignInStatus.SignedIn) {
 
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
@@ -334,11 +335,14 @@ router.post(
       }
 
       // If the device ID is known, pick the credential by the device ID.
+      // TODO: If a roaming authenticator is registered, this will likely fail.
+      // Think of a better way to handle this.
       const device_id = getDeviceId(req, res);
       const creds = credentials.filter(cred => cred.deviceId === device_id);
 
-      // If a credential with a matching device ID is found, use it.
-      // Otherwise, return an empty `allowCredentials` array.
+      // If credentials with the matching device ID are found, fill
+      // `allowCredentials` with them. Otherwise, return an empty
+      // `allowCredentials`.
       if (creds.length > 0) {
         for (let cred of creds) {
           allowCredentials.push({

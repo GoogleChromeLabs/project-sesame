@@ -97,6 +97,10 @@ router.post('/username', async (req: Request, res: Response) => {
  * This only checks if `username` is not empty string and ignores the password.
  **/
 router.post('/password', sessionCheck, async (req: Request, res: Response) => {
+  if (res.locals.signin_status === SignInStatus.SigningIn) {
+    // If the user is not signing in, return an error.
+    return res.status(400).json({error: 'The user is not signing in.'});
+  }
   const {password} = req.body;
 
   // TODO: Validate entered parameter.
@@ -122,6 +126,10 @@ router.post('/password', sessionCheck, async (req: Request, res: Response) => {
 });
 
 router.post('/username-password', sessionCheck, async (req: Request, res: Response) => {
+  if (res.locals.signin_status > SignInStatus.SignedOut) {
+    // If the user is already signed in, return an error.
+    return res.status(400).json({error: 'The user is already signed in.'});
+  }
   const {username, password} = req.body;
   // TODO: Validate entered parameter.
   if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
@@ -147,6 +155,10 @@ router.post(
   csrfCheck,
   sessionCheck,
   (req: Request, res: Response) => {
+    if (res.locals.signin_status < SignInStatus.SignedIn) {
+      // If the user has not signed in, return an error.
+      return res.status(401).json({error: 'The user needs to be signed in.'});
+    }
     const {user} = res.locals;
     return res.json(user);
   }
@@ -160,6 +172,10 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
+    if (res.locals.signin_status < SignInStatus.SignedIn) {
+      // If the user has not signed in, return an error.
+      return res.status(401).json({error: 'The user needs to be signed in.'});
+    }
     const {newName} = req.body;
     if (newName) {
       const {user} = res.locals;
@@ -169,6 +185,21 @@ router.post(
     } else {
       return res.status(400);
     }
+  }
+);
+
+router.post(
+  '/delete-user',
+  csrfCheck,
+  sessionCheck,
+  async (req: Request, res: Response) => {
+    if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+      // If the user has not signed in recently enough, return an error.
+      return res.status(401).json({error: 'The user needs to reauthenticate.'});
+    }
+    const {user} = res.locals;
+    await Users.delete(user.id);
+    return res.json({});
   }
 );
 

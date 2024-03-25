@@ -18,6 +18,7 @@
 import {Base64URLString} from '@simplewebauthn/types';
 
 import {generateRandomString, getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
+import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 
 export interface User {
@@ -151,5 +152,19 @@ export class Users {
       .doc(<Base64URLString>user.id);
     ref.set(user);
     return user;
+  }
+
+  static async delete(user_id: Base64URLString): Promise<void> {
+    const user = await Users.findById(user_id);
+    const passkey_user_id = user?.passkeyUserId;
+    if (passkey_user_id) {
+      PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
+      console.log(`Passkeys for ${user.username} have been deleted.`);
+      const doc = await store.collection(Users.collection).doc(user_id).delete();
+      console.log(`The user account ${user.username} has been deleted.`);
+      return;
+    } else {
+      throw new Error('Invalid passkey_user_id.');
+    }
   }
 }
