@@ -26,8 +26,11 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
   if (confirmation) {
     try {
       await _fetch('/auth/delete-user');
-      // By redirecting to /home, the user should be redirected to the login page.
-      redirect('/signout');
+      toast('You account has been deleted. Redirecting to the top page.');
+      setTimeout(() => {
+        // By redirecting to /home, the user should be redirected to the login page.
+        redirect('/signout');
+      }, 3000);
     } catch (error: any) {
       toast(error.message);
     }
