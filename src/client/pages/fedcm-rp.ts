@@ -47,7 +47,7 @@ postForm().then(() => {
 const signIn = async () => {
   let token;
   try {
-    token = await idp.signIn();
+    token = await idp.signIn({mode: 'button'});
   } catch (e) {
     // Silently dismiss the request for now.
     // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?
@@ -65,7 +65,7 @@ const signIn = async () => {
 };
 
 if ('IdentityCredential' in window) {
-  await signIn();
+  $('#fedcm').addEventListener('click', signIn);
 } else {
   $('#unsupported').classList.remove('hidden');
 }
