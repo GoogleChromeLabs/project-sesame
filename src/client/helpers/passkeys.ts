@@ -28,7 +28,6 @@ import {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
-  AuthenticationExtensionsClientOutputs,
 } from '@simplewebauthn/types';
 
 /**
@@ -99,61 +98,66 @@ if (PublicKeyCredential) {
       } as PublicKeyCredentialRequestOptions;
     };
   }
-  // if (!PublicKeyCredential.prototype.toJSON) {
-  //   // @ts-ignore
-  //   PublicKeyCredential.prototype.toJSON = (): AuthenticationResponseJSON | RegistrationResponseJSON => {
-  //     try {
-  //       // @ts-ignore
-  //       const id = this.id;
-  //       // @ts-ignore
-  //       const rawId = base64url.encode(this.rawId);
-  //       // @ts-ignore
-  //       const authenticatorAttachment = this.authenticatorAttachment;
-  //       const clientExtensionResults = {};
-  //       // @ts-ignore
-  //       const type = this.type;
-  //       // @ts-ignore
-  //       if (this.response.signature) {
-  //         return {
-  //           id,
-  //           rawId,
-  //           response: {
-  //             // @ts-ignore
-  //             authenticatorData: base64url.encode(this.response.authenticatorData),
-  //             // @ts-ignore
-  //             clientDataJSON: base64url.encode(this.response.clientDataJSON),
-  //             // @ts-ignore
-  //             signature: base64url.encode(this.response.signature),
-  //             // @ts-ignore
-  //             userHandle: base64url.encode(this.response.userHandle),
-  //           },
-  //           authenticatorAttachment,
-  //           clientExtensionResults,
-  //           type,
-  //         } as AuthenticationResponseJSON;
-  //       } else {
-  //         return {
-  //           id,
-  //           rawId,
-  //           response: {
-  //             // @ts-ignore
-  //             clientDataJSON: base64url.encode(this.response.clientDataJSON),
-  //             // @ts-ignore
-  //             attestationObject: base64url.encode(this.response.attestationObject),
-  //             // @ts-ignore
-  //             transports: this.response?.getTransports() || [],
-  //           },
-  //           authenticatorAttachment,
-  //           clientExtensionResults,
-  //           type,
-  //         } as RegistrationResponseJSON;
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       throw error;
-  //     }
-  //   }
-  // }
+
+  // @ts-ignore
+  if (!PublicKeyCredential.prototype.toJSON) {
+    // @ts-ignore
+    PublicKeyCredential.prototype.toJSON = function(
+      this: RegistrationCredential | AuthenticationCredential
+    ): AuthenticationResponseJSON | RegistrationResponseJSON {
+      try {
+        // @ts-ignore
+        const id = this.id;
+        // @ts-ignore
+        const rawId = base64url.encode(this.rawId);
+        // @ts-ignore
+        const authenticatorAttachment = this.authenticatorAttachment;
+        const clientExtensionResults = {};
+        // @ts-ignore
+        const type = this.type;
+        // This is authentication.
+        // @ts-ignore
+        if (this.response.signature) {
+          return {
+            id,
+            rawId,
+            response: {
+              // @ts-ignore
+              authenticatorData: base64url.encode(this.response.authenticatorData),
+              // @ts-ignore
+              clientDataJSON: base64url.encode(this.response.clientDataJSON),
+              // @ts-ignore
+              signature: base64url.encode(this.response.signature),
+              // @ts-ignore
+              userHandle: base64url.encode(this.response.userHandle),
+            } as AuthenticatorAssertionResponseJSON,
+            authenticatorAttachment,
+            clientExtensionResults,
+            type,
+          } as AuthenticationResponseJSON;
+        } else {
+          return {
+            id,
+            rawId,
+            response: {
+              // @ts-ignore
+              clientDataJSON: base64url.encode(this.response.clientDataJSON),
+              // @ts-ignore
+              attestationObject: base64url.encode(this.response.attestationObject),
+              // @ts-ignore
+              transports: this.response?.getTransports() || [],
+            } as AuthenticatorAttestationResponseJSON,
+            authenticatorAttachment,
+            clientExtensionResults,
+            type,
+          } as RegistrationResponseJSON;
+        }
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }
+  }
 }
 
 /**
@@ -174,31 +178,12 @@ export async function registerCredential(): Promise<any> {
     publicKey: decodedOptions,
   })) as RegistrationCredential;
 
-  // if (!cred) {
-  //   throw new Error("Failed to create credential");
-  // }
+  if (!cred) {
+    throw new Error("Failed to create credential");
+  }
 
-  // // @ts-ignore
-  // const encodedCredential = cred.toJSON();
-
-  // Base64URL encode some values
-  const rawId = base64url.encode(cred.rawId);
-  const clientDataJSON = base64url.encode(cred.response.clientDataJSON);
-  const attestationObject = base64url.encode(cred.response.attestationObject);
-  const clientExtensionResults: AuthenticationExtensionsClientOutputs = {};
-
-  const encodedCredential = {
-    id: cred.id,
-    rawId,
-    response: {
-      clientDataJSON,
-      attestationObject,
-      transports: cred.response?.getTransports() || [],
-    } as AuthenticatorAttestationResponseJSON,
-    authenticatorAttachment: cred.authenticatorAttachment,
-    clientExtensionResults,
-    type: cred.type,
-  } as RegistrationResponseJSON;
+  // @ts-ignore
+  const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
   return await _fetch('/webauthn/registerResponse', encodedCredential);
@@ -230,36 +215,12 @@ export async function authenticate(conditional = false): Promise<any> {
     mediation: conditional ? 'conditional' : 'optional',
   })) as AuthenticationCredential;
 
-  // if (!cred) {
-  //   throw new Error("Failed to get credential");
-  // }
+  if (!cred) {
+    throw new Error("Failed to get credential");
+  }
 
-  // // @ts-ignore
-  // const encodedCredential = cred.toJSON();
-
-  // Base64URL encode the credential
-  const rawId = base64url.encode(cred.rawId);
-  const authenticatorData = base64url.encode(cred.response.authenticatorData);
-  const clientDataJSON = base64url.encode(cred.response.clientDataJSON);
-  const signature = base64url.encode(cred.response.signature);
-  const userHandle = cred.response.userHandle
-    ? base64url.encode(cred.response.userHandle)
-    : undefined;
-  const clientExtensionResults: AuthenticationExtensionsClientOutputs = {};
-
-  const encodedCredential = {
-    id: cred.id,
-    rawId,
-    response: {
-      clientDataJSON,
-      authenticatorData,
-      signature,
-      userHandle,
-    } as AuthenticatorAssertionResponseJSON,
-    authenticatorAttachment: cred.authenticatorAttachment,
-    clientExtensionResults,
-    type: cred.type,
-  } as AuthenticationResponseJSON;
+  // @ts-ignore
+  const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
   return await _fetch('/webauthn/signinResponse', encodedCredential);
