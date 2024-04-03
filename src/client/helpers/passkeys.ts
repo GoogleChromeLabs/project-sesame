@@ -104,7 +104,7 @@ if (PublicKeyCredential) {
     // @ts-ignore
     PublicKeyCredential.prototype.toJSON = function(
       this: RegistrationCredential | AuthenticationCredential
-    ): AuthenticationResponseJSON | RegistrationResponseJSON {
+    ): RegistrationResponseJSON | AuthenticationResponseJSON {
       try {
         // @ts-ignore
         const id = this.id;
@@ -179,7 +179,7 @@ export async function registerCredential(): Promise<any> {
   })) as RegistrationCredential;
 
   if (!cred) {
-    throw new Error("Failed to create credential");
+    throw new Error("Failed to create a credential");
   }
 
   // @ts-ignore
@@ -216,7 +216,7 @@ export async function authenticate(conditional = false): Promise<any> {
   })) as AuthenticationCredential;
 
   if (!cred) {
-    throw new Error("Failed to get credential");
+    throw new Error("Failed to get a credential");
   }
 
   // @ts-ignore
