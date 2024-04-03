@@ -187,7 +187,7 @@ div[slot="appContent"] {
   background-color: var(--mdc-theme-background);
   height: 100%;
   #list {
-    max-width: 550px;
+    min-width: 550px;
   }
   md-list {
     background-color: var(--mdc-theme-background);
