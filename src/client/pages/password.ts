@@ -18,12 +18,10 @@
 import '@material/web/textfield/outlined-text-field';
 
 import '~project-sesame/client/layout';
-import {redirect, postForm, passwordToggle, toast} from '~project-sesame/client/helpers';
+import {redirect, postForm, toast} from '~project-sesame/client/helpers';
 
 postForm().then(() => {
   redirect('/home');
 }).catch(error => {
   toast(error.message);
 });
-
-passwordToggle();
