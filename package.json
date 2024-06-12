@@ -67,10 +67,10 @@
     "dev:client": "npx rsbuild dev",
     "dev": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
     "start": "node --enable-source-maps dist/server/app.js",
-    "deploy": "npm run build && gcloud app deploy dev.yaml --project=google.com:project-sesame",
+    "deploy": "npm run build && gcloud app deploy dev.yaml --project=project-sesame-426206",
     "deploy:prod": "npm run build && gcloud app deploy app.yaml --project=google.com:project-sesame",
-    "logs": "gcloud app logs tail --project=google.com:project-sesame",
-    "emulator": "firebase emulators:start --only firestore --project=google.com:project-sesame --import=./.data --export-on-exit",
+    "logs": "gcloud app logs tail --project=project-sesame-426206",
+    "emulator": "firebase emulators:start --only firestore --project=project-sesame-426206 --import=./.data --export-on-exit",
     "lint:fix": "eslint -c .eslintrc --fix ./src"
   }
 }
