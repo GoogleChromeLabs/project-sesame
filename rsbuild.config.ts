@@ -16,6 +16,7 @@
  */
 
 import { defineConfig } from '@rsbuild/core';
+import { pluginSass } from '@rsbuild/plugin-sass';
 
 /** Configuration for [rsbuild](https://rsbuild.dev/), building
  * the frontend of Project Sesame and also copying shared files
@@ -23,7 +24,7 @@ import { defineConfig } from '@rsbuild/core';
  */
 
 export default defineConfig({
-  plugins: [],
+  plugins: [ pluginSass() ],
   source: {
     tsconfigPath: './src/client/tsconfig.json',
     entry: {

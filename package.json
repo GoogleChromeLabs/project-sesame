@@ -43,6 +43,7 @@
     "@material/textfield": "14.0.0",
     "@material/web": "1.5.0",
     "@rsbuild/core": "0.7.6",
+    "@rsbuild/plugin-sass": "^0.7.6",
     "@types/cookie-parser": "^1.4.7",
     "esbuild": "0.21.5",
     "firebase-tools": "13.11.2",
