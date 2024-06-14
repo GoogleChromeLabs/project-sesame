@@ -18,31 +18,10 @@
 import '@material/web/textfield/outlined-text-field';
 
 import '~project-sesame/client/layout';
-import {redirect, toast, $, loading, _fetch} from '~project-sesame/client/helpers';
+import {redirect, postForm, toast} from '~project-sesame/client/helpers';
 
-const form = $('#form');
-// When the form is submitted, proceed to the password form.
-form.addEventListener('submit', async (s: any) => {
-  s.preventDefault();
-  const form = new FormData(s.target);
-
-  // If `PasswordCredential` is supported, store it to the password manager.
-  // @ts-ignore
-  if (window.PasswordCredential) {
-    // @ts-ignore
-    const password = new PasswordCredential(form);
-    await navigator.credentials.create(password);
-  }
-  const cred = {} as any;
-  form.forEach((v, k) => (cred[k] = v));
-  loading.start();
-  _fetch(s.target.action, cred)
-  .then(results => {
-    redirect('/home');
-  })
-  .catch(error => {
-    loading.stop();
-    console.error(error.message);
-    toast(error.message);
-  });
+postForm().then(() => {
+  redirect('/home');
+}).catch(error => {
+  toast(error.message);
 });
