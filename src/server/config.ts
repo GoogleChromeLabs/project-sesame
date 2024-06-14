@@ -79,7 +79,7 @@ function configureApp() {
     dist_root_file_path,
     views_root_file_path: path.join(dist_root_file_path, 'shared/views'),
     is_localhost,
-    port: is_development_proxy ? 8888 : process.env.PORT || 8080,
+    port: is_development_proxy ? 8080 : process.env.PORT || 8080,
     origin,
     secret: process.env.SECRET || crypto.randomBytes(32).toString('hex'),
     hostname: new URL(origin).hostname,
