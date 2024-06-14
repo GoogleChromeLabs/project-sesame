@@ -102,6 +102,22 @@ export function postForm(): Promise<void> {
     form.addEventListener('submit', async (s: any) => {
       s.preventDefault();
       const form = new FormData(s.target);
+
+      // If `PasswordCredential` is supported, store it to the password manager.
+      // @ts-ignore
+      if (window.PasswordCredential) {
+        // @ts-ignore
+        const id = form.get('username');
+        const password = form.get('password');
+        if (id && password) {
+          await navigator.credentials.create({
+            // @ts-ignore
+            password: { id, password }
+          });
+          console.log('PasswordCredential stored');
+        }
+      }
+
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
       loading.start();
