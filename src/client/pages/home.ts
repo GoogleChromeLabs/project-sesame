@@ -30,7 +30,7 @@ async function changeDisplayName(e: {
     'Enter a new display name',
     e.target.dataset.displayName
   );
-  if (!newName?.length) {
+  if (newName?.length) {
     loading.start();
     await _fetch('/auth/updateDisplayName', {newName});
     loading.stop();
