@@ -201,6 +201,24 @@ app.get('/passkey-reauth', sessionCheck, (req, res) => {
   });
 });
 
+app.get('/password-one-button', sessionCheck, (req, res) => {
+  setEntrancePath(req, res);
+
+  if (res.locals.signin_status === SignInStatus.SigningIn) {
+    // If the user is signing in, redirect to `/password`.
+    return res.redirect(307, '/password');
+  }
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    // If the user is signed in, redirect to `/home`.
+    return res.redirect(307, '/home');
+  }
+  // If the user is not signed in, show `index.html` with id/password form.
+  return res.render('password-one-button.html', {
+    title: 'Password one button',
+    layout: 'password-one-button',
+  });
+});
+
 app.get('/fedcm-rp', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
