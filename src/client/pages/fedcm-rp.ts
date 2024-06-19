@@ -18,25 +18,12 @@
 import '~project-sesame/client/layout';
 import {$, _fetch, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 import '@material/web/textfield/outlined-text-field';
+import {saveFederation} from '~project-sesame/client/helpers/federation';
 // @ts-ignore
 const {IdentityProvider} = await import(
   /* webpackIgnore: true */ 'https://fedcm-idp-demo.glitch.me/fedcm.js'
 );
-
-let idpInfo: any;
-try {
-  idpInfo = await _fetch('/federation/idp', {
-    url: 'https://fedcm-idp-demo.glitch.me',
-  });
-} catch (error: any) {
-  console.error(error);
-  toast(error.message);
-}
-
-const idp = new IdentityProvider({
-  configURL: idpInfo.configURL,
-  clientId: idpInfo.clientId,
-});
+// import {FedCMProvider} from '~project-sesame/client/helpers/federation';
 
 postForm().then(() => {
   redirect('/password');
@@ -45,8 +32,16 @@ postForm().then(() => {
 });
 
 const signIn = async () => {
+  let idpInfo: any;
   let token;
   try {
+    idpInfo = await _fetch('/federation/idp', {
+      url: 'https://fedcm-idp-demo.glitch.me',
+    });
+    const idp = new IdentityProvider({
+      configURL: idpInfo.configURL,
+      clientId: idpInfo.clientId,
+    });
     token = await idp.signIn({mode: 'button'});
   } catch (e) {
     // Silently dismiss the request for now.
@@ -56,7 +51,8 @@ const signIn = async () => {
   }
 
   try {
-    await _fetch('/federation/verify', {token, url: idpInfo.origin});
+    const user = await _fetch('/federation/verify', {token, url: idpInfo.origin});
+    await saveFederation(user, idpInfo.configURL);
     location.href = '/home';
   } catch (error: any) {
     console.info(error);

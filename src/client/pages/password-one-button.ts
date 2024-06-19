@@ -30,7 +30,7 @@ if (window.PasswordCredential) {
         if (user) {
           redirect('/home');
         } else {
-          throw new Error('User not found.');
+          throw new Error('User is not found.');
         }
       } catch (error: any) {
         loading.stop();

@@ -212,10 +212,14 @@ app.get('/password-one-button', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Generate a new nonce.
+  const nonce = setChallenge(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('password-one-button.html', {
     title: 'Password one button',
     layout: 'password-one-button',
+    nonce,
   });
 });
 

@@ -38,7 +38,7 @@ interface IdToken extends JwtPayload {
 
 router.post('/idp', async (req, res) => {
   const {url} = req.body;
-  const idp = await IdentityProviders.findByURL(url);
+  const idp = await IdentityProviders.findByOrigin(url);
   if (!idp) {
     return res
       .status(404)
@@ -59,7 +59,7 @@ router.post('/verify', csrfCheck, async (req, res) => {
       throw new Error('Invalid nonce.');
     }
 
-    const idp = await IdentityProviders.findByURL(url);
+    const idp = await IdentityProviders.findByOrigin(url);
 
     if (!idp) {
       throw new Error('Identity provider not found.');
