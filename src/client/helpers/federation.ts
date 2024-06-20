@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {_fetch} from '~project-sesame/client/helpers/index';
+import {_fetch, $} from '~project-sesame/client/helpers/index';
 import {User} from '~project-sesame/server/libs/users.ts';
 
 interface FedCmOptions {
@@ -39,17 +39,13 @@ export class IdentityProvider {
   constructor(
     options: {configURL: string, clientId: string}
   ) {
-    let { configURL, clientId = '' } = options;
-    if (clientId === '') {
-      clientId = (<HTMLMetaElement>document.querySelector('meta[name="fedcm_demo_client_id"]'))?.content
+    if (!options.configURL || !options.clientId) {
+      throw new Error('configURL or client ID is not declared.');
     }
-    if (clientId === '') {
-      throw new Error('client ID is not declared.');
-    }
-    const url = new URL(configURL);
+    const url = new URL(options.configURL);
     this.origin = url.origin;
-    this.configURL = configURL;
-    this.clientId = clientId;
+    this.configURL = options.configURL;
+    this.clientId = options.clientId;
   }
 
   async signIn(
@@ -57,7 +53,7 @@ export class IdentityProvider {
   ): Promise<string | undefined> {
     let { mode = 'widget', loginHint, context, nonce, fields, mediation, params = {} } = options;
     if (!nonce) {
-      nonce = (<HTMLMetaElement>document.querySelector('meta[name="nonce"]'))?.content;
+      nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
     if (!nonce || !this.clientId) {
       throw new Error('nonce or client_id is not declared.');
