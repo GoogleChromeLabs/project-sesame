@@ -203,7 +203,7 @@ app.get('/passkey-reauth', sessionCheck, (req, res) => {
   });
 });
 
-app.get('/password-one-button', sessionCheck, (req, res) => {
+app.get('/unified-button', sessionCheck, (req, res) => {
   setEntrancePath(req, res);
 
   if (res.locals.signin_status === SignInStatus.SigningIn) {
@@ -218,9 +218,9 @@ app.get('/password-one-button', sessionCheck, (req, res) => {
   const nonce = setChallenge(req, res);
 
   // If the user is not signed in, show `index.html` with id/password form.
-  return res.render('password-one-button.html', {
-    title: 'Password one button',
-    layout: 'password-one-button',
+  return res.render('unified-button.html', {
+    title: 'Unified button',
+    layout: 'unified-button',
     nonce,
   });
 });

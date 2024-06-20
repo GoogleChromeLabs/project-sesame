@@ -21,7 +21,7 @@ import {authenticate} from '~project-sesame/client/helpers/passwords';
 
 //@ts-ignore
 if (window.PasswordCredential) {
-  $('#password-signin').addEventListener(
+  $('#signin').addEventListener(
     'click',
     async (e: {target: HTMLButtonElement}) => {
       try {

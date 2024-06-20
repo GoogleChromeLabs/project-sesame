@@ -37,7 +37,7 @@ export default defineConfig({
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
-      'password-one-button': './src/client/pages/password-one-button.ts',
+      'unified-button': './src/client/pages/unified-button.ts',
       'password': './src/client/pages/password.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
