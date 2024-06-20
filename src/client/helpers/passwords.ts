@@ -48,7 +48,10 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
           configURL: idpInfo.configURL,
           clientId: idpInfo.clientId,
         });
-        token = await idp.signIn({mode: 'button'});
+        token = await idp.signIn({
+          mode: 'button',
+          // loginHint: cred.id,
+        });
         await _fetch('/federation/verify', {token, url: idpInfo.origin});
         return true;
       } catch (e) {

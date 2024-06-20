@@ -61,7 +61,10 @@ const signIn = async () => {
 };
 
 if ('IdentityCredential' in window) {
-  $('#fedcm').addEventListener('click', signIn);
+  $('#fedcm').addEventListener('click', (event: any) => {
+    event.preventDefault();
+    signIn();
+  });
 } else {
   $('#unsupported').classList.remove('hidden');
 }
