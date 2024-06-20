@@ -7,3 +7,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Rubik">
 <!--TODO: Conditionalize meta data-->
 <meta name="nonce" content="{{nonce}}">
+{{#each origin_trials}}
+<meta http-equiv="origin-trial" content="{{this}}">
+{{/each}}

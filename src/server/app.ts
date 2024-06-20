@@ -97,6 +97,8 @@ app.use((req, res, next) => {
   return next();
 });
 
+app.locals.origin_trials = process.env.ORIGIN_TRIALS ? process.env.ORIGIN_TRIALS.split(',') : [];
+
 app.get('/', (req, res) => {
   return res.render('index.html', {
     title: 'Welcome!',

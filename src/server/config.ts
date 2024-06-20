@@ -67,10 +67,7 @@ function initializeFirestore() {
 export const store = initializeFirestore();
 
 function configureApp() {
-  const origin = process.env.ORIGIN || '';
-  if (!origin) {
-    throw new Error('Environment variable `ORIGIN` is not set.');
-  }
+  const origin = process.env.ORIGIN || `http://localhost:${process.env.PORT || 8080}`;
 
   return {
     project_name: process.env.PROJECT_NAME || 'sesame',
