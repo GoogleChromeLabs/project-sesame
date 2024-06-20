@@ -125,7 +125,7 @@ export function getSignInStatus(req: Request, res: Response): SignInStatus {
 export function setChallenge(
   req: Request,
   res: Response,
-  challenge: string,
+  challenge?: string,
 ): string {
   challenge ??= generateRandomString();
   console.log('set challenge:', challenge);
