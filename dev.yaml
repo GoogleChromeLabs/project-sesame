@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 runtime: nodejs20
+# service: dev
 env_variables:
   NODE_ENV: development
   ORIGIN: https://project-sesame-426206.appspot.com
