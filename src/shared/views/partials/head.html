@@ -7,6 +7,19 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Rubik">
 <!--TODO: Conditionalize meta data-->
 <meta name="nonce" content="{{nonce}}">
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "href_matches": "/*"
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 {{#each origin_trials}}
 <meta http-equiv="origin-trial" content="{{this}}">
 {{/each}}
