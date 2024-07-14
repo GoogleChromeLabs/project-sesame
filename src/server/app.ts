@@ -71,8 +71,8 @@ app.use(
         imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       },
-      // CSP is report-only if the app is running locally.
-      reportOnly: config.is_localhost,
+      // CSP is report-only if the app is running in debug mode.
+      reportOnly: config.debug,
     },
   })
 );
