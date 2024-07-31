@@ -17,7 +17,7 @@
 
 import '~project-sesame/client/layout';
 import {$, _fetch, loading, redirect, toast} from '~project-sesame/client/helpers';
-import {authenticate} from '~project-sesame/client/helpers/passwords';
+import {authenticate} from '~project-sesame/client/helpers/unified';
 
 //@ts-ignore
 if (window.PasswordCredential) {

@@ -16,7 +16,7 @@
  */
 
 import {_fetch} from "~project-sesame/client/helpers/index";
-import {IdentityProvider} from "~project-sesame/client/helpers/federation";
+import {IdentityProvider} from "~project-sesame/client/helpers/identity";
 
 // @ts-ignore
 export async function authenticate(): Promise<PasswordCredential | string | undefined> {

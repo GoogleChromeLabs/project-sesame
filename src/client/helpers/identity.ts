@@ -16,7 +16,6 @@
  */
 
 import {_fetch, $} from '~project-sesame/client/helpers/index';
-import {User} from '~project-sesame/server/libs/users.ts';
 
 interface FedCmOptions {
   mode?: 'widget' | 'button',
@@ -110,28 +109,3 @@ export class IdentityProvider {
 //   console.error(error);
 //   toast(error.message);
 // }
-
-/**
- * Saves a FederatedCredential to the password manager so that the user can
- * easily remember which identity provider is used.
- * @param user 
- * @param configURL 
- * @returns 
- */
-export async function saveFederation(user: User, configURL: string): Promise<boolean> {
-  try {
-    // @ts-ignore
-    const cred = new FederatedCredential({
-      id: user.username,
-      name: user.name,
-      provider: configURL,
-      iconURL: user.picture,
-    });
-    await navigator.credentials.store(cred);
-    return true;
-  } catch (error: any) {
-    console.error(error);
-    // Return without throwing.
-    return false;
-  }
-}

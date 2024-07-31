@@ -17,7 +17,7 @@
 
 import '~project-sesame/client/layout';
 import {$, _fetch, loading, redirect, toast} from '~project-sesame/client/helpers';
-import {authenticate} from '~project-sesame/client/helpers/passkeys';
+import {authenticate} from '~project-sesame/client/helpers/publickey';
 
 if (window.PublicKeyCredential) {
   $('#passkey-signin').addEventListener(

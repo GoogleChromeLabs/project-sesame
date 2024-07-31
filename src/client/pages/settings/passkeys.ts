@@ -23,7 +23,7 @@ import {
   registerCredential,
   unregisterCredential,
   updateCredential,
-} from '~project-sesame/client/helpers/passkeys';
+} from '~project-sesame/client/helpers/publickey';
 import '~project-sesame/client/layout';
 
 const aaguids = await fetch('/aaguids.json');

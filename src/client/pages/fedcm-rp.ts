@@ -18,7 +18,7 @@
 import '~project-sesame/client/layout';
 import {$, _fetch, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 import '@material/web/textfield/outlined-text-field';
-import {saveFederation} from '~project-sesame/client/helpers/federation';
+import {saveFederation} from '~project-sesame/client/helpers/federated';
 // @ts-ignore
 const {IdentityProvider} = await import(
   /* webpackIgnore: true */ 'https://fedcm-idp-demo.glitch.me/fedcm.js'

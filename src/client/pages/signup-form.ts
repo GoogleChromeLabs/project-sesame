@@ -19,7 +19,7 @@ import '@material/web/textfield/outlined-text-field';
 
 import '~project-sesame/client/layout';
 import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers';
-import {registerCredential} from '~project-sesame/client/helpers/passkeys';
+import {registerCredential} from '~project-sesame/client/helpers/publickey';
 
 postForm().then(async () => {
   // WebAuthn and conditional UI are supported.
