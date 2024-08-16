@@ -16,7 +16,6 @@
  */
 
 import {_fetch} from "~project-sesame/client/helpers/index";
-import {IdentityProvider} from "~project-sesame/client/helpers/identity";
 
 // @ts-ignore
 export async function authenticate(): Promise<PasswordCredential | string | undefined> {
@@ -24,42 +23,15 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
     const cred = await navigator.credentials.get({
       // @ts-ignore
       password: true,
-      // temporary experiment for unified auth
-      federated: {
-        providers: [ 'https://fedcm-idp-demo.glitch.me' ],
-      },
       mediation: 'required',
     });
-    if (cred?.type === 'password') {
+    if (cred) {
       await _fetch('/auth/username-password', {
         username: cred.id,
         // @ts-ignore
         password: cred.password
       });
       return true;
-    } else if (cred?.type === 'federated') {
-      let idpInfo: any;
-      let token;
-      try {
-        idpInfo = await _fetch('/federation/idp', {
-          url: 'https://fedcm-idp-demo.glitch.me',
-        });
-        const idp = new IdentityProvider({
-          configURL: idpInfo.configURL,
-          clientId: idpInfo.clientId,
-        });
-        token = await idp.signIn({
-          mode: 'button',
-          // loginHint: cred.id,
-        });
-        await _fetch('/federation/verify', {token, url: idpInfo.origin});
-        return true;
-      } catch (e) {
-        // Silently dismiss the request for now.
-        // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?
-        console.info('The user is not signed in to the IdP.');
-        return false;
-      }
     } else {
       return false;
     }
