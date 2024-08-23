@@ -32,6 +32,7 @@ import {
   AuthenticatorDevice,
   Base64URLString,
   RegistrationResponseJSON,
+  PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/types';
 import {config} from '~project-sesame/server/config.ts';
 import {
@@ -90,8 +91,7 @@ function getOrigin(userAgent = ''): string {
         if (appName === package_names[i]) {
           // We recognize this app, so use the corresponding hash.
           const octArray = hashes[i].split(':').map(h => parseInt(h, 16));
-          const uint8Array = new Uint8Array(octArray.length);
-          const androidHash = isoBase64URL.fromBuffer(uint8Array);
+          const androidHash = isoBase64URL.fromBuffer(octArray);
           origin = `android:apk-key-hash:${androidHash}`;
           break;
         }
@@ -180,10 +180,10 @@ router.post(
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(passkeyUserId);
       for (const cred of credentials || []) {
         excludeCredentials.push({
-          id: isoBase64URL.toBuffer(cred.id),
+          id: cred.id,
           type: 'public-key',
           transports: cred.transports,
-        } as PublicKeyCredentialDescriptor);
+        });
       }
       // Set `authenticatorSelection`.
       const authenticatorSelection = {
@@ -270,9 +270,6 @@ router.post(
       const base64PublicKey = <Base64URLString>(
         isoBase64URL.fromBuffer(credentialPublicKey)
       );
-      const base64CredentialID = <Base64URLString>(
-        isoBase64URL.fromBuffer(credentialID)
-      );
 
       const name =
         registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000'
@@ -283,7 +280,7 @@ router.post(
 
       // Store the registration result.
       await PublicKeyCredentials.update({
-        id: base64CredentialID,
+        id: credentialID,
         deviceId,
         passkeyUserId: passkeyUserId,
         name,
@@ -346,10 +343,10 @@ router.post(
       if (creds.length > 0) {
         for (let cred of creds) {
           allowCredentials.push({
-            id: isoBase64URL.toBuffer(cred.id),
+            id: cred.id,
             type: 'public-key',
             transports: cred.transports,
-          } as PublicKeyCredentialDescriptor);
+          });
         }
       }
     }
@@ -417,7 +414,7 @@ router.post(
 
       // Decode ArrayBuffers and construct an authenticator object.
       const authenticator = {
-        credentialID: isoBase64URL.toBuffer(cred.id),
+        credentialID: cred.id,
         credentialPublicKey: isoBase64URL.toBuffer(cred.credentialPublicKey),
         transports: cred.transports,
       } as AuthenticatorDevice;
