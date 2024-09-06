@@ -17,6 +17,18 @@
 
 import {_fetch} from "~project-sesame/client/helpers/index";
 
+export async function verifyPassword(
+  // @ts-ignore
+  cred: PasswordCredential
+): Promise<boolean> {
+  await _fetch('/auth/username-password', {
+    username: cred.id,
+    // @ts-ignore
+    password: cred.password
+  });
+  return true;
+}
+
 // @ts-ignore
 export async function authenticate(): Promise<PasswordCredential | string | undefined> {
   try {
@@ -26,12 +38,8 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
       mediation: 'required',
     });
     if (cred) {
-      await _fetch('/auth/username-password', {
-        username: cred.id,
-        // @ts-ignore
-        password: cred.password
-      });
-      return true;
+      // @ts-ignore
+      return verifyPassword(cred as PasswordCredential);
     } else {
       return false;
     }

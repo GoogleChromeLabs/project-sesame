@@ -67,7 +67,8 @@ function initializeFirestore() {
 export const store = initializeFirestore();
 
 function configureApp() {
-  const origin = process.env.ORIGIN || `http://localhost:${process.env.PORT || 8080}`;
+  const localhost = `http://localhost:${process.env.PORT || 8080}`;
+  const origin = is_localhost ? localhost : process.env.ORIGIN || localhost;
 
   return {
     project_name: process.env.PROJECT_NAME || 'sesame',

@@ -248,6 +248,24 @@ app.get('/fedcm-rp', sessionCheck, (req, res) => {
   });
 });
 
+app.get('/password-passkey', sessionCheck, (req, res) => {
+  setEntrancePath(req, res);
+
+  if (res.locals.signin_status === SignInStatus.SigningIn) {
+    // If the user is signing in, redirect to `/password`.
+    return res.redirect(307, '/password');
+  }
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    // If the user is signed in, redirect to `/home`.
+    return res.redirect(307, '/home');
+  }
+  // If the user is not signed in, show `index.html` with id/password form.
+  return res.render('password-passkey.html', {
+    title: 'Password and passkey unified Credential Manager',
+    layout: 'password-passkey',
+  });
+});
+
 app.get('/password', sessionCheck, (req, res) => {
   if (res.locals.signin_status < SignInStatus.SigningIn) {
     // If the user has not started signing in, redirect to the original entrance.

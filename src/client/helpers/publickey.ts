@@ -160,28 +160,17 @@ if (PublicKeyCredential) {
   }
 }
 
-/**
- * Create and register a new passkey
- * @returns A promise that resolves with a server response.
- */
-export async function registerCredential(): Promise<any> {
+export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await _fetch(
     '/webauthn/registerRequest'
   );
 
   // @ts-ignore
-  const decodedOptions = PublicKeyCredential.parseCreationOptionsFromJSON(options);
+  return PublicKeyCredential.parseCreationOptionsFromJSON(options);
+}
 
-  // Invoke WebAuthn create
-  const cred = (await navigator.credentials.create({
-    publicKey: decodedOptions,
-  })) as RegistrationCredential;
-
-  if (!cred) {
-    throw new Error("Failed to create a credential");
-  }
-
+export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): Promise<any> {
   // @ts-ignore
   const encodedCredential = cred.toJSON();
 
@@ -189,12 +178,9 @@ export async function registerCredential(): Promise<any> {
   return await _fetch('/webauthn/registerResponse', encodedCredential);
 }
 
-/**
- * Authenticate with a passkey.
- * @param { boolean } conditional Set to `true` if this is for a conditional UI.
- * @returns A promise that resolves with a server response.
- */
-export async function authenticate(conditional = false): Promise<any> {
+export async function preparePublicKeyRequestOptions(
+  conditional: boolean = false
+): Promise<PublicKeyCredentialRequestOptions> {
   // Fetch passkey request options from the server.
   const options: PublicKeyCredentialRequestOptionsJSON = await _fetch(
     '/webauthn/signinRequest'
@@ -208,9 +194,48 @@ export async function authenticate(conditional = false): Promise<any> {
     decodedOptions.allowCredentials = [];
   }
 
+  return decodedOptions;
+}
+
+export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): Promise<any> {
+
+  // @ts-ignore
+  const encodedCredential = cred.toJSON();
+
+  // Send the result to the server and return the promise.
+  return await _fetch('/webauthn/signinResponse', encodedCredential);
+}
+
+/**
+ * Create and register a new passkey
+ * @returns A promise that resolves with a server response.
+ */
+export async function registerCredential(): Promise<any> {
+  const options = await preparePublicKeyCreationOptions();
+
+  // Invoke WebAuthn create
+  const cred = (await navigator.credentials.create({
+    publicKey: options,
+  })) as RegistrationCredential;
+
+  if (!cred) {
+    throw new Error("Failed to create a credential");
+  }
+
+  return verifyPublicKeyCreationResult(cred);
+}
+
+/**
+ * Authenticate with a passkey.
+ * @param { boolean } conditional Set to `true` if this is for a conditional UI.
+ * @returns A promise that resolves with a server response.
+ */
+export async function authenticate(conditional = false): Promise<any> {
+  const options = await preparePublicKeyRequestOptions(conditional);
+
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
-    publicKey: decodedOptions,
+    publicKey: options,
     // Request a conditional UI
     mediation: conditional ? 'conditional' : 'optional',
   })) as AuthenticationCredential;
@@ -219,11 +244,7 @@ export async function authenticate(conditional = false): Promise<any> {
     throw new Error("Failed to get a credential");
   }
 
-  // @ts-ignore
-  const encodedCredential = cred.toJSON();
-
-  // Send the result to the server and return the promise.
-  return await _fetch('/webauthn/signinResponse', encodedCredential);
+  return verifyPublicKeyRequestResult(cred);
 }
 
 /**

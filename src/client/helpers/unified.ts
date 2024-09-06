@@ -17,6 +17,7 @@
 
 import {_fetch} from "~project-sesame/client/helpers/index";
 import {IdentityProvider} from "~project-sesame/client/helpers/identity";
+import { verifyPassword } from "~project-sesame/client/helpers/password";
 
 // @ts-ignore
 export async function authenticate(): Promise<PasswordCredential | string | undefined> {
@@ -31,12 +32,8 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
       mediation: 'required',
     });
     if (cred?.type === 'password') {
-      await _fetch('/auth/username-password', {
-        username: cred.id,
-        // @ts-ignore
-        password: cred.password
-      });
-      return true;
+      // @ts-ignore
+      return verifyPassword(cred as PasswordCredential);
     } else if (cred?.type === 'federated') {
       let idpInfo: any;
       let token;

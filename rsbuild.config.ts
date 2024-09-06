@@ -39,6 +39,7 @@ export default defineConfig({
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
       'unified-button': './src/client/pages/unified-button.ts',
       'password': './src/client/pages/password.ts',
+      'password-passkey': './src/client/pages/password-passkey.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
       'settings/passkeys': './src/client/pages/settings/passkeys.ts',

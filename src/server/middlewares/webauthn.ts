@@ -91,6 +91,7 @@ function getOrigin(userAgent = ''): string {
         if (appName === package_names[i]) {
           // We recognize this app, so use the corresponding hash.
           const octArray = hashes[i].split(':').map(h => parseInt(h, 16));
+          // @ts-ignore
           const androidHash = isoBase64URL.fromBuffer(octArray);
           origin = `android:apk-key-hash:${androidHash}`;
           break;
