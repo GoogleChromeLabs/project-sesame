@@ -197,7 +197,7 @@ router.post(
       const options = await generateRegistrationOptions({
         rpName: config.project_name,
         rpID: config.hostname,
-        userID: passkeyUserId,
+        userID: isoBase64URL.toBuffer(passkeyUserId),
         userName: username,
         userDisplayName: displayName || username,
         // Prompt users for additional information about the authenticator.
