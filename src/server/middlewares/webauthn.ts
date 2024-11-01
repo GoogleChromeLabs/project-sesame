@@ -29,7 +29,7 @@ import {isoBase64URL} from '@simplewebauthn/server/helpers';
 import {
   AuthenticationResponseJSON,
   AuthenticatorAssertionResponseJSON,
-  AuthenticatorDevice,
+  WebAuthnCredential,
   Base64URLString,
   RegistrationResponseJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -238,7 +238,7 @@ router.post(
     }
 
     // Set expected values.
-    const credential = <RegistrationResponseJSON>req.body;
+    const response = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
     const expectedOrigin = getOrigin(req.get('User-Agent'));
     const expectedRPID = config.hostname;
@@ -250,7 +250,7 @@ router.post(
 
       // Use SimpleWebAuthn's handy function to verify the registration request.
       const verification = await verifyRegistrationResponse({
-        response: credential,
+        response,
         expectedChallenge,
         expectedOrigin,
         expectedRPID,
@@ -265,15 +265,16 @@ router.post(
         throw new Error('User verification failed.');
       }
 
-      const {credentialPublicKey, credentialID} = registrationInfo;
+      const {credential} = registrationInfo;
 
       // Base64URL encode ArrayBuffers.
       const base64PublicKey = <Base64URLString>(
-        isoBase64URL.fromBuffer(credentialPublicKey)
+        isoBase64URL.fromBuffer(credential.publicKey)
       );
 
-      const name =
-        registrationInfo.aaguid === '00000000-0000-0000-0000-000000000000'
+      const aaguid = registrationInfo?.aaguid;
+      const name = aaguid === undefined ||
+          aaguid === '00000000-0000-0000-0000-000000000000'
           ? req.useragent?.platform
           : (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
 
@@ -281,14 +282,14 @@ router.post(
 
       // Store the registration result.
       await PublicKeyCredentials.update({
-        id: credentialID,
+        id: credential.id,
         deviceId,
         passkeyUserId: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
         credentialType: registrationInfo.credentialType,
         aaguid: registrationInfo.aaguid,
-        transports: credential.response.transports || [],
+        transports: response.response.transports || [],
         userVerified: registrationInfo.userVerified,
         credentialDeviceType: registrationInfo.credentialDeviceType,
         credentialBackedUp: registrationInfo.credentialBackedUp,
@@ -379,7 +380,7 @@ router.post(
   sessionCheck,
   async (req: Request, res: Response) => {
     // Set expected values.
-    const credential = <AuthenticationResponseJSON>req.body;
+    const response = <AuthenticationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
     const expectedOrigin = getOrigin(req.get('User-Agent'));
     const expectedRPID = config.hostname;
@@ -390,7 +391,7 @@ router.post(
       }
 
       // Find the matching credential from the credential ID
-      const cred = await PublicKeyCredentials.findById(credential.id);
+      const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
         deleteChallenge(req, res);
         return res.status(401).json({error:
@@ -413,20 +414,20 @@ router.post(
         return res.status(401).json({error: 'User not found.'});
       }
 
-      // Decode ArrayBuffers and construct an authenticator object.
-      const authenticator = {
-        credentialID: cred.id,
-        credentialPublicKey: isoBase64URL.toBuffer(cred.credentialPublicKey),
+      // Decode ArrayBuffers and construct a credential.
+      const credential = {
+        id: cred.id,
+        publicKey: isoBase64URL.toBuffer(cred.credentialPublicKey),
         transports: cred.transports,
-      } as AuthenticatorDevice;
+      } as WebAuthnCredential;
 
       // Use SimpleWebAuthn's handy function to verify the authentication request.
       const verification = await verifyAuthenticationResponse({
-        response: credential,
+        response,
         expectedChallenge,
         expectedOrigin,
         expectedRPID,
-        authenticator,
+        credential,
         requireUserVerification: false,
       } as VerifyAuthenticationResponseOpts);
 
