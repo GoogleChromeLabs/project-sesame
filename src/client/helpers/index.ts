@@ -154,8 +154,8 @@ async function signOut(e: MouseEvent) {
 }
 
 function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
-  const drawer = $('mwc-drawer');
-  const topAppBar = $('mwc-top-app-bar');
+  const drawer = $('mdui-navigation-drawer');
+  const topAppBar = $('mdui-top-app-bar');
 
   if (e.matches) {
     // Mobile display
@@ -172,11 +172,14 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
 };
 
 document.addEventListener('DOMContentLoaded', e => {
-  const drawer: Drawer | null = $('mwc-drawer');
-  drawer?.addEventListener(
-    'MDCTopAppBar:nav',
-    () => (drawer.open = !drawer.open)
-  );
+  const drawer: Drawer | null = $('mdui-navigation-drawer');
+  if (!drawer) {
+    throw new Error('Navigation drawer not found.');
+  }
+
+  const button = $('#menu-button');
+  button?.addEventListener('click', () => (drawer.open = !drawer.open));
+
   const signout = $('#signout');
   if (signout) {
     signout.addEventListener('click', signOut);

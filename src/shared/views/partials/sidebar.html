@@ -9,28 +9,28 @@
           <h2><a href="/">SHRINE</a></h2>
         </header>
         {{#if (isSignedIn)}}
-        <md-list>
-          <md-list-item type="link" href="/home">
+        <mdui-list>
+          <mdui-list-item type="link" href="/home">
             Home
-          </md-list-item>
-          <md-list-item type="link" href="/settings/passkeys">
+          </mdui-list-item>
+          <mdui-list-item type="link" href="/settings/passkeys">
             Passkey Management
-          </md-list-item>
-          <md-list-item type="link" href="/settings/delete-account">
+          </mdui-list-item>
+          <mdui-list-item type="link" href="/settings/delete-account">
             Delete account
-          </md-list-item>
-        </md-list>
-        <md-list class="flex-bottom">
-          <md-list-item type="button" id="signout">
+          </mdui-list-item>
+        </mdui-list>
+        <mdui-list class="flex-bottom">
+          <mdui-list-item type="button" id="signout">
             SIGN OUT
-            <md-icon slot="start">logout</md-icon>
-          </md-list-item>
-        </md-list>
+            <mdui-icon slot="start">logout</mdui-icon>
+          </mdui-list-item>
+        </mdui-list>
         {{else}}
-        <md-list>
-          <md-list-item>
+        <mdui-list>
+          <mdui-list-item>
             Sidebar content
-          </md-list-item>
-        </md-list>
+          </mdui-list-item>
+        </mdui-list>
         {{/if}}
       </div>

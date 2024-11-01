@@ -66,6 +66,7 @@ export default defineConfig({
         to: '../shared',
       },
     ],
+    polyfill: 'off',
   },
   dev: {
     writeToDisk: true,
