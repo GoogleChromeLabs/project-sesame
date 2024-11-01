@@ -18,22 +18,21 @@
   <head>
     {{> head this}}
   </head>
-  <body>
-    <mwc-drawer open>
+  <body class="mdui-prose">
+    <mdui-navigation-drawer open>
       {{> sidebar this}}
-      <div slot="appContent">
-        <mwc-top-app-bar style="display:none;">
-          <md-icon-button slot="navigationIcon">
-            <md-icon id="menu">menu</md-icon>
-            <img id="nav-brand-icon" src="/images/icon.svg" width="34" height="34">
-          </md-icon-button>
-          <span slot="title">SHRINE</span>
-        </mwc-top-app-bar>
-        <md-linear-progress id="progress"></md-linear-progress>
-        <div class="corner-triangle"></div>
-        {{{body}}}
-      </div>
-    </mwc-drawer>
+    </mdui-navigation-drawer>
+    <mdui-top-app-bar scroll-behavior="elevate" style="display:none;">
+      <mdui-top-app-bar-title>SHRINE</mdui-top-app-bar-title>
+      <mdui-button-icon
+        id="menu-button"
+        icon="menu">
+        <img id="nav-brand-icon" src="/images/icon.svg" width="34" height="34">
+      </mdui-button-icon>
+    </mdui-top-app-bar>
+    <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
+    <div class="corner-triangle"></div>
+    {{{body}}}
     <mwc-snackbar id="snackbar"></mwc-snackbar>
   </body>
 </html>
