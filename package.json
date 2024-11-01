@@ -34,7 +34,8 @@
     "express-useragent": "1.0.15",
     "firebase-admin": "12.7.0",
     "helmet": "^8.0.0",
-    "jsonwebtoken": "9.0.2"
+    "jsonwebtoken": "9.0.2",
+    "ua-parser-js": "^2.0.0-rc.1"
   },
   "devDependencies": {
     "@material/mwc-drawer": "0.27.0",
