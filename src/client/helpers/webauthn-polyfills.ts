@@ -33,6 +33,20 @@ class base64url {
 }
 
 if (PublicKeyCredential) {
+  const uap = new UAParser();
+  const browser = uap.getBrowser();
+  if (!browser?.major) {
+    throw new Error('Browser major version not found.');
+  }
+  const browserName = browser.name;
+  const browserVer = parseInt(browser.major);
+  const engine = uap.getEngine();
+  if (!engine?.version) {
+    throw new Error('Engine version not found.');
+  }
+  const engineName = engine.name;
+  const engineVer = parseInt(engine.version.replace(/^([0-9]+)\.*$/, '$1'));
+
   // @ts-ignore
   if (!PublicKeyCredential?.parseCreationOptionsFromJSON) {
     // @ts-ignore
@@ -142,7 +156,9 @@ if (PublicKeyCredential) {
   }
   
   // @ts-ignore
-  if (!PublicKeyCredential.getClientCapabilities) {
+  if (!PublicKeyCredential.getClientCapabilities ||
+    // If this is Safari 17.4+, there's a spec glitch.
+    (browserName === 'Safari' && browserVer >= 17.4)) {
     // @ts-ignore
     PublicKeyCredential.getClientCapabilities = async (): ClientCapabilities => {
       let conditionalCreate = false;
@@ -177,26 +193,11 @@ if (PublicKeyCredential) {
         signalUnknownCredential = true;
       }
 
-      const uap = new UAParser();
-      const browser = uap.getBrowser();
-      if (!browser?.major) {
-        throw new Error('Browser major version not found.');
-      }
-      const browserName = browser.name;
-      const browserVer = parseInt(browser.major);
-      const engine = uap.getEngine();
-      if (!engine?.version) {
-        throw new Error('Engine version not found.');
-      }
-      const engineName = engine.name;
-      const engineVer = parseInt(engine.version.replace(/^([0-9]+)\.*$/, '$1'));
-
       // `conditionalCreate` is `true` on Safari 15+
-      if (browserName === 'Safari' && browserVer >= 15) {
+      if (browserName === 'Safari' && browserVer >= 18) {
         conditionalCreate = true;
       }
       // `hybridTransport` is `true` on Firefox 119+, Chromium 108+ and Safari 16+
-      // TODO: These version numbers may not be precise.
       if ((engineName === 'Blink' && engineVer >= 108) ||
           (browserName === 'Firefox' && browserVer >= 119) ||
           (browserName === 'Safari' && browserVer >= 16)) {
