@@ -49,14 +49,13 @@ async function renderDisplayName(): Promise<void> {
       <h2>Hi, ${res.displayName}</h2>
       <div class="display-name">
         <span>${res.username}</span>
-        <md-icon-button
+        <mdui-button-icon
           slot="end"
           data-display-name="${res.displayName || res.username}"
           @click="${changeDisplayName}"
-          title="Edit your display name"
-        >
-          <md-icon>edit</md-icon>
-        </md-icon-button>
+          title="Edit your display name">
+          <mdui-icon name="edit--outlined"></mdui-icon>
+        </mdui-button-icon>
       </div>
     `,
     $('#userinfo')

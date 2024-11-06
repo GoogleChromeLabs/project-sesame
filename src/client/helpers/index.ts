@@ -16,7 +16,8 @@
  */
 
 import {MdLinearProgress} from '@material/web/progress/linear-progress';
-import {MdIconButton} from '@material/web/iconbutton/icon-button';
+import { ButtonIcon } from 'mdui/components/button-icon';
+import { TextField } from 'mdui/components/text-field';
 import {Drawer} from '@material/mwc-drawer';
 
 export const $: any = document.querySelector.bind(document);
@@ -28,8 +29,8 @@ export const redirect = (path: string = '') => {
 };
 
 export function toast(text: string): void {
-  $('#snackbar').labelText = text;
-  $('#snackbar').show();
+  $('#snackbar').innerText = text;
+  $('#snackbar').open = true;
 }
 
 /**
@@ -136,8 +137,8 @@ export function postForm(): Promise<void> {
 
 function togglePasswordVisibility(e: MouseEvent) {
   e.preventDefault();
-  if (e.target instanceof MdIconButton &&
-      e.target.parentNode instanceof HTMLInputElement) {
+  if (e.target instanceof ButtonIcon &&
+      e.target.parentNode instanceof TextField) {
     // Toggle password visibility when visibility icon is clicked.
     e.target.parentNode.type = e.target.selected ? 'text' : 'password';
   }

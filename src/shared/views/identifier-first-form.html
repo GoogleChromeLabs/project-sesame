@@ -4,15 +4,16 @@
       </h2>
       <form id="form" method="POST" action="/auth/username" class="center">
         <p class="instructions">Don't have an account yet? Register now</p>
-        <md-outlined-text-field
+        <mdui-text-field
           type="text"
           id="username"
           name="username"
           autocomplete="username webauthn"
           label="username"
+          variant="outlined"
           autofocus>
-        </md-outlined-text-field>
+        </mdui-text-field>
         <input type="password" class="hidden" name="password" />
-        <md-filled-button type="submit">Continue</md-filled-button>
+        <mdui-button type="submit" variant="filled">Continue</mdui-button>
       </form>
     </main>

@@ -19,20 +19,19 @@
     {{> head this}}
   </head>
   <body class="mdui-prose">
-    <mdui-navigation-drawer open>
-      {{> sidebar this}}
-    </mdui-navigation-drawer>
     <mdui-top-app-bar scroll-behavior="elevate" style="display:none;">
+      <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
       <mdui-top-app-bar-title>SHRINE</mdui-top-app-bar-title>
       <mdui-button-icon
         id="menu-button"
-        icon="menu">
+        icon="menu--outlined">
         <img id="nav-brand-icon" src="/images/icon.svg" width="34" height="34">
       </mdui-button-icon>
     </mdui-top-app-bar>
-    <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
-    <div class="corner-triangle"></div>
+    <mdui-navigation-drawer class="sidebar" open>
+      {{> sidebar this}}
+    </mdui-navigation-drawer>
     {{{body}}}
-    <mwc-snackbar id="snackbar"></mwc-snackbar>
+    <mdui-snackbar id="snackbar"></mdui-snackbar>
   </body>
 </html>

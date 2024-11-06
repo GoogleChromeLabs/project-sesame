@@ -4,29 +4,34 @@
       </h2>
       <form id="form" method="POST" action="/auth/username-password" class="center">
         <p class="instructions">Don't have an account yet? <a href="/signup-form">Register now</a></p>
-        <md-outlined-text-field
+        <mdui-text-field
           type="text"
           id="username"
           name="username"
           autocomplete="username"
           label="username"
           width="100"
+          variant="outlined"
           autofocus>
-        </md-outlined-text-field>
-        <md-outlined-text-field
+        </mdui-text-field>
+        <mdui-text-field
           type="password"
           id="password"
           name="password"
           autocomplete="current-password"
           label="password"
           width="100"
+          variant="outlined"
           autofocus>
-          <md-icon-button id="password-toggle" toggle slot="trailing-icon">
-            <md-icon slot="selected">visibility</md-icon>
-            <md-icon>visibility_off</md-icon>
-          </md-icon-button>
-        </md-outlined-text-field>
-        <md-filled-button type="submit">Login</md-filled-button>
-        <a href="#">Forgot password?</a>
+          <mdui-button-icon
+            id="password-toggle"
+            toggle slot="trailing-icon"
+            icon="visibility_off--outlined"
+            selected-icon="visibility--outlined"
+            selectable>
+          </mdui-button-icon>
+        </mdui-text-field>
+        <mdui-button type="submit" variant="filled">Login</mdui-button>
+        <mdui-button href="#" variant="text">Forgot password?</mdui-button>
       </form>
     </main>

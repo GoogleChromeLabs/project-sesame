@@ -4,20 +4,22 @@
       </h2>
       <form id="form" method="POST" action="/auth/username" class="center">
         <p class="instructions">Don't have an account yet? Register now</p>
-        <md-outlined-text-field
+        <mdui-text-field
           type="text"
           id="username"
           name="username"
           autocomplete="username webauthn"
           label="username"
+          variant="outlined"
           autofocus>
-        </md-outlined-text-field>
+        </mdui-text-field>
         <input type="password" class="hidden" name="password" />
-        <md-filled-button type="submit">Continue</md-filled-button>
-        <p>or</p>
-        <md-filled-tonal-button id="fedcm">
-          <md-icon slot="icon">lock</md-icon>
+        <mdui-button type="submit" variant="filled">Continue</mdui-button>
+        <mdui-button
+          id="fedcm"
+          icon="lock--outlined"
+          variant="tonal">
           Sign in with fedcm-idp.demo.glitch.me
-        </md-filled-tonal-button>
+        </mdui-button>
       </form>
     </main>
