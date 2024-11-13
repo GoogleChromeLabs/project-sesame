@@ -58,14 +58,11 @@ async function renderDisplayName(): Promise<void> {
       <h2>Hi, ${res.displayName}</h2>
       <div class="display-name">
         <span>${res.username}</span>
-        <md-icon-button
-          slot="end"
+        <mdui-button-icon
           data-display-name="${res.displayName || res.username}"
           @click="${changeDisplayName}"
-          title="Edit your display name"
-        >
-          <md-icon>edit</md-icon>
-        </md-icon-button>
+          icon="edit"
+          title="Edit your display name"></mdui-button-icon>
       </div>
     `,
     $('#userinfo')
@@ -180,37 +177,30 @@ async function renderCredentials(): Promise<void> {
           return html`${i > 0 && i < res.length
               ? html` <md-divider></md-divider> `
               : ''}
-            <md-list-item>
-              <img
-                slot="start"
+            <mdui-list-item nonclickable>
+              <mdui-icon
+                slot="icon"
                 src="${icons[cred.aaguid].icon_light}"
-                title="${icons[cred.aaguid].name}"
-                width="24"
-                height="24"
-              />
-              <span slot="headline">${cred.name || 'Unnamed'} ${cred.credentialBackedUp?'(synced)':''}</span>
-              <span slot="supporting-text">${createdStr}${lastUsedStr}</span>
-              ${cred.credentialBackedUp?html`
-              <md-icon slot="end">
-                <md-icon>sync</md-icon>
-              </md-icon>
+                title="${icons[cred.aaguid].name}"></mdui-icon>
+              <span>${cred.name || 'Unnamed'}</span>
+              <span slot="description">${createdStr}${lastUsedStr}</span>
+              ${!cred.credentialBackedUp?html`
+              <mdui-button-icon
+                slot="end-icon"
+                icon="sync_disabled--outlined"></mdui-button-icon>
               `:''}
-              <md-icon-button
-                slot="end"
+              <mdui-button-icon
+                slot="end-icon"
                 data-cred-id="${cred.id}"
                 data-name="${cred.name || 'Unnamed'}"
-                @click="${rename}"
-              >
-                <md-icon>edit</md-icon>
-              </md-icon-button>
-              <md-icon-button
-                slot="end"
+                icon="edit--outlined"
+                @click="${rename}"></mdui-button-icon>
+              <mdui-button-icon
+                slot="end-icon"
                 data-cred-id="${cred.id}"
-                @click="${remove}"
-              >
-                <md-icon>delete</md-icon>
-              </md-icon-button>
-            </md-list-item>`;
+                icon="delete--outlined"
+                @click="${remove}"></mdui-button-icon>
+            </mdui-list-item>`;
         })}`
       : html`<md-list-item>No credentials found.</md-list-item>`;
   render(creds, list);

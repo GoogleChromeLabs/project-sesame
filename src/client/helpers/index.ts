@@ -168,7 +168,7 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
     // Desktop display
     topAppBar.style.display = 'none';
     drawer.type = '';
-    drawer.open = false;
+    drawer.open = true;
   }
 };
 

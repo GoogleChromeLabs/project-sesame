@@ -25,7 +25,7 @@ import {
   PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/types';
-import '~project-sesame/client/helpers/webauthn-polyfills';
+import 'webauthn-polyfills';
 
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
