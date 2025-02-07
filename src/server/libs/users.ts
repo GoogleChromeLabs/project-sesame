@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/types';
+import {Base64URLString} from '@simplewebauthn/server';
 
 import {generateRandomString, getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';

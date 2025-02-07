@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/types';
+import {Base64URLString} from '@simplewebauthn/server';
 import {html, render} from 'lit';
 
 import {$, _fetch, loading, toast} from '~project-sesame/client/helpers/index';

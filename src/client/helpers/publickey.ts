@@ -24,7 +24,7 @@ import {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
-} from '@simplewebauthn/types';
+} from '@simplewebauthn/server';
 import 'webauthn-polyfills';
 
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {

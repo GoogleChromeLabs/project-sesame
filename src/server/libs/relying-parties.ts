@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/types';
+import {Base64URLString} from '@simplewebauthn/server';
 
 export interface RelyingParty {
   origin: string;

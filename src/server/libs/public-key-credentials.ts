@@ -19,7 +19,7 @@ import {
   Base64URLString,
   CredentialDeviceType,
   AuthenticatorTransportFuture,
-} from '@simplewebauthn/types';
+} from '@simplewebauthn/server';
 
 import {store} from '~project-sesame/server/config.ts';
 

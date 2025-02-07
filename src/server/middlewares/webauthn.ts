@@ -18,22 +18,20 @@ import express, {Request, Response} from 'express';
 const router = express.Router();
 // import crypto from 'crypto';
 import {
-  GenerateAuthenticationOptionsOpts,
-  VerifyAuthenticationResponseOpts,
-  generateAuthenticationOptions,
-  generateRegistrationOptions,
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
-} from '@simplewebauthn/server';
-import {isoBase64URL} from '@simplewebauthn/server/helpers';
-import {
   AuthenticationResponseJSON,
   AuthenticatorAssertionResponseJSON,
-  WebAuthnCredential,
   Base64URLString,
-  RegistrationResponseJSON,
+  GenerateAuthenticationOptionsOpts,
+  generateAuthenticationOptions,
+  generateRegistrationOptions,
   PublicKeyCredentialRequestOptionsJSON,
-} from '@simplewebauthn/types';
+  RegistrationResponseJSON,
+  VerifyAuthenticationResponseOpts,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse,
+  WebAuthnCredential,
+} from '@simplewebauthn/server';
+import {isoBase64URL} from '@simplewebauthn/server/helpers';
 import {config} from '~project-sesame/server/config.ts';
 import {
   PublicKeyCredentials,

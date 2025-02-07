@@ -15,17 +15,14 @@
  */
 
 import {
-  CredentialDeviceType,
-  PublicKeyCredentialCreationOptionsJSON,
-  PublicKeyCredentialRequestOptionsJSON,
-} from '@simplewebauthn/types';
-
-import {
   AttestationFormat,
   AttestationStatement,
   AuthenticatorAttachment,
   AuthenticatorTransportFuture,
-} from '@simplewebauthn/types';
+  CredentialDeviceType,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/server';
 import {JwtPayload} from 'jsonwebtoken';
 import {StringDecoder} from 'string_decoder';
 import {SignInStatus} from './server/middlewares/session.js';
