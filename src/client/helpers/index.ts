@@ -15,10 +15,10 @@
  * limitations under the License
  */
 
-import {MdLinearProgress} from '@material/web/progress/linear-progress';
+import { LinearProgress } from 'mdui/components/linear-progress';
 import { ButtonIcon } from 'mdui/components/button-icon';
 import { TextField } from 'mdui/components/text-field';
-import {Drawer} from '@material/mwc-drawer';
+import { NavigationDrawer } from 'mdui/components/navigation-drawer';
 
 export const $: any = document.querySelector.bind(document);
 
@@ -39,7 +39,7 @@ export function toast(text: string): void {
  * @param payload The payload JSON object.
  * @returns
  */
-export async function _fetch(path: string, payload: any = ''): Promise<any> {
+export async function post(path: string, payload: any = ''): Promise<any> {
   const headers: any = {
     'X-Requested-With': 'XMLHttpRequest',
   };
@@ -71,23 +71,23 @@ export async function _fetch(path: string, payload: any = ''): Promise<any> {
  * Indicate loading status using a material progress web component.
  */
 class Loading {
-  progress: MdLinearProgress;
+  progress: LinearProgress;
 
   constructor() {
     this.progress = $('#progress');
   }
 
   start() {
-    this.progress.indeterminate = true;
-    const inputs = document.querySelectorAll('md-outlined-text-field');
+    delete this.progress.value;
+    const inputs = document.querySelectorAll('mdui-text-field');
     if (inputs) {
       inputs.forEach(input => (input.disabled = true));
     }
   }
 
   stop() {
-    this.progress.indeterminate = false;
-    const inputs = document.querySelectorAll('md-outlined-text-field');
+    this.progress.value = 0;
+    const inputs = document.querySelectorAll('mdui-text-field');
     if (inputs) {
       inputs.forEach(input => (input.disabled = false));
     }
@@ -122,7 +122,7 @@ export function postForm(): Promise<void> {
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
       loading.start();
-      _fetch(s.target.action, cred)
+      post(s.target.action, cred)
         .then(results => {
           resolve(results);
         })
@@ -156,39 +156,54 @@ async function signOut(e: MouseEvent) {
 
 function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
   const drawer = $('mdui-navigation-drawer');
-  const topAppBar = $('mdui-top-app-bar');
+  const bar = $('mdui-top-app-bar');
+  const button = $('#corner-button');
+
+  const signedIn = location.pathname.match(/^\/(home|settings)/);
 
   if (e.matches) {
     // Mobile display
-    topAppBar.style.display = 'block';
+    bar.style.display = 'block';
     drawer.type = 'dismissible';
     drawer.open = false;
-
   } else {
+    // TODO: Instead of changing the placement based on whether the user is
+    // signed in or not, let the server embed an attribute.
+    if (signedIn) {
+      // Signed-in display
+      if (button.classList.contains('right-corner')) {
+        button.classList.remove('right-corner');
+        button.classList.add('left-corner');
+      }
+    } else {
+      // Signed-out display
+      if (button.classList.contains('left-corner')) {
+        button.classList.remove('left-corner');
+        button.classList.add('right-corner');
+      }
+    }
     // Desktop display
-    topAppBar.style.display = 'none';
+    bar.style.display = 'none';
     drawer.type = '';
     drawer.open = true;
   }
 };
 
+// Initialization
 document.addEventListener('DOMContentLoaded', e => {
-  const drawer: Drawer | null = $('mdui-navigation-drawer');
+  const drawer: NavigationDrawer | null = $('mdui-navigation-drawer');
   if (!drawer) {
-    throw new Error('Navigation drawer not found.');
+    throw new Error('Navigation drawer is not found.');
   }
 
-  const button = $('#menu-button');
-  button?.addEventListener('click', () => (drawer.open = !drawer.open));
+  // Menu button. Listen when it's found.
+  $('#menu-button')?.addEventListener('click', () => (drawer.open = !drawer.open));
 
-  const signout = $('#signout');
-  if (signout) {
-    signout.addEventListener('click', signOut);
-  }
-  const toggle = $('#password-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', togglePasswordVisibility);
-  }
+  // Sign-out button. Listen when it's found.
+  $('#signout')?.addEventListener('click', signOut);
+
+  // View password toggle button. Listen when it's found.
+  $('#password-toggle')?.addEventListener('click', togglePasswordVisibility);
 
   const mediaQuery = window.matchMedia('(max-width: 768px)');
   mediaQuery.addEventListener('change', changeLayout);

@@ -15,10 +15,9 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/server';
 import {html, render} from 'lit';
-
-import {$, _fetch, loading, toast} from '~project-sesame/client/helpers/index';
+import {$, post, loading, toast} from '~project-sesame/client/helpers/index';
+import {Base64URLString} from '@simplewebauthn/server';
 import {
   registerCredential,
   unregisterCredential,
@@ -41,7 +40,7 @@ async function changeDisplayName(e: {
   );
   if (!newName?.length) {
     loading.start();
-    await _fetch('/auth/updateDisplayName', {newName});
+    await post('/auth/updateDisplayName', {newName});
     loading.stop();
     renderDisplayName();
   }
@@ -51,7 +50,7 @@ async function changeDisplayName(e: {
  * Render the user's display name.
  */
 async function renderDisplayName(): Promise<void> {
-  const res = await _fetch('/auth/userinfo');
+  const res = await post('/auth/userinfo');
   render(
     html`
       <img class="profile-image" src="${res.picture}" width="80" height="80" />
@@ -145,7 +144,7 @@ if (
  * Render the list of saved credentials.
  */
 async function renderCredentials(): Promise<void> {
-  const res = await _fetch('/webauthn/getKeys');
+  const res = await post('/webauthn/getKeys');
   const list = $('#list');
   const creds =
     res.length > 0
@@ -175,7 +174,7 @@ async function renderCredentials(): Promise<void> {
           }
           const createdStr = `Created: ${createdDate}, ${createdTime}`;
           return html`${i > 0 && i < res.length
-              ? html` <md-divider></md-divider> `
+              ? html` <mdui-divider></mdui-divider> `
               : ''}
             <mdui-list-item nonclickable>
               <mdui-icon
@@ -202,7 +201,7 @@ async function renderCredentials(): Promise<void> {
                 @click="${remove}"></mdui-button-icon>
             </mdui-list-item>`;
         })}`
-      : html`<md-list-item>No credentials found.</md-list-item>`;
+      : html`<mdui-list-item>No credentials found.</mdui-list-item>`;
   render(creds, list);
 }
 

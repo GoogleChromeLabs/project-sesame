@@ -16,7 +16,7 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, _fetch, loading, redirect, toast} from '~project-sesame/client/helpers';
+import {$, post, loading, redirect, toast} from '~project-sesame/client/helpers/index';
 
 async function deleteAccount(e: MouseEvent): Promise<void> {
   loading.start();
@@ -25,7 +25,7 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
   );
   if (confirmation) {
     try {
-      await _fetch('/auth/delete-user');
+      await post('/auth/delete-user');
       toast('You account has been deleted. Redirecting to the top page.');
       setTimeout(() => {
         // By redirecting to /home, the user should be redirected to the login page.

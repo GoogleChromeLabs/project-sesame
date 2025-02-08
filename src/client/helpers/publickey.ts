@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {_fetch} from '~project-sesame/client/helpers';
+import {post} from '~project-sesame/client/helpers/index';
 import {
   Base64URLString,
   RegistrationCredential,
@@ -29,7 +29,7 @@ import 'webauthn-polyfills';
 
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
-  const options: PublicKeyCredentialCreationOptionsJSON = await _fetch(
+  const options: PublicKeyCredentialCreationOptionsJSON = await post(
     '/webauthn/registerRequest'
   );
 
@@ -42,14 +42,14 @@ export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): 
   const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
-  return await _fetch('/webauthn/registerResponse', encodedCredential);
+  return await post('/webauthn/registerResponse', encodedCredential);
 }
 
 export async function preparePublicKeyRequestOptions(
   conditional: boolean = false
 ): Promise<PublicKeyCredentialRequestOptions> {
   // Fetch passkey request options from the server.
-  const options: PublicKeyCredentialRequestOptionsJSON = await _fetch(
+  const options: PublicKeyCredentialRequestOptionsJSON = await post(
     '/webauthn/signinRequest'
   );
 
@@ -70,7 +70,7 @@ export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): P
   const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
-  return await _fetch('/webauthn/signinResponse', encodedCredential);
+  return await post('/webauthn/signinResponse', encodedCredential);
 }
 
 /**
@@ -124,7 +124,7 @@ export async function updateCredential(
   credId: Base64URLString,
   newName: string
 ): Promise<any> {
-  return _fetch('/webauthn/renameKey', {credId, newName});
+  return post('/webauthn/renameKey', {credId, newName});
 }
 
 /**
@@ -135,5 +135,5 @@ export async function updateCredential(
 export async function unregisterCredential(
   credId: Base64URLString
 ): Promise<any> {
-  return _fetch(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
+  return post(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
 }

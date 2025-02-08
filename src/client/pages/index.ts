@@ -15,4 +15,5 @@
  * limitations under the License
  */
 
-import '~project-sesame/client/layout.ts';
+import '~project-sesame/client/layout';
+import '~project-sesame/client/helpers/index';

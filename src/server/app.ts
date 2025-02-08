@@ -16,7 +16,7 @@
  */
 
 import express from 'express';
-import {engine, create} from 'express-handlebars';
+import {create} from 'express-handlebars';
 import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -47,35 +47,40 @@ const app = express();
  * @param app The express.js app instance
  */
 function configureTemplateEngine(app: express.Application) {
+  const hbs = create({
+    helpers: {
+      sidebarPlacement: (signin_status: SignInStatus) => {
+        return signin_status >= SignInStatus.SignedIn ?  'left' : 'right';
+      }
+    },
+    extname: 'html',
+    defaultLayout: 'index',
+    layoutsDir: path.join(config.views_root_file_path, 'layouts'),
+    partialsDir: path.join(config.views_root_file_path, 'partials'),
+  });
+  app.engine('html', hbs.engine);
   app.set('view engine', 'html');
-  app.engine(
-    'html',
-    engine({
-      extname: 'html',
-      defaultLayout: 'index',
-      layoutsDir: path.join(config.views_root_file_path, 'layouts'),
-      partialsDir: path.join(config.views_root_file_path, 'partials'),
-    })
-  );
   app.set('views', path.join(config.views_root_file_path));
 }
 
 configureTemplateEngine(app);
 
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        connectSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
-        scriptSrc: ["'self'", "'inline-speculation-rules'", 'https://fedcm-idp-demo.glitch.me'],
-        imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+if (!config.is_localhost) {
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          connectSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
+          scriptSrc: ["'self'", "'inline-speculation-rules'", 'https://fedcm-idp-demo.glitch.me'],
+          imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        },
+        // CSP is report-only if the app is running in debug mode.
+        reportOnly: config.debug,
       },
-      // CSP is report-only if the app is running in debug mode.
-      reportOnly: config.debug,
-    },
-  })
-);
+    })
+  );
+}
 
 app.use(express.json());
 app.use(useragent.express());

@@ -16,13 +16,11 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, _fetch, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {$, post, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 import '@material/web/textfield/outlined-text-field';
 import {saveFederation} from '~project-sesame/client/helpers/federated';
 // @ts-ignore
-const {IdentityProvider} = await import(
-  /* webpackIgnore: true */ 'https://fedcm-idp-demo.glitch.me/fedcm.js'
-);
+const {IdentityProvider} = await import('https://fedcm-idp-demo.glitch.me/fedcm.js');
 // import {FedCMProvider} from '~project-sesame/client/helpers/federation';
 
 postForm().then(() => {
@@ -35,7 +33,7 @@ const signIn = async () => {
   let idpInfo: any;
   let token;
   try {
-    idpInfo = await _fetch('/federation/idp', {
+    idpInfo = await post('/federation/idp', {
       url: 'https://fedcm-idp-demo.glitch.me',
     });
     const idp = new IdentityProvider({
@@ -51,7 +49,7 @@ const signIn = async () => {
   }
 
   try {
-    const user = await _fetch('/federation/verify', {token, url: idpInfo.origin});
+    const user = await post('/federation/verify', {token, url: idpInfo.origin});
     await saveFederation(user, idpInfo.configURL);
     location.href = '/home';
   } catch (error: any) {

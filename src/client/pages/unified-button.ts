@@ -16,7 +16,7 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, _fetch, loading, redirect, toast} from '~project-sesame/client/helpers';
+import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
 import {authenticate} from '~project-sesame/client/helpers/unified';
 
 //@ts-ignore

@@ -15,7 +15,6 @@
  * limitations under the License
  */
 
-import {_fetch} from "~project-sesame/client/helpers/index";
 import { preparePublicKeyRequestOptions, verifyPublicKeyRequestResult } from "~project-sesame/client/helpers/publickey";
 import { verifyPassword } from "~project-sesame/client/helpers/password";
 

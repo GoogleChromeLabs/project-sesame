@@ -16,6 +16,8 @@
  */
 import './styles/main.scss';
 
+import 'mdui/components/top-app-bar.js';
+import 'mdui/components/top-app-bar-title.js';
 import 'mdui/components/navigation-drawer.js';
 import 'mdui/components/button.js';
 import 'mdui/components/button-icon.js';

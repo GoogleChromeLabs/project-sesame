@@ -29,8 +29,6 @@
   --mdui-theme-on-surface: #442C2E;
   --mdui-theme-on-background: #442C2E;
   --mdui-theme-on-error: #FFFBFA;
-  --md-sys-color-primary: #481474;
-  --md-ref-typeface-plain: 'Rubik';
 }
 
 html {
@@ -95,13 +93,6 @@ main section {
   }
 }
 
-md-filled-button {
-  a {
-    text-decoration: none;
-    color: inherit;
-  }
-}
-
 .profile-image {
   clip-path: circle(40px at 50% 50%);
 }
@@ -161,28 +152,35 @@ md-filled-button {
     position: relative;
     top: 0px;
     background-color: white;
-    left: 0px;
-    clip-path: polygon(0 0, 100% 0, 0 100%);
     width: 64px;
     height: 64px;
+    flex: 0 0 auto;
+  }
+  .left-corner {
+    left: 0px;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    * {
+      float: left;
+    }
+  }
+  .right-corner {
+    left: calc(100% - 64px);
+    clip-path: polygon(0 0, 100% 100%, 100% 0);
+    * {
+      float: right;
+    }
   }
 }
 
 mdui-top-app-bar {
   #nav-brand-icon {
     position: absolute;
-    left: 24px;
-    background-color: var(--mdc-theme-primary);
+    background-color: var(--mdui-theme-primary);
   }
-  background-color: rgb(var(--mdui-color-primary));
-  mdui-top-app-bar-title, mdui-button-icon {
-    color: white;
-  }
+  background-color: var(--mdui-theme-primary);
   mdui-linear-progress {
     position: absolute;
-    top: 64px;
-    right: 0;
-    margin: 0;
+    top: 0;
   }
 }
 
@@ -192,25 +190,10 @@ div[slot="appContent"] {
   #list {
     min-width: 550px;
   }
-  md-list {
-    background-color: var(--mdc-theme-background);
-    md-list-item {
-      md-icon.mini {
-        margin: 4px;
-        --mdc-icon-size: 16px;
-        vertical-align: middle;
-      }
-    }
-  }
-  md-outlined-text-field {
-    width: 350px;
-  }
   @media (max-width: 768px) {
     .corner-triangle {
       top: -4px;
       background-color: var(--mdui-theme-primary);
-      width: 32px;
-      height: 32px;
     }
   }
 }

@@ -18,17 +18,19 @@
   <head>
     {{> head this}}
   </head>
-  <body class="mdui-prose">
-    <mdui-top-app-bar scroll-behavior="elevate" style="display:none;">
-      <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
-      <mdui-top-app-bar-title>SHRINE</mdui-top-app-bar-title>
-      <mdui-button-icon
-        id="menu-button"
-        icon="menu--outlined">
-        <img id="nav-brand-icon" src="/images/icon.svg" width="34" height="34">
+  <body>
+    <mdui-top-app-bar scroll-behavior="elevate" scroll-target="main">
+      <mdui-button-icon id="menu-button">
+        <img id="nav-brand-icon" src="/images/icon.svg">
       </mdui-button-icon>
+      <mdui-top-app-bar-title>SHRINE</mdui-top-app-bar-title>
+      <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
     </mdui-top-app-bar>
-    <mdui-navigation-drawer class="sidebar" open>
+    <mdui-navigation-drawer
+      class="sidebar"
+      placement="{{sidebarPlacement signin_status}}"
+      close-on-overlay-click
+      open>
       {{> sidebar this}}
     </mdui-navigation-drawer>
     {{{body}}}

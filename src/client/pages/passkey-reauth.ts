@@ -15,10 +15,8 @@
  * limitations under the License
  */
 
-import '@material/web/textfield/outlined-text-field';
-
 import '~project-sesame/client/layout';
-import {$, loading, redirect, toast} from '~project-sesame/client/helpers';
+import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
 import {authenticate} from '~project-sesame/client/helpers/publickey';
 
 // Feature detection: check if WebAuthn and conditional UI are supported.

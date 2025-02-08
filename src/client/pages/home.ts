@@ -16,8 +16,7 @@
  */
 
 import {html, render} from 'lit';
-
-import {$, _fetch, loading} from '~project-sesame/client/helpers/index';
+import {$, post, loading} from '~project-sesame/client/helpers/index';
 import '~project-sesame/client/layout';
 
 /**
@@ -32,7 +31,7 @@ async function changeDisplayName(e: {
   );
   if (newName?.length) {
     loading.start();
-    await _fetch('/auth/updateDisplayName', {newName});
+    await post('/auth/updateDisplayName', {newName});
     loading.stop();
     renderDisplayName();
   }
@@ -42,7 +41,7 @@ async function changeDisplayName(e: {
  * Render the user's display name.
  */
 async function renderDisplayName(): Promise<void> {
-  const res = await _fetch('/auth/userinfo');
+  const res = await post('/auth/userinfo');
   render(
     html`
       <img class="profile-image" src="${res.picture}" width="80" height="80" />

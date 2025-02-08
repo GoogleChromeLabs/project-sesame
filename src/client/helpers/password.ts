@@ -15,13 +15,13 @@
  * limitations under the License
  */
 
-import {_fetch} from "~project-sesame/client/helpers/index";
+import {post} from "~project-sesame/client/helpers/index";
 
 export async function verifyPassword(
   // @ts-ignore
   cred: PasswordCredential
 ): Promise<boolean> {
-  await _fetch('/auth/username-password', {
+  await post('/auth/username-password', {
     username: cred.id,
     // @ts-ignore
     password: cred.password

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {_fetch} from "~project-sesame/client/helpers/index";
+import {post} from "~project-sesame/client/helpers/index";
 import {IdentityProvider} from "~project-sesame/client/helpers/identity";
 import {User} from '~project-sesame/server/libs/users.ts';
 
@@ -34,7 +34,7 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
       let idpInfo: any;
       let token;
       try {
-        idpInfo = await _fetch('/federation/idp', {
+        idpInfo = await post('/federation/idp', {
           url: 'https://fedcm-idp-demo.glitch.me',
         });
         const idp = new IdentityProvider({
@@ -45,7 +45,7 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
           mode: 'button',
           // loginHint: cred.id,
         });
-        await _fetch('/federation/verify', {token, url: idpInfo.origin});
+        await post('/federation/verify', {token, url: idpInfo.origin});
         return true;
       } catch (e) {
         // Silently dismiss the request for now.

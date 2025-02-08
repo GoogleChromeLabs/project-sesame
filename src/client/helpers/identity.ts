@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {_fetch, $} from '~project-sesame/client/helpers/index';
+import {$} from '~project-sesame/client/helpers/index';
 
 interface FedCmOptions {
   mode?: 'widget' | 'button',
