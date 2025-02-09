@@ -1,5 +1,12 @@
       <div class="sidebar">
-        <div id="corner-button" class="corner-triangle left-corner">
+        <div
+          id="corner-button"
+          {{#if (isSignedIn)}}
+          class="corner-triangle left-corner"
+          {{else}}
+          class="corner-triangle right-corner"
+          {{/if}}
+          >
           <mdui-button-icon
             href="{{repository_url}}"
             icon="code--outlined">

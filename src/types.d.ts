@@ -36,8 +36,14 @@ interface AppLocals {
 }
 
 interface ResLocals {
+  // User's sign-in status
   signin_status: SignInStatus;
+  // Whether the user is signed in or not
+  is_signed_in: boolean;
+  // User object
   user: User;
+  // Whether viewport width is less than 768px or not
+  narrow: boolean;
 }
 
 declare global {

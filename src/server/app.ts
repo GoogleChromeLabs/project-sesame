@@ -48,11 +48,7 @@ const app = express();
  */
 function configureTemplateEngine(app: express.Application) {
   const hbs = create({
-    helpers: {
-      sidebarPlacement: (signin_status: SignInStatus) => {
-        return signin_status >= SignInStatus.SignedIn ?  'left' : 'right';
-      }
-    },
+    helpers: {},
     extname: 'html',
     defaultLayout: 'index',
     layoutsDir: path.join(config.views_root_file_path, 'layouts'),
@@ -89,6 +85,12 @@ app.use(initializeSession());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
+  const width = req.headers['sec-ch-viewport-width'];
+  if (typeof width === 'string') {
+    res.locals.open_drawer = parseInt(width) > 768;
+  }
+  res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
+
   res.locals.helpers = {
     isSignedIn: () => res.locals.signin_status >= SignInStatus.SignedIn
   };

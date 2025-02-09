@@ -157,34 +157,14 @@ async function signOut(e: MouseEvent) {
 function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
   const drawer = $('mdui-navigation-drawer');
   const bar = $('mdui-top-app-bar');
-  const button = $('#corner-button');
-
-  const signedIn = location.pathname.match(/^\/(home|settings)/);
 
   if (e.matches) {
     // Mobile display
     bar.style.display = 'block';
-    drawer.type = 'dismissible';
     drawer.open = false;
   } else {
-    // TODO: Instead of changing the placement based on whether the user is
-    // signed in or not, let the server embed an attribute.
-    if (signedIn) {
-      // Signed-in display
-      if (button.classList.contains('right-corner')) {
-        button.classList.remove('right-corner');
-        button.classList.add('left-corner');
-      }
-    } else {
-      // Signed-out display
-      if (button.classList.contains('left-corner')) {
-        button.classList.remove('left-corner');
-        button.classList.add('right-corner');
-      }
-    }
     // Desktop display
     bar.style.display = 'none';
-    drawer.type = '';
     drawer.open = true;
   }
 };

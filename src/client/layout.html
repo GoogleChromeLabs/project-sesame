@@ -28,9 +28,17 @@
     </mdui-top-app-bar>
     <mdui-navigation-drawer
       class="sidebar"
-      placement="{{sidebarPlacement signin_status}}"
       close-on-overlay-click
-      open>
+      {{#if (isSignedIn)}}
+      placement="left"
+      {{else}}
+      placement="right"
+      {{/if}}
+      {{#if open_drawer}}
+      open
+      {{else}}
+      style="display:none"
+      {{/if}}>
       {{> sidebar this}}
     </mdui-navigation-drawer>
     {{{body}}}
