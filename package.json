@@ -34,11 +34,6 @@
     "jsonwebtoken": "9.0.2"
   },
   "devDependencies": {
-    "@material/mwc-drawer": "0.27.0",
-    "@material/mwc-snackbar": "0.27.0",
-    "@material/mwc-top-app-bar": "0.27.0",
-    "@material/textfield": "14.0.0",
-    "@material/web": "2.2.0",
     "@rsbuild/core": "1.2.4",
     "@rsbuild/plugin-sass": "^1.2.1",
     "@types/cookie-parser": "^1.4.8",
