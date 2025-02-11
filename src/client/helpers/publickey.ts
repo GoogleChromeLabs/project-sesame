@@ -25,6 +25,7 @@ import {
   PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/server';
+import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';
 import 'webauthn-polyfills';
 
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
@@ -42,7 +43,8 @@ export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): 
   const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
-  return await post('/webauthn/registerResponse', encodedCredential);
+  const result = await post('/webauthn/registerResponse', encodedCredential);
+  return result;
 }
 
 export async function preparePublicKeyRequestOptions(
@@ -89,7 +91,22 @@ export async function registerCredential(): Promise<any> {
     throw new Error("Failed to create a credential");
   }
 
-  return verifyPublicKeyCreationResult(cred);
+  try {
+    return verifyPublicKeyCreationResult(<PublicKeyCredential>cred);
+  } catch (e) {
+    // Detect if the credential was not found.
+    // @ts-ignore
+    if (PublicKeyCredential.signalUnknownCredential) {
+      // Send a signal to delete the credential that was just created.
+      // @ts-ignore
+      await PublicKeyCredential.signalUnknownCredential({
+        rpId: options.rp.id,
+        credentialId: cred.id,
+      });
+      console.info('The passkey failed to register has been signaled to the password manager.');
+    }
+    throw e;
+  }
 }
 
 /**
@@ -111,7 +128,52 @@ export async function authenticate(conditional = false): Promise<any> {
     throw new Error("Failed to get a credential");
   }
 
-  return verifyPublicKeyRequestResult(cred);
+  try {
+    return verifyPublicKeyRequestResult(<PublicKeyCredential>cred);
+  } catch (e: any) {
+    // @ts-ignore
+    if (e.status === 404 && PublicKeyCredential.signalUnknownCredential) {
+      // @ts-ignore
+      await PublicKeyCredential.signalUnknownCredential({
+        rpId: options.rpId,
+        credentialId: cred.id,
+      }).then(() => {
+        console.info('The passkey associated with the credential not found has been signaled to the password manager.');
+      }).catch((error: any) => {
+        console.error(error.message);
+      });
+    }
+    throw e;
+  }
+}
+
+/**
+ * Signal the list of credentials so the password manager can synchronize.
+ * @param { object } credentials An array of credentials that contains a
+ * Base64URL encoded credential ID.
+ * @returns a promise that resolve with undefined.
+ */
+export async function getAllCredentials(): Promise<SesamePublicKeyCredential[]> {
+  const { rpId, userId, credentials } = (await post('/webauthn/getKeys')) as {
+    rpId: string,
+    userId: string,
+    credentials: SesamePublicKeyCredential[]
+  } ;
+  // @ts-ignore
+  if (PublicKeyCredential.signalAllAcceptedCredentials) {
+    const allAcceptedCredentialIds = credentials.map((cred: SesamePublicKeyCredential) => cred.id);
+    // @ts-ignore
+    await PublicKeyCredential.signalAllAcceptedCredentials({
+      rpId,
+      userId, // base64url encoded user ID
+      allAcceptedCredentialIds
+    }).then(() => {
+      console.info('Passkeys list have been signaled to the password manager.');
+    }).catch((e: any) => {
+      console.error(e.message);
+    });
+  }
+  return credentials;
 }
 
 /**

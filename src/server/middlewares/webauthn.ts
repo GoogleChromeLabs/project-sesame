@@ -51,8 +51,7 @@ import {
   setChallenge,
   setSessionUser,
 } from '~project-sesame/server/middlewares/session.ts';
-import aaguids from '~project-sesame/shared/public/aaguids.json';
-import { get } from 'http';
+import aaguids from '~project-sesame/shared/public/aaguids.json' with { type: 'json' };
 
 interface AAGUIDs {
   [key: string]: {
@@ -111,7 +110,9 @@ router.post(
   async (req: Request, res: Response) => {
     const {user} = res.locals;
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkeyUserId);
-    return res.json(credentials || []);
+    const rpId = config.hostname
+    const userId = user.passkeyUserId;
+    return res.json({ rpId, userId, credentials });
   }
 );
 

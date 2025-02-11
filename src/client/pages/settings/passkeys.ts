@@ -19,6 +19,7 @@ import {html, render} from 'lit';
 import {$, post, loading, toast} from '~project-sesame/client/helpers/index';
 import {Base64URLString} from '@simplewebauthn/server';
 import {
+  getAllCredentials,
   registerCredential,
   unregisterCredential,
   updateCredential,
@@ -144,12 +145,12 @@ if (
  * Render the list of saved credentials.
  */
 async function renderCredentials(): Promise<void> {
-  const res = await post('/webauthn/getKeys');
+  const res = await getAllCredentials();
   const list = $('#list');
   const creds =
     res.length > 0
       ? // TODO: Define `cred` type across the server and the client
-        html`${res.map((cred: any, i: number) => {
+        html`${res.map((cred, i: number) => {
           const created = new Date(cred.registeredAt);
           const createdDate = created.toLocaleDateString(undefined, {
             month: 'short',
