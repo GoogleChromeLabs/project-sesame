@@ -34,6 +34,44 @@ export function toast(text: string): void {
 }
 
 /**
+ * Sends a GET request with query. Throws when the response is not 200.
+ * @param path The endpoint path.
+ * @param payload The payload JSON object.
+ * @returns
+ */
+export async function get(path: string, payload: any = ''): Promise<any> {
+  const headers: any = {
+    'X-Requested-With': 'XMLHttpRequest',
+  };
+
+  const url = new URL(path);
+
+  for (const key in payload) {
+    if (payload.hasOwnProperty(key)) {
+      const encodedKey = encodeURIComponent(key);
+      const encodedValue = encodeURIComponent(payload[key]);
+
+      url.searchParams.append(encodedKey, encodedValue);
+    }
+  }
+
+  const res = await fetch(url.toString(), {
+    credentials: 'same-origin',
+    headers: headers,
+  });
+
+  if (res.ok) {
+    // Server authentication succeeded
+    return res.json();
+  } else {
+    // Server authentication failed
+    const result = await res.json();
+    result.status = res.status;
+    throw result;
+  }
+}
+
+/**
  * Sends a POST request with payload. Throws when the response is not 200.
  * @param path The endpoint path.
  * @param payload The payload JSON object.
@@ -43,27 +81,27 @@ export async function post(path: string, payload: any = ''): Promise<any> {
   const headers: any = {
     'X-Requested-With': 'XMLHttpRequest',
   };
+
   if (payload && !(payload instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
     payload = JSON.stringify(payload);
   }
-  try {
-    const res = await fetch(path, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: headers,
-      body: payload,
-    });
-    if (res.status === 200) {
-      // Server authentication succeeded
-      return res.json();
-    } else {
-      // Server authentication failed
-      const result = await res.json();
-      throw new Error(result.error); 
-    }
-  } catch (error) {
-    throw error;
+
+  const res = await fetch(path, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: headers,
+    body: payload,
+  });
+
+  if (res.ok) {
+    // Server authentication succeeded
+    return res.json();
+  } else {
+    // Server authentication failed
+    const result = await res.json();
+    result.status = res.status;
+    throw result;
   }
 }
 
