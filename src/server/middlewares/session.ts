@@ -232,11 +232,28 @@ export function signOut(req: Request, res: Response) {
   return res.redirect(307, entrancePath);
 }
 
-export function setEntrancePath(req: Request, res: Response, path?: string) {
+/**
+ * Remember from where the user has entered the website. This is to prevent
+ * users from entering unrelated sign-in flows, as Project Sesame's goal is to
+ * demonstrate a specific sign-in flow by linking to the enterance, by making
+ * sure the user is brought back to the original entrance when they sign out.
+ * @param req 
+ * @param res 
+ * @param path optional entrance path in string. Pass it when you want to
+ * specify a path that is not the same as where the user is.
+ * @returns 
+ */
+export function setEntrancePath(req: Request, res: Response, path?: string): void {
   req.session.entrance = path || req.path;
   return;
 }
 
+/**
+ * Recall from where the user has entered the website.
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export function getEntrancePath(req: Request, res: Response): string {
   return req.session?.entrance || '/';
 }
