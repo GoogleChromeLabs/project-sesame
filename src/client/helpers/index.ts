@@ -198,7 +198,7 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
 
   if (e.matches) {
     // Mobile display
-    bar.style.display = 'block';
+    bar.style.display = 'flex';
     drawer.open = false;
   } else {
     // Desktop display
