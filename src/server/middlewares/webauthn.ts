@@ -61,46 +61,6 @@ interface AAGUIDs {
 }
 
 /**
- * Get the expected origin that the user agent is claiming to be at. If the
- * requester is Android, construct an expected `origin` parameter.
- * @param { string } userAgent A user agent string used to check if it's a web browser.
- * @returns A string that indicates an expected origin.
- */
-function getOrigin(userAgent = ''): string {
-  let origin = config.origin;
-
-  const appRe = /^[a-zA-z0-9_.]+/;
-  const match = userAgent.match(appRe);
-  if (match) {
-    // Check if UserAgent comes from a supported Android app.
-    if (process.env.ANDROID_PACKAGENAME && process.env.ANDROID_SHA256HASH) {
-      // `process.env.ANDROID_PACKAGENAME` is expected to have a comma separated package names.
-      const package_names = process.env.ANDROID_PACKAGENAME.split(',').map(
-        name => name.trim()
-      );
-      // `process.env.ANDROID_SHA256HASH` is expected to have a comma separated hash values.
-      const hashes = process.env.ANDROID_SHA256HASH.split(',').map(hash =>
-        hash.trim()
-      );
-      const appName = match[0];
-      // Find and construct the expected origin string.
-      for (let i = 0; i < package_names.length; i++) {
-        if (appName === package_names[i]) {
-          // We recognize this app, so use the corresponding hash.
-          const octArray = hashes[i].split(':').map(h => parseInt(h, 16));
-          // @ts-ignore
-          const androidHash = isoBase64URL.fromBuffer(octArray);
-          origin = `android:apk-key-hash:${androidHash}`;
-          break;
-        }
-      }
-    }
-  }
-
-  return origin;
-}
-
-/**
  * Respond with a list of stored credentials.
  */
 router.post(
@@ -239,7 +199,7 @@ router.post(
     // Set expected values.
     const response = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
-    const expectedOrigin = getOrigin(req.get('User-Agent'));
+    const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {
@@ -381,7 +341,7 @@ router.post(
     // Set expected values.
     const response = <AuthenticationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
-    const expectedOrigin = getOrigin(req.get('User-Agent'));
+    const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {

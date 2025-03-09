@@ -21,7 +21,7 @@ import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import config from '~project-sesame/server/config.ts';
+import {config} from '~project-sesame/server/config.ts';
 import {auth} from '~project-sesame/server/middlewares/auth.ts';
 import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {
@@ -66,7 +66,8 @@ if (!config.is_localhost) {
     helmet({
       contentSecurityPolicy: {
         directives: {
-          connectSrc: ["'self'", 'https://fedcm-idp-demo.glitch.me'],
+          defaultSrc: ["'self'"],
+          connectSrc: ["'self'", 'data:', 'https://fedcm-idp-demo.glitch.me'],
           scriptSrc: ["'self'", "'inline-speculation-rules'", 'https://fedcm-idp-demo.glitch.me'],
           imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
@@ -104,7 +105,7 @@ app.use((req, res, next) => {
   return next();
 });
 
-app.locals.origin_trials = process.env.ORIGIN_TRIALS ? process.env.ORIGIN_TRIALS.split(',') : [];
+app.locals.origin_trials = config.origin_trials;
 
 app.get('/', (req, res) => {
   return res.render('index.html', {

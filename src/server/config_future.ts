@@ -89,8 +89,7 @@ try {
 }
 const {
   hostname,
-  // Set the port number 8081 for AppEngine
-  port = is_localhost ? 8080 : 8081,
+  port = is_localhost ? 8080 : 443,
   associated_domains = [],
   id_token_lifetime = 1 * 24 * 60 * 60 * 1000,
   forever_cookie_duration = 1000 * 60 * 60 * 24 * 365,
@@ -108,7 +107,7 @@ if (!project_name || !rp_name || !hostname) {
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
 
-const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
+const domain = port !== 443 ? `${hostname}:${port}` : hostname;
 const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
 const associated_origins = associated_domains.map((_domain: any) => {
@@ -120,9 +119,6 @@ associated_origins.push(origin);
 
 export const store = initializeFirestore();
 
-console.log('hostname', hostname, new URL(origin).hostname);
-console.log('port', port, is_development_proxy ? 8080 : process.env.PORT || 8080);
-
 export const config = {
   project_name,
   debug: is_localhost,
@@ -130,10 +126,11 @@ export const config = {
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
   is_localhost,
+  hostname,
   port,
+  domain,
   origin,
   secret,
-  hostname,
   title: project_name,
   associated_domains,
   associated_origins,
