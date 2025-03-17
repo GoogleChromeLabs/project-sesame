@@ -19,20 +19,26 @@ import { preparePublicKeyRequestOptions, verifyPublicKeyRequestResult } from "~p
 import { verifyPassword } from "~project-sesame/client/helpers/password";
 
 // @ts-ignore
-export async function authenticate(): Promise<PasswordCredential | string | undefined> {
-  const options = await preparePublicKeyRequestOptions(false);
+export async function authenticate(conditional = false): Promise<PasswordCredential | string | undefined> {
+  const options = await preparePublicKeyRequestOptions(conditional);
 
   const cred = await navigator.credentials.get({
     // @ts-ignore
+    mediation: conditional ? 'immediate' : 'optional',
+    // @ts-ignore
     password: true,
     // temporary experiment for unified auth
-    publickey: options,
+    publicKey: options,
   });
 
-  if (cred?.type === 'password') {
+  if (!cred) {
+    throw new Error("Failed to get a credential");
+  }
+
+  if (cred.type === 'password') {
     // @ts-ignore
     return verifyPassword(cred as PasswordCredential);
-  } else if (cred?.type === 'publickey') {
+  } else if (cred.type === 'public-key') {
     return verifyPublicKeyRequestResult(cred as PublicKeyCredential);
   } else {
     throw new Error("Failed to get a credential");

@@ -17,7 +17,7 @@
 
 import '~project-sesame/client/layout';
 import {$, loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
-import {authenticate} from '~project-sesame/client/helpers/publickey';
+import {authenticate} from '~project-sesame/client/helpers/password-passkey';
 
 postForm().then(() => {
   redirect('/password');
@@ -25,32 +25,29 @@ postForm().then(() => {
   toast(error.message);
 });
 
-
-// Feature detection: check if WebAuthn and conditional UI are supported.
-if (
-  window.PublicKeyCredential &&
-  PublicKeyCredential.isConditionalMediationAvailable
-) {
-  try {
-    const cma = await PublicKeyCredential.isConditionalMediationAvailable();
-    if (cma) {
-      // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-      const user = await authenticate(true);
-      if (user) {
-        // When the user is signed in, redirect to the home page.
-        $('#username').value = user.username;
+//@ts-ignore
+if (window.PasswordCredential) {
+  $('#signin').addEventListener(
+    'click',
+    async (e: {target: HTMLButtonElement}) => {
+      try {
         loading.start();
-        redirect('/home');
-      } else {
-        throw new Error('User not found.');
+        const user = await authenticate(true);
+        if (user) {
+          redirect('/home');
+        } else {
+          throw new Error('User is not found.');
+        }
+      } catch (error: any) {
+        loading.stop();
+        console.error(error);
+        if (error.name !== 'NotAllowedError') {
+          toast(error.message);
+        }
       }
     }
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    // `NotAllowedError` indicates a user cancellation.
-    if (error.name !== 'NotAllowedError') {
-      toast(error.message);
-    }
-  }
+  );
+} else {
+  toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
+  redirect('/');
 }
