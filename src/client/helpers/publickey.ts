@@ -34,12 +34,10 @@ export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCreden
     '/webauthn/registerRequest'
   );
 
-  // @ts-ignore
   return PublicKeyCredential.parseCreationOptionsFromJSON(options);
 }
 
 export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): Promise<any> {
-  // @ts-ignore
   const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
@@ -55,7 +53,6 @@ export async function preparePublicKeyRequestOptions(
     '/webauthn/signinRequest'
   );
 
-  // @ts-ignore
   const decodedOptions = PublicKeyCredential.parseRequestOptionsFromJSON(options);
 
   // Empty `allowCredentials` if `conditional` is true.
@@ -68,7 +65,6 @@ export async function preparePublicKeyRequestOptions(
 
 export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): Promise<any> {
 
-  // @ts-ignore
   const encodedCredential = cred.toJSON();
 
   // Send the result to the server and return the promise.
@@ -93,7 +89,7 @@ export async function registerCredential(): Promise<any> {
 
   try {
     return verifyPublicKeyCreationResult(<PublicKeyCredential>cred);
-  } catch (e) {
+  } catch (e: any) {
     // Detect if the credential was not found.
     // @ts-ignore
     if (PublicKeyCredential.signalUnknownCredential) {
@@ -105,7 +101,7 @@ export async function registerCredential(): Promise<any> {
       });
       console.info('The passkey failed to register has been signaled to the password manager.');
     }
-    throw e;
+    throw new Error(e.error);
   }
 }
 
@@ -143,7 +139,7 @@ export async function authenticate(conditional = false): Promise<any> {
         console.error(error.message);
       });
     }
-    throw e;
+    throw new Error(e.error);
   }
 }
 

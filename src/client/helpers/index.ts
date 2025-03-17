@@ -160,15 +160,13 @@ export function postForm(): Promise<void> {
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
       loading.start();
-      post(s.target.action, cred)
-        .then(results => {
-          resolve(results);
-        })
-        .catch(e => {
-          loading.stop();
-          console.error(e.message);
-          reject(e);
-        });
+      post(s.target.action, cred).then(results => {
+        resolve(results);
+      }).catch(e => {
+        loading.stop();
+        console.error(e.message);
+        reject(e);
+      });
     });
   });
 }
