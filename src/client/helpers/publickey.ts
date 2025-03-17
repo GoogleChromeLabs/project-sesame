@@ -40,9 +40,13 @@ export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCreden
 export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): Promise<any> {
   const encodedCredential = cred.toJSON();
 
-  // Send the result to the server and return the promise.
-  const result = await post('/webauthn/registerResponse', encodedCredential);
-  return result;
+  try {
+    // Send the result to the server and return the promise.
+    const result = await post('/webauthn/registerResponse', encodedCredential);
+    return result;
+  } catch (e: any) {
+    throw new Error(e.error);
+  }
 }
 
 export async function preparePublicKeyRequestOptions(
@@ -67,8 +71,25 @@ export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): P
 
   const encodedCredential = cred.toJSON();
 
-  // Send the result to the server and return the promise.
-  return await post('/webauthn/signinResponse', encodedCredential);
+  try {
+    // Send the result to the server and return the promise.
+    const result = await post('/webauthn/signinResponse', encodedCredential);
+    return result;
+  } catch (e: any) {
+    // @ts-ignore
+    if (e.status === 404 && PublicKeyCredential.signalUnknownCredential) {
+      // @ts-ignore
+      // await PublicKeyCredential.signalUnknownCredential({
+      //   rpId: options.rpId,
+      //   credentialId: credential.id,
+      // }).then(() => {
+      //   console.info('The passkey associated with the credential not found has been signaled to the password manager.');
+      // }).catch(e => {
+      //   console.error(e);
+      // });
+    }
+    throw new Error(e.error);
+  }
 }
 
 /**
