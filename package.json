@@ -39,7 +39,7 @@
     "@rsbuild/plugin-sass": "^1.2.2",
     "@types/cookie-parser": "^1.4.8",
     "esbuild": "0.25.0",
-    "firebase-tools": "13.30.0",
+    "firebase-tools": "13.33.0",
     "gts": "6.0.2",
     "lit": "3.2.1",
     "mdui": "^2.1.3",
