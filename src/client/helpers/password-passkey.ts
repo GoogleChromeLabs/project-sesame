@@ -39,7 +39,7 @@ export async function authenticate(conditional = false): Promise<PasswordCredent
     // @ts-ignore
     return verifyPassword(cred as PasswordCredential);
   } else if (cred.type === 'public-key') {
-    return verifyPublicKeyRequestResult(cred as PublicKeyCredential);
+    return verifyPublicKeyRequestResult(cred as PublicKeyCredential, options.rpId);
   } else {
     throw new Error("Failed to get a credential");
   }

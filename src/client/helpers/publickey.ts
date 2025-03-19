@@ -37,7 +37,7 @@ export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCreden
   return PublicKeyCredential.parseCreationOptionsFromJSON(options);
 }
 
-export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): Promise<any> {
+export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential, rpId: string = ''): Promise<any> {
   const encodedCredential = cred.toJSON();
 
   try {
@@ -45,6 +45,17 @@ export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential): 
     const result = await post('/webauthn/registerResponse', encodedCredential);
     return result;
   } catch (e: any) {
+    // Detect if the credential was not found.
+    // @ts-ignore
+    if (PublicKeyCredential.signalUnknownCredential) {
+      // Send a signal to delete the credential that was just created.
+      // @ts-ignore
+      await PublicKeyCredential.signalUnknownCredential({
+        rpId,
+        credentialId: cred.id,
+      });
+      console.info('The passkey failed to register has been signaled to the password manager.');
+    }
     throw new Error(e.error);
   }
 }
@@ -67,7 +78,7 @@ export async function preparePublicKeyRequestOptions(
   return decodedOptions;
 }
 
-export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): Promise<any> {
+export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential, rpId: string = ''): Promise<any> {
 
   const encodedCredential = cred.toJSON();
 
@@ -79,14 +90,14 @@ export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential): P
     // @ts-ignore
     if (e.status === 404 && PublicKeyCredential.signalUnknownCredential) {
       // @ts-ignore
-      // await PublicKeyCredential.signalUnknownCredential({
-      //   rpId: options.rpId,
-      //   credentialId: credential.id,
-      // }).then(() => {
-      //   console.info('The passkey associated with the credential not found has been signaled to the password manager.');
-      // }).catch(e => {
-      //   console.error(e);
-      // });
+      await PublicKeyCredential.signalUnknownCredential({
+        rpId,
+        credentialId: cred.id,
+      }).then(() => {
+        console.info('The passkey associated with the credential not found has been signaled to the password manager.');
+      }).catch((e: any) => {
+        console.error(e);
+      });
     }
     throw new Error(e.error);
   }
@@ -108,22 +119,7 @@ export async function registerCredential(): Promise<any> {
     throw new Error("Failed to create a credential");
   }
 
-  try {
-    return verifyPublicKeyCreationResult(<PublicKeyCredential>cred);
-  } catch (e: any) {
-    // Detect if the credential was not found.
-    // @ts-ignore
-    if (PublicKeyCredential.signalUnknownCredential) {
-      // Send a signal to delete the credential that was just created.
-      // @ts-ignore
-      await PublicKeyCredential.signalUnknownCredential({
-        rpId: options.rp.id,
-        credentialId: cred.id,
-      });
-      console.info('The passkey failed to register has been signaled to the password manager.');
-    }
-    throw new Error(e.error);
-  }
+  return verifyPublicKeyCreationResult(<PublicKeyCredential>cred, options.rp.id);
 }
 
 /**
@@ -145,23 +141,7 @@ export async function authenticate(conditional = false): Promise<any> {
     throw new Error("Failed to get a credential");
   }
 
-  try {
-    return verifyPublicKeyRequestResult(<PublicKeyCredential>cred);
-  } catch (e: any) {
-    // @ts-ignore
-    if (e.status === 404 && PublicKeyCredential.signalUnknownCredential) {
-      // @ts-ignore
-      await PublicKeyCredential.signalUnknownCredential({
-        rpId: options.rpId,
-        credentialId: cred.id,
-      }).then(() => {
-        console.info('The passkey associated with the credential not found has been signaled to the password manager.');
-      }).catch((error: any) => {
-        console.error(error.message);
-      });
-    }
-    throw new Error(e.error);
-  }
+  return verifyPublicKeyRequestResult(<PublicKeyCredential>cred);
 }
 
 /**

@@ -85,6 +85,7 @@ app.use(useragent.express());
 app.use(initializeSession());
 app.use(cookieParser());
 
+// Set page defaults
 app.use((req, res, next) => {
   const width = req.headers['sec-ch-viewport-width'];
   if (typeof width === 'string') {
@@ -95,10 +96,7 @@ app.use((req, res, next) => {
   res.locals.helpers = {
     isSignedIn: () => res.locals.signin_status >= SignInStatus.SignedIn
   };
-  return next();
-});
 
-app.use((req, res, next) => {
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
 
@@ -106,6 +104,8 @@ app.use((req, res, next) => {
 });
 
 app.locals.origin_trials = config.origin_trials;
+app.locals.repository_url = config.repository_url;
+app.locals.debug = config.debug;
 
 app.get('/', (req, res) => {
   return res.render('index.html', {
@@ -178,6 +178,24 @@ app.get('/identifier-first-form', sessionCheck, (req, res) => {
   return res.render('identifier-first-form.html', {
     title: 'Identifier-first form',
     layout: 'identifier-first-form',
+  });
+});
+
+app.get('/passkey-form-autofill', sessionCheck, (req, res) => {
+  setEntrancePath(req, res);
+
+  if (res.locals.signin_status === SignInStatus.SigningIn) {
+    // If the user is signing in, redirect to `/password`.
+    return res.redirect(307, '/password');
+  }
+  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    // If the user is signed in, redirect to `/home`.
+    return res.redirect(307, '/home');
+  }
+  // If the user is not signed in, show `index.html` with id/password form.
+  return res.render('passkey-form-autofill.html', {
+    title: 'Passkey form autofill',
+    layout: 'passkey-form-autofill',
   });
 });
 

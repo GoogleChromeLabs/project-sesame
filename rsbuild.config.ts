@@ -35,6 +35,7 @@ export default defineConfig({
       'fedcm-rp': './src/client/pages/fedcm-rp.ts',
       'home': './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
+      'passkey-form-autofill': './src/client/pages/passkey-form-autofill.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
       'unified-button': './src/client/pages/unified-button.ts',

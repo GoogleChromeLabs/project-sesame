@@ -353,7 +353,7 @@ router.post(
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
         deleteChallenge(req, res);
-        return res.status(401).json({error:
+        return res.status(404).json({error:
           'Matching credential not found on the server. Try signing in with a password.'
         });
       }
