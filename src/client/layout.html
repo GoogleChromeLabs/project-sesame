@@ -42,6 +42,13 @@
       {{> sidebar this}}
     </mdui-navigation-drawer>
     {{{body}}}
+    <mdui-dialog
+      id="dialog"
+      close-on-overlay-click
+      close-on-esc>
+      <span slot="headline"></span>
+      <span slot="description"></span>
+    </mdui-dialog>
     <mdui-snackbar id="snackbar"></mdui-snackbar>
   </body>
 </html>

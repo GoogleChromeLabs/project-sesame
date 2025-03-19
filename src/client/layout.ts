@@ -21,6 +21,7 @@ import 'mdui/components/top-app-bar-title.js';
 import 'mdui/components/navigation-drawer.js';
 import 'mdui/components/button.js';
 import 'mdui/components/button-icon.js';
+import 'mdui/components/dialog.js';
 import 'mdui/components/text-field.js';
 import 'mdui/components/list.js';
 import 'mdui/components/list-item.js';

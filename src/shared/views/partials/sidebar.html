@@ -17,26 +17,29 @@
         </header>
         {{#if (isSignedIn)}}
         <mdui-list>
-          <mdui-list-item type="link" href="/home">
+          <mdui-list-item type="link" href="/home" icon="home--outlined">
             Home
           </mdui-list-item>
-          <mdui-list-item type="link" href="/settings/passkeys">
+          <mdui-list-item type="link" href="/settings/passkeys" icon="password--outlined">
             Passkey Management
           </mdui-list-item>
-          <mdui-list-item type="link" href="/settings/delete-account">
+          <mdui-list-item type="link" href="/settings/delete-account" icon="no_accounts--outlined">
             Delete account
           </mdui-list-item>
         </mdui-list>
         <mdui-list class="flex-bottom">
-          <mdui-list-item type="button" id="signout">
+          <mdui-list-item type="button" icon="logout--outlined" id="signout">
             SIGN OUT
-            <mdui-icon slot="start">logout</mdui-icon>
           </mdui-list-item>
-        </mdui-list>
         {{else}}
         <mdui-list>
           <mdui-list-item>
           </mdui-list-item>
         </mdui-list>
+        <mdui-list class="flex-bottom">
         {{/if}}
+          <mdui-list-item type="button" icon="help--outlined" id="help">
+            WHAT'S IN THIS PAGE?
+          </mdui-list-item>
+        </mdui-list>
       </div>

@@ -16,9 +16,11 @@
  */
 
 import { LinearProgress } from 'mdui/components/linear-progress';
+import { Dialog } from 'mdui/components/dialog';
 import { ButtonIcon } from 'mdui/components/button-icon';
 import { TextField } from 'mdui/components/text-field';
 import { NavigationDrawer } from 'mdui/components/navigation-drawer';
+import { marked } from 'marked';
 
 export const $: any = document.querySelector.bind(document);
 
@@ -57,7 +59,7 @@ export async function get(path: string, payload: any = ''): Promise<any> {
 
   const res = await fetch(url.toString(), {
     credentials: 'same-origin',
-    headers: headers,
+    headers,
   });
 
   if (res.ok) {
@@ -90,7 +92,7 @@ export async function post(path: string, payload: any = ''): Promise<any> {
   const res = await fetch(path, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: headers,
+    headers,
     body: payload,
   });
 
@@ -104,6 +106,35 @@ export async function post(path: string, payload: any = ''): Promise<any> {
     throw result;
   }
 }
+
+/**
+ * Dialog controller
+ */
+class SesameDialog {
+  dialog: Dialog;
+
+  constructor() {
+    this.dialog = $('#dialog');
+  }
+
+  set(headline: string, description: string = ''): void {
+    const headlineElement = $('#dialog span[slot="headline"]');
+    if (headlineElement) headlineElement.innerText = headline;
+
+    const descriptionElement = $('#dialog span[slot="description"]');
+    if (descriptionElement) descriptionElement.innerHTML = description;
+  }
+
+  show(): void {
+    this.dialog.open = true;
+  }
+
+  close(): void{
+    this.dialog.open = false;
+  }
+}
+
+export const dialog = new SesameDialog();
 
 /**
  * Indicate loading status using a material progress web component.
@@ -206,7 +237,7 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
 };
 
 // Initialization
-document.addEventListener('DOMContentLoaded', e => {
+document.addEventListener('DOMContentLoaded', async () => {
   const drawer: NavigationDrawer | null = $('mdui-navigation-drawer');
   if (!drawer) {
     throw new Error('Navigation drawer is not found.');
@@ -221,8 +252,20 @@ document.addEventListener('DOMContentLoaded', e => {
   // View password toggle button. Listen when it's found.
   $('#password-toggle')?.addEventListener('click', togglePasswordVisibility);
 
+  // Show help dialog.
+  $('#help')?.addEventListener('click', dialog.show.bind(dialog));
+
   const mediaQuery = window.matchMedia('(max-width: 768px)');
   mediaQuery.addEventListener('change', changeLayout);
+
+  // Load markdown contents to the dialog
+  const description = $('#help-text .help-description')?.innerText?.trim();
+  const headline = $('#help-text .help-headline')?.innerText?.trim();
+  if (headline && description) {
+    const serialized = description.split('\n').map((line: string) => line.trim()).join('\n');
+    const mkDesc = await marked.parse(serialized);
+    dialog.set(headline, mkDesc);
+  }
 
   // Initialize
   changeLayout(mediaQuery);
