@@ -43,9 +43,11 @@ export async function sessionCheck(
   next: NextFunction
 ): Promise<any> {
   res.locals.signin_status = getSignInStatus(req, res);
-  if (res.locals.signin_status >= SignInStatus.SigningIn) {
-    res.locals.username = getUsername(req, res);
+  // If the user is signing up, signing in, signed in or recently signed in:
+  if (res.locals.signin_status >= SignInStatus.SigningUp) {
+    res.locals.username = getEphemeralUsername(req, res);
   }
+  // If the user is signed in or recently signed in:
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     res.locals.user = getSessionUser(req, res);
   }
@@ -144,7 +146,7 @@ export function deleteChallenge(req: Request, res: Response): void {
   return;
 }
 
-export function setPasskeyUserId(
+export function setEphemeralPasskeyUserId(
   passkey_user_id: string,
   req: Request,
   res: Response
@@ -156,11 +158,17 @@ export function setPasskeyUserId(
   return;
 }
 
-export function getPasskeyUserId(req: Request, res: Response): string | undefined {
-  return req.session.passkey_user_id;
+export function getEphemeralPasskeyUserId(req: Request, res: Response): string | undefined {
+  if (req.session.passkey_user_id) {
+    return req.session.passkey_user_id;
+  } else {
+    // TODO: Generate a passkey user id
+    console.log('TODO: passkey user id does not exist yet.');
+    return undefined;
+  }
 } 
 
-export function deletePasskeyUserId(req: Request, res: Response): void {
+export function deleteEpehemeralPasskeyUserId(req: Request, res: Response): void {
   delete req.session.passkey_user_id;
   return;
 }
@@ -175,7 +183,7 @@ export function deletePasskeyUserId(req: Request, res: Response): void {
 //   return;
 // }
 
-export function setUsername(
+export function setEphemeralUsername(
   username: string,
   req: Request,
   res: Response
@@ -187,13 +195,13 @@ export function setUsername(
   return;
 }
 
-export function getUsername(req: Request, res: Response): string | undefined {
+export function getEphemeralUsername(req: Request, res: Response): string | undefined {
   return req.session.username;
 }
 
 export function setSessionUser(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
-  deletePasskeyUserId(req, res);
+  deleteEpehemeralPasskeyUserId(req, res);
 
   // TODO: Do we really need this check?
   if (

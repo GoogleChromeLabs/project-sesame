@@ -28,6 +28,10 @@ import {
 import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';
 import 'webauthn-polyfills';
 
+
+export const capabilities = window?.PublicKeyCredential &&
+  await PublicKeyCredential.getClientCapabilities();
+
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await post(
@@ -141,7 +145,7 @@ export async function authenticate(conditional = false): Promise<any> {
     throw new Error("Failed to get a credential");
   }
 
-  return verifyPublicKeyRequestResult(<PublicKeyCredential>cred);
+  return verifyPublicKeyRequestResult(<PublicKeyCredential>cred, options.rpId);
 }
 
 /**

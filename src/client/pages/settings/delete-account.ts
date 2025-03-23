@@ -26,6 +26,7 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
   if (confirmation) {
     try {
       await post('/auth/delete-user');
+      // TODO: Signal empty passkey list
       toast('You account has been deleted. Redirecting to the top page.');
       setTimeout(() => {
         // By redirecting to /home, the user should be redirected to the login page.

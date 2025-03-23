@@ -196,7 +196,7 @@ export function postForm(): Promise<void> {
       }).catch(e => {
         loading.stop();
         console.error(e.message);
-        reject(e);
+        reject(new Error(e.error));
       });
     });
   });

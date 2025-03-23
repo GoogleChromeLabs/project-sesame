@@ -37,18 +37,19 @@ import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import {Users} from '~project-sesame/server/libs/users.ts';
+import {generatePasskeyUserId, Users} from '~project-sesame/server/libs/users.ts';
 import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   SignInStatus,
   deleteChallenge,
-  deletePasskeyUserId,
+  deleteEpehemeralPasskeyUserId,
   getChallenge,
   getDeviceId,
-  getPasskeyUserId,
-  getUsername,
+  getEphemeralPasskeyUserId,
+  getEphemeralUsername,
   sessionCheck,
   setChallenge,
+  setEphemeralPasskeyUserId,
   setSessionUser,
 } from '~project-sesame/server/middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with { type: 'json' };
@@ -124,9 +125,14 @@ router.post(
   async (req: Request, res: Response) => {
     let passkeyUserId, username, displayName;
     if (res.locals.signin_status === SignInStatus.SigningUp) {
-      passkeyUserId = getPasskeyUserId(req, res);
-      username = getUsername(req, res);
+      console.log('The user is signing up.');
+      username = req.session?.username;
+      if (!username || username === '') {
+        return res.status(400).json({error: 'The user is not signing up.'});
+      }
       displayName = username;
+      passkeyUserId = generatePasskeyUserId();
+      setEphemeralPasskeyUserId(passkeyUserId, req, res);
     } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
       const {user} = res.locals;
       passkeyUserId = user.passkeyUserId;
@@ -173,7 +179,7 @@ router.post(
       return res.json(options);
     } catch (error: any) {
       console.error(error);
-      return res.status(400).send({error: error.message});
+      return res.status(400).json({error: error.message});
     }
   }
 );
@@ -188,8 +194,8 @@ router.post(
   async (req: Request, res: Response) => {
     let user, username, passkeyUserId;
     if (res.locals.signin_status === SignInStatus.SigningUp) {
-      username = getUsername(req, res);
-      passkeyUserId = getPasskeyUserId(req, res);
+      username = getEphemeralUsername(req, res);
+      passkeyUserId = getEphemeralPasskeyUserId(req, res);
     } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
       user = res.locals.user;
       username = res.locals.username;
@@ -258,6 +264,7 @@ router.post(
       // Delete the challenge from the session.
       deleteChallenge(req, res);
 
+      // If this is a sign-up, create a new user
       if (res.locals.signin_status === SignInStatus.SigningUp) {
         user = await Users.create(username, {passkeyUserId: passkeyUserId});
         setSessionUser(user, req, res);

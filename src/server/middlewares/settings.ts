@@ -20,12 +20,12 @@ import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts
 import {
   sessionCheck,
   signOut,
-  setUsername,
-  getUsername,
+  setEphemeralUsername,
+  getEphemeralUsername,
   SignInStatus,
   setSessionUser,
   getEntrancePath,
-  setPasskeyUserId,
+  setEphemeralPasskeyUserId,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 

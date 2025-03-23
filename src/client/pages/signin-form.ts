@@ -17,7 +17,7 @@
 
 import '~project-sesame/client/layout';
 import {$, loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
-import {authenticate} from '~project-sesame/client/helpers/publickey';
+import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
 
 postForm().then(() => {
   redirect('/home');
@@ -27,23 +27,17 @@ postForm().then(() => {
 });
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
-if (
-  window.PublicKeyCredential &&
-  PublicKeyCredential.isConditionalMediationAvailable
-) {
+if (capabilities?.conditionalGel) {
   try {
-    const cma = await PublicKeyCredential.isConditionalMediationAvailable();
-    if (cma) {
-      // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-      const user = await authenticate(true);
-      if (user) {
-        // When the user is signed in, redirect to the home page.
-        $('#username').value = user.username;
-        loading.start();
-        redirect('/home');
-      } else {
-        throw new Error('User not found.');
-      }
+    // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
+    const user = await authenticate(true);
+    if (user) {
+      // When the user is signed in, redirect to the home page.
+      $('#username').value = user.username;
+      loading.start();
+      redirect('/home');
+    } else {
+      throw new Error('User not found.');
     }
   } catch (error: any) {
     loading.stop();

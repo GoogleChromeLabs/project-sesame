@@ -20,17 +20,20 @@ import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts
 import {
   sessionCheck,
   signOut,
-  setUsername,
-  getUsername,
+  setEphemeralUsername,
+  getEphemeralUsername,
   SignInStatus,
   setSessionUser,
   getEntrancePath,
-  setPasskeyUserId,
+  setEphemeralPasskeyUserId,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
 
+/**
+ * Start creating a new user
+ */
 router.post('/new-user', sessionCheck, async (req: Request, res: Response) => {
   const {username} = <{username: string}>req.body;
   // TODO: Use Captcha to block bots.
@@ -47,11 +50,13 @@ router.post('/new-user', sessionCheck, async (req: Request, res: Response) => {
       }
 
       // Set username in the session
-      setUsername(username, req, res);
+      // TODO: This needs to be reset to avoid unexpected bug.
+      setEphemeralUsername(username, req, res);
 
       // Generate a new passkey user id
       const passkey_user_id = generatePasskeyUserId();
-      setPasskeyUserId(passkey_user_id, req, res);
+      // TODO: This needs to be reset to avoid unexpected bug.
+      setEphemeralPasskeyUserId(passkey_user_id, req, res);
 
       return res.json({});
     } else {
@@ -79,7 +84,7 @@ router.post('/username', async (req: Request, res: Response) => {
       // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
       // Set username in the session
-      setUsername(username, req, res);
+      setEphemeralUsername(username, req, res);
 
       return res.json({});
     } else {
@@ -112,7 +117,7 @@ router.post('/password', sessionCheck, async (req: Request, res: Response) => {
       .status(400)
       .json({error: 'The user is not signing in.'});
   }
-  const username = getUsername(req, res);
+  const username = getEphemeralUsername(req, res);
   if (username) {
     const user = await Users.validatePassword(username, password);
     if (user) {

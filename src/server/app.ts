@@ -115,13 +115,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/signup-form', sessionCheck, (req, res) => {
-  // Set `/identifier-first-form` as the entrance path.
-  setEntrancePath(req, res, '/identifier-first-form');
-
   if (res.locals.signin_status >= SignInStatus.SignedIn) {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('signup-form.html', {
     title: 'Sign-Up Form',
@@ -146,8 +146,6 @@ app.get('/new-password', sessionCheck, (req, res) => {
 });
 
 app.get('/signin-form', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -156,6 +154,9 @@ app.get('/signin-form', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('signin-form.html', {
     title: 'Sign-In Form',
@@ -164,8 +165,6 @@ app.get('/signin-form', sessionCheck, (req, res) => {
 });
 
 app.get('/identifier-first-form', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -174,6 +173,9 @@ app.get('/identifier-first-form', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('identifier-first-form.html', {
     title: 'Identifier-first form',
@@ -182,8 +184,6 @@ app.get('/identifier-first-form', sessionCheck, (req, res) => {
 });
 
 app.get('/passkey-form-autofill', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -192,6 +192,9 @@ app.get('/passkey-form-autofill', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('passkey-form-autofill.html', {
     title: 'Passkey form autofill',
@@ -200,8 +203,6 @@ app.get('/passkey-form-autofill', sessionCheck, (req, res) => {
 });
 
 app.get('/passkey-one-button', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -210,6 +211,9 @@ app.get('/passkey-one-button', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('passkey-one-button.html', {
     title: 'Passkey one button',
@@ -230,8 +234,6 @@ app.get('/passkey-reauth', sessionCheck, (req, res) => {
 });
 
 app.get('/unified-button', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -240,6 +242,9 @@ app.get('/unified-button', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
@@ -252,8 +257,6 @@ app.get('/unified-button', sessionCheck, (req, res) => {
 });
 
 app.get('/fedcm-rp', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -262,6 +265,8 @@ app.get('/fedcm-rp', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
 
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
@@ -275,8 +280,6 @@ app.get('/fedcm-rp', sessionCheck, (req, res) => {
 });
 
 app.get('/password-passkey', sessionCheck, (req, res) => {
-  setEntrancePath(req, res);
-
   if (res.locals.signin_status === SignInStatus.SigningIn) {
     // If the user is signing in, redirect to `/password`.
     return res.redirect(307, '/password');
@@ -285,6 +288,9 @@ app.get('/password-passkey', sessionCheck, (req, res) => {
     // If the user is signed in, redirect to `/home`.
     return res.redirect(307, '/home');
   }
+  // Set entrance path.
+  setEntrancePath(req, res);
+
   // If the user is not signed in, show `index.html` with id/password form.
   return res.render('password-passkey.html', {
     title: 'Password and passkey unified Credential Manager',
@@ -313,6 +319,7 @@ app.get('/home', sessionCheck, (req, res) => {
     // If the user has not signed in yet, redirect to the original entrance.
     return res.redirect(307, getEntrancePath(req, res));
   }
+
   // `home.html` shows sign-out link
   return res.render('home.html', {
     title: 'home',
