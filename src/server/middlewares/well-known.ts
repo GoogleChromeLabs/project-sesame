@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import express from 'express';
-import {config} from '~project-sesame/server/config.ts';
+import express, {Request, Response} from 'express';
+import {config} from '../config.ts';
 const router = express.Router();
 
-router.get('/assetlinks.json', (req, res) => {
+router.get('/assetlinks.json', (req: Request, res: Response) => {
   const assetlinks = [];
   for (let domain of config.associated_domains) {
     if (domain?.sha256_cert_fingerprints) {
@@ -43,14 +43,14 @@ router.get('/assetlinks.json', (req, res) => {
   return res.json(assetlinks);
 });
 
-router.get('/webidentity', (req, res) => {
+router.get('/webidentity', (req: Request, res: Response) => {
   const fedcm_config_url = `${config.origin}/fedcm/config.json`;
   return res.json({
     provider_urls: [fedcm_config_url],
   });
 });
 
-router.get('/passkey-endpoints', (req, res) => {
+router.get('/passkey-endpoints', (req: Request, res: Response) => {
   const web_endpoint = `${config.origin}/home`;
   return res.json({enroll: web_endpoint, manage: web_endpoint});
 });

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import express, {Request, Response} from 'express';
-const router = express.Router();
+import {Router, Request, Response} from 'express';
+const router = Router();
 // import crypto from 'crypto';
 import {
   AuthenticationResponseJSON,
@@ -32,13 +32,13 @@ import {
   WebAuthnCredential,
 } from '@simplewebauthn/server';
 import {isoBase64URL} from '@simplewebauthn/server/helpers';
-import {config} from '~project-sesame/server/config.ts';
+import {config} from '../config.ts';
 import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
-} from '~project-sesame/server/libs/public-key-credentials.ts';
-import {generatePasskeyUserId, Users} from '~project-sesame/server/libs/users.ts';
-import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
+} from '../libs/public-key-credentials.ts';
+import {generatePasskeyUserId, Users} from '../libs/users.ts';
+import {csrfCheck, getTime} from '../middlewares/common.ts';
 import {
   SignInStatus,
   deleteChallenge,
@@ -51,7 +51,7 @@ import {
   setChallenge,
   setEphemeralPasskeyUserId,
   setSessionUser,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '../middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with { type: 'json' };
 
 interface AAGUIDs {
@@ -142,7 +142,7 @@ router.post(
 
     try {
       // Create `excludeCredentials` from a list of stored credentials.
-      const excludeCredentials = [];
+      const excludeCredentials: PublicKeyCredentialDescriptorJSON[] = [];
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(passkeyUserId);
       for (const cred of credentials || []) {
         excludeCredentials.push({
@@ -289,7 +289,7 @@ router.post(
   csrfCheck,
   sessionCheck,
   async (req: Request, res: Response) => {
-    const allowCredentials = [];
+    const allowCredentials: PublicKeyCredentialDescriptorJSON[] = [];
 
     // For reauthentication
     if (res.locals.signin_status >= SignInStatus.SignedIn) {

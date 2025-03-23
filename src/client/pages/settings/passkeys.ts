@@ -19,6 +19,7 @@ import {html, render} from 'lit';
 import {$, post, loading, toast} from '~project-sesame/client/helpers/index';
 import {Base64URLString} from '@simplewebauthn/server';
 import {
+  capabilities,
   getAllCredentials,
   registerCredential,
   unregisterCredential,
@@ -115,27 +116,10 @@ async function remove(event: {target: HTMLButtonElement}): Promise<void> {
 const createPasskey = $('#create-passkey');
 
 // Is WebAuthn available on this browser?
-if (
-  window.PublicKeyCredential &&
-  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
-  PublicKeyCredential.isConditionalMediationAvailable
-) {
-  try {
-    // Are UVPAA and conditional UI available on this browser?
-    const results = await Promise.all([
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
-      PublicKeyCredential.isConditionalMediationAvailable(),
-    ]);
-    if (results.every(r => r === true)) {
-      // If both are available, reveal the "Create a passkey" button.
-      createPasskey.classList.remove('hidden');
-    } else {
-      // If either is not available, show a message.
-      $('#message').innerText = 'This device does not support passkeys.';
-    }
-  } catch (e) {
-    console.error(e);
-  }
+if (capabilities?.userVerifyingPlatformAuthenticator &&
+    capabilities?.conditionalGet) {
+  // If both are available, reveal the "Create a passkey" button.
+  createPasskey.classList.remove('hidden');
 } else {
   // If the condition does not match, show a message.
   $('#message').innerText = 'This device does not support passkeys.';

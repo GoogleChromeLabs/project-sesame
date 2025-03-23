@@ -19,15 +19,15 @@ import {Base64URLString} from '@simplewebauthn/server';
 import express, {Request, Response} from 'express';
 import * as jwt from 'jsonwebtoken';
 
-import {config} from '~project-sesame/server/config.ts';
-import {compareUrls} from '~project-sesame/server/libs/helpers.ts';
-import {RelyingParties} from '~project-sesame/server/libs/relying-parties.ts';
-import {Users} from '~project-sesame/server/libs/users.ts';
-import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
+import {config} from '../config.ts';
+import {compareUrls} from '../libs/helpers.ts';
+import {RelyingParties} from '../libs/relying-parties.ts';
+import {Users} from '../libs/users.ts';
+import {csrfCheck, getTime} from '../middlewares/common.ts';
 import {
   SignInStatus,
   sessionCheck,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '../middlewares/session.ts';
 
 const router = express.Router();
 

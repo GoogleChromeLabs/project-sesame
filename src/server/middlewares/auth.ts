@@ -16,18 +16,16 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts';
+import {Users, generatePasskeyUserId} from '../libs/users.ts';
 import {
   sessionCheck,
-  signOut,
   setEphemeralUsername,
   getEphemeralUsername,
   SignInStatus,
   setSessionUser,
-  getEntrancePath,
   setEphemeralPasskeyUserId,
-} from '~project-sesame/server/middlewares/session.ts';
-import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
+} from '../middlewares/session.ts';
+import {csrfCheck} from '../middlewares/common.ts';
 
 const router = Router();
 

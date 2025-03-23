@@ -16,18 +16,10 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts';
 import {
-  sessionCheck,
-  signOut,
-  setEphemeralUsername,
-  getEphemeralUsername,
-  SignInStatus,
-  setSessionUser,
-  getEntrancePath,
-  setEphemeralPasskeyUserId,
-} from '~project-sesame/server/middlewares/session.ts';
-import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
+  PageType,
+  redirect,
+} from '../middlewares/session.ts';
 
 const router = Router();
 
@@ -36,43 +28,15 @@ router.get('/', (req: Request, res: Response) => {
   return res.redirect(307, '/home');
 });
 
-router.get('/passkeys', sessionCheck, (req: Request, res: Response) => {
-  if (res.locals.signin_status < SignInStatus.SignedIn) {
-    // If the user has not signed in yet, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-  if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
-    // Redirect to reauthenticate.
-    // TODO: How do we determine the reauthentication method?
-    // TODO: Remember the destination before the redirect and redirect
-    // the user back to the destination after reauthentication.  
-    return res.redirect(307, '/passkey-reauth');
-  }
-  // Temporarily show the home screen
+router.get('/passkeys', redirect(PageType.Sensitive), (req: Request, res: Response) => {
   return res.render('settings/passkeys.html', {
     title: 'Passkey Management',
-    // TODO: Create a settings page UI
-    layout: 'settings/passkeys',
   });
 });
 
-router.get('/delete-account', sessionCheck, (req: Request, res: Response) => {
-  if (res.locals.signin_status < SignInStatus.SignedIn) {
-    // If the user has not signed in yet, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-  if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
-    // Redirect to reauthenticate.
-    // TODO: How do we determine the reauthentication method?
-    // TODO: Remember the destination before the redirect and redirect
-    // the user back to the destination after reauthentication.  
-    return res.redirect(307, '/passkey-reauth');
-  }
-  // Temporarily show the home screen
-  // TODO: Create a settings page UI
+router.get('/delete-account', redirect(PageType.Sensitive), (req: Request, res: Response) => {
   return res.render('settings/delete-account.html', {
     title: 'Delete account',
-    layout: 'settings/delete-account',
   });
 });
 

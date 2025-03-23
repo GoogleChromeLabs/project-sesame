@@ -15,27 +15,28 @@
  * limitations under the License
  */
 
-import express from 'express';
+import express, {Request, Response} from 'express';
 import {create} from 'express-handlebars';
 import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import {config} from '~project-sesame/server/config.ts';
-import {auth} from '~project-sesame/server/middlewares/auth.ts';
-import {federation} from '~project-sesame/server/middlewares/federation.ts';
+import {config} from './config.ts';
+import {auth} from './middlewares/auth.ts';
+import {federation} from './middlewares/federation.ts';
 import {
+  PageType,
   SignInStatus,
-  getEntrancePath,
+  getSignInStatus,
   initializeSession,
-  sessionCheck,
+  redirect,
   setChallenge,
   setEntrancePath,
   signOut,
-} from '~project-sesame/server/middlewares/session.ts';
-import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {settings} from '~project-sesame/server/middlewares/settings.ts';
-import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+} from './middlewares/session.ts';
+import {webauthn} from './middlewares/webauthn.ts';
+import {settings} from './middlewares/settings.ts';
+import {wellKnown} from './middlewares/well-known.ts';
 
 const app = express();
 
@@ -86,12 +87,14 @@ app.use(initializeSession());
 app.use(cookieParser());
 
 // Set page defaults
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next) => {
   const width = req.headers['sec-ch-viewport-width'];
   if (typeof width === 'string') {
     res.locals.open_drawer = parseInt(width) > 768;
   }
   res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
+
+  res.locals.signin_status = getSignInStatus(req, res);
 
   res.locals.helpers = {
     isSignedIn: () => res.locals.signin_status >= SignInStatus.SignedIn
@@ -99,6 +102,7 @@ app.use((req, res, next) => {
 
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
+  res.locals.layout = res.locals.pagename.slice(1);
 
   return next();
 });
@@ -107,223 +111,91 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
-app.get('/', (req, res) => {
+app.get('/', redirect(PageType.NoAuth), (req: Request, res: Response) => {
   return res.render('index.html', {
     title: 'Welcome!',
-    layout: 'index',
   });
 });
 
-app.get('/signup-form', sessionCheck, (req, res) => {
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
+app.get('/signup-form', redirect(PageType.SignUp), (req: Request, res: Response) => {
+  setEntrancePath(req, res, '/passkey-form-autofill');
 
-  // If the user is not signed in, show `index.html` with id/password form.
   return res.render('signup-form.html', {
     title: 'Sign-Up Form',
-    layout: 'signup-form',
   });
 });
 
-app.get('/new-password', sessionCheck, (req, res) => {
-  if (res.locals.signin_status < SignInStatus.SigningUp) {
-    // If the user has not started signing in, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-
+app.get('/new-password', redirect(PageType.SignUpCredential), (req: Request, res: Response) => {
   res.render('new-password.html', {
     title: 'Password',
-    layout: 'new-password',
   });
 });
 
-app.get('/signin-form', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
-  // If the user is not signed in, show `index.html` with id/password form.
+app.get('/signin-form', redirect(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('signin-form.html', {
     title: 'Sign-In Form',
-    layout: 'signin-form',
   });
 });
 
-app.get('/identifier-first-form', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
-  // If the user is not signed in, show `index.html` with id/password form.
+app.get('/identifier-first-form', redirect(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('identifier-first-form.html', {
     title: 'Identifier-first form',
-    layout: 'identifier-first-form',
   });
 });
 
-app.get('/passkey-form-autofill', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
-  // If the user is not signed in, show `index.html` with id/password form.
+app.get('/passkey-form-autofill', redirect(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('passkey-form-autofill.html', {
     title: 'Passkey form autofill',
-    layout: 'passkey-form-autofill',
   });
 });
 
-app.get('/passkey-one-button', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
-  // If the user is not signed in, show `index.html` with id/password form.
+app.get('/passkey-one-button', redirect(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('passkey-one-button.html', {
     title: 'Passkey one button',
-    layout: 'passkey-one-button',
   });
 });
 
-app.get('/passkey-reauth', sessionCheck, (req, res) => {
-  if (res.locals.signin_status < SignInStatus.SigningIn) {
-    // If the user has not started signing in, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-
+app.get('/passkey-reauth', redirect(PageType.Reauth), (req: Request, res: Response) => {
   res.render('passkey-reauth.html', {
     title: 'Passkey reauth',
-    layout: 'passkey-reauth',
   });
 });
 
-app.get('/unified-button', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
+app.get('/unified-button', redirect(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
-  // If the user is not signed in, show `index.html` with id/password form.
   return res.render('unified-button.html', {
     title: 'Unified button',
-    layout: 'unified-button',
     nonce,
   });
 });
 
-app.get('/fedcm-rp', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
+app.get('/fedcm-rp', redirect(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
-  // If the user is not signed in, show `fedcm-rp.html` with id/password form.
   return res.render('fedcm-rp.html', {
     title: 'FedCM RP',
-    layout: 'fedcm-rp',
     nonce,
   });
 });
 
-app.get('/password-passkey', sessionCheck, (req, res) => {
-  if (res.locals.signin_status === SignInStatus.SigningIn) {
-    // If the user is signing in, redirect to `/password`.
-    return res.redirect(307, '/password');
-  }
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-  // Set entrance path.
-  setEntrancePath(req, res);
-
-  // If the user is not signed in, show `index.html` with id/password form.
+app.get('/password-passkey', redirect(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('password-passkey.html', {
     title: 'Password and passkey unified Credential Manager',
-    layout: 'password-passkey',
   });
 });
 
-app.get('/password', sessionCheck, (req, res) => {
-  if (res.locals.signin_status < SignInStatus.SigningIn) {
-    // If the user has not started signing in, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-  if (res.locals.signin_status === SignInStatus.RecentlySignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-
+app.get('/password', redirect(PageType.Reauth), (req: Request, res: Response) => {
   res.render('password.html', {
     title: 'Password',
-    layout: 'password',
   });
 });
 
-app.get('/home', sessionCheck, (req, res) => {
-  if (res.locals.signin_status < SignInStatus.SignedIn) {
-    // If the user has not signed in yet, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-
-  // `home.html` shows sign-out link
+app.get('/home', redirect(PageType.SignedIn), (req: Request, res: Response) => {
   return res.render('home.html', {
     title: 'home',
-    layout: 'home',
   });
 });
 
@@ -343,7 +215,7 @@ app.use(express.static(path.join(config.dist_root_file_path, 'shared/public')));
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
-app.get('/__health-check', (req, res) => {
+app.get('/__health-check', (req: Request, res: Response) => {
   return res.send('OK');
 });
 

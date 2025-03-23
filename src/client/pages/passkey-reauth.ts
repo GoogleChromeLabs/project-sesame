@@ -17,34 +17,28 @@
 
 import '~project-sesame/client/layout';
 import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
-import {authenticate} from '~project-sesame/client/helpers/publickey';
+import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
-if (
-  window.PublicKeyCredential &&
-  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable
-) {
-  const uvpaa = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  if (uvpaa) {
-    $('#passkey-signin').addEventListener(
-      'click',
-      async (e: {target: HTMLButtonElement}) => {
-        try {
-          loading.start();
-          const user = await authenticate();
-          if (user) {
-            redirect('/home');
-          } else {
-            throw new Error('User not found.');
-          }
-        } catch (error: any) {
-          loading.stop();
-          console.error(error);
-          if (error.name !== 'NotAllowedError') {
-            toast(error.message);
-          }
+if (capabilities?.userVerifyingPlatformAuthenticator) {
+  $('#passkey-signin').addEventListener(
+    'click',
+    async (e: {target: HTMLButtonElement}) => {
+      try {
+        loading.start();
+        const user = await authenticate();
+        if (user) {
+          redirect('/home');
+        } else {
+          throw new Error('User not found.');
+        }
+      } catch (error: any) {
+        loading.stop();
+        console.error(error);
+        if (error.name !== 'NotAllowedError') {
+          toast(error.message);
         }
       }
-    );
-  }
+    }
+  );
 }

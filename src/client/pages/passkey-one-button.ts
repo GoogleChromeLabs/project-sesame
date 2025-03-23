@@ -17,9 +17,9 @@
 
 import '~project-sesame/client/layout';
 import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
-import {authenticate} from '~project-sesame/client/helpers/publickey';
+import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
 
-if (window.PublicKeyCredential) {
+if (capabilities) {
   $('#passkey-signin').addEventListener(
     'click',
     async (e: {target: HTMLButtonElement}) => {

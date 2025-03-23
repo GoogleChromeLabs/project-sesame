@@ -16,11 +16,12 @@
  */
 
 import {Request, Response, NextFunction} from 'express';
+import {RequestHandlerParams} from 'express-serve-static-core';
 import session from 'express-session';
 import {FirestoreStore} from '@google-cloud/connect-firestore';
-import {getTime} from '~project-sesame/server/middlewares/common.ts';
-import {store, config} from '~project-sesame/server/config.ts';
-import {User} from '~project-sesame/server/libs/users.ts';
+import {getTime} from '../middlewares/common.ts';
+import {store, config} from '../config.ts';
+import {User} from '../libs/users.ts';
 import { generateRandomString } from '../libs/helpers.ts';
 
 export enum SignInStatus {
@@ -30,6 +31,78 @@ export enum SignInStatus {
   SigningIn = 3,
   SignedIn = 4,
   RecentlySignedIn = 5,
+}
+
+export enum PageType {
+  NoAuth = 0,
+  Reauth = 1,
+  SignUpCredential = 2,
+  SignedIn = 3,
+  SignUp = 4,
+  SignIn = 5,
+  Sensitive = 6,
+}
+
+export function redirect(pageType: PageType): RequestHandlerParams {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (pageType === PageType.SignUp) {
+      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+        // If the user is signed in, redirect to `/home`.
+        return res.redirect(307, '/home');
+      }
+
+    } else if (pageType === PageType.SignUpCredential) {
+      if (res.locals.signin_status < SignInStatus.SigningUp) {
+        // If the user has not started signing in, redirect to the original entrance.
+        return res.redirect(307, '/signup-form');
+      }
+      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+        // If the user is signed in, redirect to `/home`.
+        return res.redirect(307, '/home');
+      }
+      res.locals.username = getEphemeralUsername(req, res);
+
+    } else if (pageType === PageType.SignIn) {
+      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+        // If the user is already signed in...
+        const entrance = getEntrancePath(req, res);
+        if (entrance === '/signin-form') {
+          // Redirect to `/password`.
+          return res.redirect(307, '/password');
+        } else {
+          // Redirect to `/passkey-reauth`.
+          return res.redirect(307, '/passkey-reauth');
+        }
+      }
+      setEntrancePath(req, res);
+
+    } else if (pageType === PageType.Reauth) {
+      if (res.locals.signin_status < SignInStatus.SigningIn) {
+        // If the user is not signing in, redirect to the original entrance.
+        return res.redirect(307, getEntrancePath(req, res));
+      }
+      if (res.locals.signin_status >= SignInStatus.RecentlySignedIn) {
+        // If the user is recently signed in, redirect to `/home`.
+        return res.redirect(307, '/home');
+      }
+
+    } else if (pageType === PageType.SignedIn) {
+      if (res.locals.signin_status < SignInStatus.SignedIn) {
+        // If the user has not signed in yet, redirect to the original entrance.
+        return res.redirect(307, getEntrancePath(req, res));
+      }
+      res.locals.user = getSessionUser(req, res);
+
+    } else if (pageType === PageType.Sensitive) {
+      if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+        // If the user has not signed in yet, redirect to the original entrance.
+        return res.redirect(307, getEntrancePath(req, res));
+      }
+      res.locals.user = getSessionUser(req, res);
+
+    }
+    return next();
+  }
 }
 
 /**
@@ -42,7 +115,6 @@ export async function sessionCheck(
   res: Response,
   next: NextFunction
 ): Promise<any> {
-  res.locals.signin_status = getSignInStatus(req, res);
   // If the user is signing up, signing in, signed in or recently signed in:
   if (res.locals.signin_status >= SignInStatus.SigningUp) {
     res.locals.username = getEphemeralUsername(req, res);
@@ -92,19 +164,18 @@ export function getSignInStatus(req: Request, res: Response): SignInStatus {
   console.log(req.session);
   const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
 
+  // TODO: Simplify this logic
+
   if (!username) {
     // The user is signed out.
     return SignInStatus.SignedOut;
-  }
-  if (passkey_user_id) {
+  } else if (username && passkey_user_id) {
     // The user is signing up.
     return SignInStatus.SigningUp;
-  }
-  if (!signed_in) {
+  } else if (!signed_in) {
     // The user is signing in, but not signed in yet.
     return SignInStatus.SigningIn;
-  }
-  if (
+  } else if (
     !last_signedin_at ||
     last_signedin_at < getTime(-config.short_session_duration)
   ) {

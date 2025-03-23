@@ -17,15 +17,15 @@
 
 import express from 'express';
 import jwt, {JwtPayload} from 'jsonwebtoken';
-import {FederationMappings} from '~project-sesame/server/libs/federation-mappings.ts';
-import {IdentityProviders} from '~project-sesame/server/libs/identity-providers.ts';
-import {Users} from '~project-sesame/server/libs/users.ts';
-import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
+import {FederationMappings} from '../libs/federation-mappings.ts';
+import {IdentityProviders} from '../libs/identity-providers.ts';
+import {Users} from '../libs/users.ts';
+import {csrfCheck} from '../middlewares/common.ts';
 import {
   getChallenge,
   sessionCheck,
   setSessionUser,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '../middlewares/session.ts';
 
 const router = express.Router();
 
