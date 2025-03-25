@@ -28,7 +28,11 @@ if (capabilities?.userVerifyingPlatformAuthenticator) {
         loading.start();
         const user = await authenticate();
         if (user) {
-          redirect('/home');
+          // If `r` is specified, redirect the user there.
+          const url = new URL(location.href);
+          const r = url.searchParams.get('r');
+          // TODO: This is an open redirect. Prevent it.
+          redirect(r || '/home');
         } else {
           throw new Error('User not found.');
         }

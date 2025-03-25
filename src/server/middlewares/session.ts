@@ -64,15 +64,20 @@ export function redirect(pageType: PageType): RequestHandlerParams {
 
     } else if (pageType === PageType.SignIn) {
       if (res.locals.signin_status >= SignInStatus.SignedIn) {
+        const queryParams = req.query;
+        const search = new URLSearchParams(queryParams as Record<string, string>);
         // If the user is already signed in...
         const entrance = getEntrancePath(req, res);
+        const url = new URL(config.origin);
         if (entrance === '/signin-form') {
           // Redirect to `/password`.
-          return res.redirect(307, '/password');
+          url.pathname = '/password';
         } else {
           // Redirect to `/passkey-reauth`.
-          return res.redirect(307, '/passkey-reauth');
+          url.pathname = '/passkey-reauth';
         }
+        url.search = search.toString();
+        return res.redirect(307, url.pathname + url.search);
       }
       setEntrancePath(req, res);
 
@@ -95,8 +100,14 @@ export function redirect(pageType: PageType): RequestHandlerParams {
 
     } else if (pageType === PageType.Sensitive) {
       if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+        // Construct the redirect path as `r`
+        const url = new URL(getEntrancePath(req, res), config.origin);
+        const search = new URLSearchParams({'r': req.path});
+        url.search = search.toString();
+        console.log(url.toString());
+
         // If the user has not signed in yet, redirect to the original entrance.
-        return res.redirect(307, getEntrancePath(req, res));
+        return res.redirect(307, url.pathname + url.search);
       }
       res.locals.user = getSessionUser(req, res);
 

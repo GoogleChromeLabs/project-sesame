@@ -34,6 +34,14 @@ router.get('/passkeys', redirect(PageType.Sensitive), (req: Request, res: Respon
   });
 });
 
+router.get('/password-change', redirect(PageType.Sensitive), (req: Request, res: Response) => {
+  const username = req.session.username;
+  return res.render('settings/password-change.html', {
+    title: 'Password Change',
+    username,
+  });
+});
+
 router.get('/delete-account', redirect(PageType.Sensitive), (req: Request, res: Response) => {
   return res.render('settings/delete-account.html', {
     title: 'Delete account',

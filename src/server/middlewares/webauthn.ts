@@ -296,26 +296,24 @@ router.post(
 
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
       if (!credentials?.length) {
-        return res.status(404).json({error: 'No credentials found.'});
+        return res.status(404).json({error: 'No credentials found to sign in with.'});
       }
 
       // If the device ID is known, pick the credential by the device ID.
-      // TODO: If a roaming authenticator is registered, this will likely fail.
-      // Think of a better way to handle this.
       const device_id = getDeviceId(req, res);
-      const creds = credentials.filter(cred => cred.deviceId === device_id);
 
-      // If credentials with the matching device ID are found, fill
-      // `allowCredentials` with them. Otherwise, return an empty
-      // `allowCredentials`.
-      if (creds.length > 0) {
-        for (let cred of creds) {
-          allowCredentials.push({
-            id: cred.id,
-            type: 'public-key',
-            transports: cred.transports,
-          });
-        }
+      for (let cred of credentials) {
+        // TODO: Does filtering by device make sense? Doesn't filtering just by user ID suffice?
+        // If device ID is available but doesn't match, skip.
+        // if (device_id && cred.deviceId !== device_id) {
+        //   continue;
+        // }
+        // Fill `allowCredentials`
+        allowCredentials.push({
+          id: cred.id,
+          type: 'public-key',
+          transports: cred.transports,
+        });
       }
     }
     try {

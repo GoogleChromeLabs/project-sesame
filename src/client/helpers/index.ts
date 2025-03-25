@@ -179,6 +179,7 @@ export function postForm(): Promise<void> {
         // @ts-ignore
         const id = form.get('username');
         const password = form.get('password');
+        // Save only if `id` and `password` combination is being submitted.
         if (id && password) {
           await navigator.credentials.create({
             // @ts-ignore

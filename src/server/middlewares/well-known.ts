@@ -55,4 +55,8 @@ router.get('/passkey-endpoints', (req: Request, res: Response) => {
   return res.json({enroll: web_endpoint, manage: web_endpoint});
 });
 
+router.get('/change-password', (req: Request, res: Response) => {
+  return res.redirect(302, '/settings/password-change');
+});
+
 export {router as wellKnown};
