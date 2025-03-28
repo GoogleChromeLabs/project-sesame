@@ -15,9 +15,9 @@
  * limitations under the License
  */
 
-import '~project-sesame/client/layout';
-import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
-import {authenticate} from '~project-sesame/client/helpers/unified';
+import '../layout';
+import {$, loading, redirect, toast} from '../helpers/index';
+import {legacyAuthenticate} from '../helpers/unified';
 
 //@ts-ignore
 if (window.PasswordCredential) {
@@ -26,7 +26,7 @@ if (window.PasswordCredential) {
     async (e: {target: HTMLButtonElement}) => {
       try {
         loading.start();
-        const user = await authenticate();
+        const user = await legacyAuthenticate();
         if (user) {
           redirect('/home');
         } else {
