@@ -159,7 +159,7 @@ export async function getAllCredentials(): Promise<SesamePublicKeyCredential[]> 
     rpId: string,
     userId: string,
     credentials: SesamePublicKeyCredential[]
-  } ;
+  };
   // @ts-ignore
   if (PublicKeyCredential.signalAllAcceptedCredentials) {
     const allAcceptedCredentialIds = credentials.map((cred: SesamePublicKeyCredential) => cred.id);
@@ -177,6 +177,26 @@ export async function getAllCredentials(): Promise<SesamePublicKeyCredential[]> 
   return credentials;
 }
 
+export async function deleteAllCredentials(): Promise<void> {
+  const { rpId, userId } = (await post('/webauthn/getKeys')) as {
+    rpId: string,
+    userId: string,
+  };
+  // @ts-ignore
+  if (PublicKeyCredential.signalAllAcceptedCredentials) {
+    try {
+      // @ts-ignore
+      await PublicKeyCredential.signalAllAcceptedCredentials({
+        rpId,
+        userId, // base64url encoded user ID
+        allAcceptedCredentialIds: []
+      });
+      console.info('Passkeys list have been signaled to the password manager.');
+    } catch (e: any) {
+      console.error(e.message);
+    }
+  }
+}
 /**
  * Request to update the namme of a passkey.
  * @param { Base64URLString } credId A Base64URL encoded credential ID of the passkey to unregister.

@@ -15,8 +15,9 @@
  * limitations under the License
  */
 
-import '~project-sesame/client/layout';
-import {$, post, loading, redirect, toast} from '~project-sesame/client/helpers/index';
+import '../../layout';
+import {$, post, loading, redirect, toast} from '../../helpers/index';
+import { deleteAllCredentials } from '../../helpers/publickey';
 
 async function deleteAccount(e: MouseEvent): Promise<void> {
   loading.start();
@@ -26,8 +27,8 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
   if (confirmation) {
     try {
       await post('/auth/delete-user');
-      // TODO: Signal empty passkey list
-      toast('You account has been deleted. Redirecting to the top page.');
+      await deleteAllCredentials();
+      toast('You account and passkeys have been deleted. Redirecting to the top page.');
       setTimeout(() => {
         // By redirecting to /home, the user should be redirected to the login page.
         redirect('/signout');

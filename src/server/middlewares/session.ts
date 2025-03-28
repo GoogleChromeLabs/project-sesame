@@ -102,7 +102,7 @@ export function redirect(pageType: PageType): RequestHandlerParams {
       if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
         // Construct the redirect path as `r`
         const url = new URL(getEntrancePath(req, res), config.origin);
-        const search = new URLSearchParams({'r': req.path});
+        const search = new URLSearchParams({'r': req.originalUrl});
         url.search = search.toString();
         console.log(url.toString());
 

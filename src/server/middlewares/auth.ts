@@ -134,12 +134,24 @@ router.post('/username-password', sessionCheck, async (req: Request, res: Respon
     return res.status(400).json({error: 'The user is already signed in.'});
   }
 
+  const {username, password} = req.body;
+
   // TODO: Verify the current password
   // TODO: Validate the password format
   // TODO: Compare two new passwords
   // TODO: Update the password in the database
 
-  return res.json({});
+  if (username) {
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      setSessionUser(user, req, res);
+
+      return res.json(user);
+    }
+  }
+
+  return res.status(401).json({error: 'Failed to sign in.'});
 });
 
 router.post('/password-change', sessionCheck, async (req: Request, res: Response) => {
@@ -147,13 +159,17 @@ router.post('/password-change', sessionCheck, async (req: Request, res: Response
     // If the user is already signed in, return an error.
     return res.status(400).json({error: 'Insufficient privilege.'});
   }
-  const currentPassword = req.body['current-password'];
   const newPassword1 = req.body['new-password1'];
   const newPassword2 = req.body['new-password2'];
 
-  // TODO: Verify the current password
+  if (newPassword1 === '') {
+    return res.status(400).json({error: 'Enter at least * characters for the password.'});
+   }
+   if (newPassword1 !== newPassword2) {
+    return res.status(400).json({error: 'New passwords do not match.'});
+  }
+
   // TODO: Validate the password format
-  // TODO: Compare two new passwords
   // TODO: Update the password in the database
 
   return res.json({});
