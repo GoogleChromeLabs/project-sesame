@@ -32,26 +32,27 @@ import {
   WebAuthnCredential,
 } from '@simplewebauthn/server';
 import {isoBase64URL} from '@simplewebauthn/server/helpers';
-import {config} from '../config.ts';
+import {config} from '~project-sesame/server/config.ts';
 import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
-} from '../libs/public-key-credentials.ts';
-import {generatePasskeyUserId, Users} from '../libs/users.ts';
-import {csrfCheck, getTime} from '../middlewares/common.ts';
+} from '~project-sesame/server/libs/public-key-credentials.ts';
+import {generatePasskeyUserId, Users} from '~project-sesame/server/libs/users.ts';
+import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
-  SignInStatus,
+  apiAclCheck,
+  ApiType,
+  UserSignInStatus,
   deleteChallenge,
   deleteEpehemeralPasskeyUserId,
   getChallenge,
   getDeviceId,
   getEphemeralPasskeyUserId,
   getEphemeralUsername,
-  sessionCheck,
   setChallenge,
   setEphemeralPasskeyUserId,
   setSessionUser,
-} from '../middlewares/session.ts';
+} from '~project-sesame/server/middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with { type: 'json' };
 
 interface AAGUIDs {
@@ -61,13 +62,14 @@ interface AAGUIDs {
   };
 }
 
+router.use(csrfCheck);
+
 /**
  * Respond with a list of stored credentials.
  */
 router.post(
   '/getKeys',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response) => {
     const {user} = res.locals;
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkeyUserId);
@@ -82,8 +84,7 @@ router.post(
  */
 router.post(
   '/renameKey',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response) => {
     const {credId, newName} = req.body;
     const {user} = res.locals;
@@ -103,8 +104,7 @@ router.post(
  **/
 router.post(
   '/removeKey',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response) => {
     // TODO: Check if the user is authorized to remove the credential.  
     const credId = <Base64URLString>req.query.credId;
@@ -120,20 +120,15 @@ router.post(
  */
 router.post(
   '/registerRequest',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let passkeyUserId, username, displayName;
-    if (res.locals.signin_status === SignInStatus.SigningUp) {
-      console.log('The user is signing up.');
-      username = req.session?.username;
-      if (!username || username === '') {
-        return res.status(400).json({error: 'The user is not signing up.'});
-      }
+    if (res.locals.signin_status === UserSignInStatus.SigningUp) {
+      username = res.locals.username;
       displayName = username;
       passkeyUserId = generatePasskeyUserId();
       setEphemeralPasskeyUserId(passkeyUserId, req, res);
-    } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
       const {user} = res.locals;
       passkeyUserId = user.passkeyUserId;
       username = user.username;
@@ -189,14 +184,13 @@ router.post(
  */
 router.post(
   '/registerResponse',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let user, username, passkeyUserId;
-    if (res.locals.signin_status === SignInStatus.SigningUp) {
+    if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = getEphemeralUsername(req, res);
       passkeyUserId = getEphemeralPasskeyUserId(req, res);
-    } else if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
       user = res.locals.user;
       username = res.locals.username;
       passkeyUserId = user.passkeyUserId;
@@ -265,7 +259,7 @@ router.post(
       deleteChallenge(req, res);
 
       // If this is a sign-up, create a new user
-      if (res.locals.signin_status === SignInStatus.SigningUp) {
+      if (res.locals.signin_status === UserSignInStatus.SigningUp) {
         user = await Users.create(username, {passkeyUserId: passkeyUserId});
         setSessionUser(user, req, res);
       }
@@ -286,13 +280,12 @@ router.post(
  */
 router.post(
   '/signinRequest',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.Authentication),
   async (req: Request, res: Response) => {
     const allowCredentials: PublicKeyCredentialDescriptorJSON[] = [];
 
     // For reauthentication
-    if (res.locals.signin_status >= SignInStatus.SignedIn) {
+    if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
 
       const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
       if (!credentials?.length) {
@@ -340,8 +333,7 @@ router.post(
  */
 router.post(
   '/signinResponse',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.Authentication),
   async (req: Request, res: Response) => {
     // Set expected values.
     const response = <AuthenticationResponseJSON>req.body;
@@ -354,18 +346,18 @@ router.post(
         return res.status(401).json({error: 'Invalid challenge.'});
       }
 
-      // Find the matching credential from the credential ID
+      // If the matching public key is not found, return an error
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
         deleteChallenge(req, res);
         return res.status(404).json({error:
-          'Matching credential not found on the server. Try signing in with a password.'
+          'Matching credential not found on the server.'
         });
       }
 
       // If the user is already signed in and passkey user ID doesn't match,
       // return an error.
-      if (res.locals.signin_status >= SignInStatus.SignedIn &&
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn &&
           res.locals.user.passkeyUserId !== cred.passkeyUserId) {
         deleteChallenge(req, res);
         return res.status(400).json({error: 'Wrong sign-in account.'});

@@ -25,7 +25,7 @@ import {
 } from '@simplewebauthn/server';
 import {JwtPayload} from 'jsonwebtoken';
 import {StringDecoder} from 'string_decoder';
-import {SignInStatus} from './server/middlewares/session.js';
+import {UserSignInStatus} from './server/middlewares/session.js';
 import {User} from './server/libs/users.js';
 
 interface AppLocals {
@@ -37,7 +37,7 @@ interface AppLocals {
 
 interface ResLocals {
   // User's sign-in status
-  signin_status: SignInStatus;
+  signin_status: UserSignInStatus;
   // Whether the user is signed in or not
   is_signed_in: boolean;
   // User object

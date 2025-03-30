@@ -15,9 +15,9 @@
  * limitations under the License
  */
 
-import '~project-sesame/client/layout';
-import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
-import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
+import '../layout';
+import {$, loading, redirect, toast} from '../helpers/index';
+import {capabilities, authenticate} from '../helpers/publickey';
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 if (capabilities?.userVerifyingPlatformAuthenticator) {

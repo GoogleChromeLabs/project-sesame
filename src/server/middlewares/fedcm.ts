@@ -25,13 +25,15 @@ import {RelyingParties} from '../libs/relying-parties.ts';
 import {Users} from '../libs/users.ts';
 import {csrfCheck, getTime} from '../middlewares/common.ts';
 import {
-  SignInStatus,
-  sessionCheck,
+  ApiType,
+  apiAclCheck,
 } from '../middlewares/session.ts';
 
 const router = express.Router();
 
-router.get('/config.json', (req: Request, res: Response): Response => {
+router.use(csrfCheck);
+
+router.get('/config.json', apiAclCheck(ApiType.NoAuth), (req: Request, res: Response): Response => {
   return res.json({
     accounts_endpoint: '/fedcm/accounts',
     client_metadata_endpoint: '/fedcm/metadata',
@@ -53,15 +55,11 @@ router.get('/config.json', (req: Request, res: Response): Response => {
 
 router.get(
   '/accounts',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response): Response => {
-    const user = res.locals.user;
+    const {user} = res.locals;
 
-    if (res.locals.signin_status < SignInStatus.SignedIn) {
-      return res.status(401).json({error: 'not signed in'});
-    }
-
+    // Only one signed-in account at a time is supported on Project Sesame.
     return res.json({
       accounts: [
         {
@@ -76,7 +74,7 @@ router.get(
   }
 );
 
-router.get('/metadata', (req: Request, res: Response): Response => {
+router.get('/metadata', apiAclCheck(ApiType.NoAuth), (req: Request, res: Response): Response => {
   return res.json({
     privacy_policy_url: `${config.origin}/privacy_policy`,
     terms_of_service_url: `${config.origin}/terms_of_service`,
@@ -85,8 +83,7 @@ router.get('/metadata', (req: Request, res: Response): Response => {
 
 router.post(
   '/idtokens',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn), 
   async (req: Request, res: Response): Promise<Response> => {
     const {
       client_id,
@@ -95,11 +92,7 @@ router.post(
       consent_acquired,
       disclosure_text_shown,
     } = req.body;
-    const {user, signin_status} = res.locals.user;
-
-    if (signin_status < SignInStatus.SignedIn) {
-      return res.status(401).json({error: {code: 'access_denied'}});
-    }
+    const {user} = res.locals;
 
     const rp = await RelyingParties.findByClientID(client_id);
 
@@ -171,12 +164,11 @@ router.post(
 
 router.post(
   '/disconnect',
-  csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response): Response => {
     const {account_hint, client_id} = req.body;
 
-    const user = res.locals.user;
+    const {user} = res.locals;
 
     // TODO: Use PPID instead
     if (account_hint !== user.id) {

@@ -19,12 +19,12 @@ import {Request, Response, NextFunction} from 'express';
 import {RequestHandlerParams} from 'express-serve-static-core';
 import session from 'express-session';
 import {FirestoreStore} from '@google-cloud/connect-firestore';
-import {getTime} from '../middlewares/common.ts';
-import {store, config} from '../config.ts';
-import {User} from '../libs/users.ts';
-import { generateRandomString } from '../libs/helpers.ts';
+import {getTime} from '~project-sesame/server/middlewares/common.ts';
+import {store, config} from '~project-sesame/server/config.ts';
+import {User} from '~project-sesame/server/libs/users.ts';
+import { generateRandomString } from '~project-sesame/server/libs/helpers.ts';
 
-export enum SignInStatus {
+export enum UserSignInStatus {
   Unregistered = 0,
   SignedOut = 1,
   SigningUp = 2,
@@ -33,37 +33,78 @@ export enum SignInStatus {
   RecentlySignedIn = 5,
 }
 
+// What ACL is required for this page
 export enum PageType {
-  NoAuth = 0,
-  Reauth = 1,
-  SignUpCredential = 2,
-  SignedIn = 3,
-  SignUp = 4,
-  SignIn = 5,
-  Sensitive = 6,
+  NoAuth = 0,           // No authentication is required
+  Reauth = 1,           // Reauthentication
+  SignUpCredential = 2, // The user is in the middle of signing up
+  SignedIn = 3,         // The user must be signed in
+  SignUp = 4,           // The user is about to sign-up
+  SignIn = 5,           // The user is about to sign in
+  Sensitive = 6,        // The user must be recently signed in
 }
 
-export function redirect(pageType: PageType): RequestHandlerParams {
+// What ACL is required for this page
+export enum ApiType {
+  NoAuth = 0,           // No authentication is required
+  PasskeyRegistration = 7,  // The user is either signing-up or signed-in
+  Identifier = 4,           // The user is about to sign-up
+  SignUpCredential = 2, // The user is in the middle of signing up
+  Authentication = 5,           // The user is about to sign in with a username and a credential
+  FirstCredential = 5.5, // The user is about to sign in
+  SecondCredential = 5.6, // The user is about to sign in
+  SignedIn = 3,         // The user must be signed in
+  Sensitive = 6,        // The user must be recently signed in
+}
+
+export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
+  console.log(req.session);
+  const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
+
+  // TODO: Simplify this logic
+
+  if (!username) {
+    // The user is signed out.
+    return UserSignInStatus.SignedOut;
+  } else if (username && passkey_user_id) {
+    // The user is signing up.
+    return UserSignInStatus.SigningUp;
+  } else if (!signed_in) {
+    // The user is signing in, but not signed in yet.
+    return UserSignInStatus.SigningIn;
+  } else if (
+    !last_signedin_at ||
+    last_signedin_at < getTime(-config.short_session_duration)
+  ) {
+    // The user is signed in, but exceeds the short session duration (within the long session duration).
+    return UserSignInStatus.SignedIn;
+  }
+  // The user is signed in, and within the short session duration.
+  return UserSignInStatus.RecentlySignedIn;
+}
+
+// TODO: Rename to `pageAclCheck`
+export function pageAclCheck(pageType: PageType): RequestHandlerParams {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (pageType === PageType.SignUp) {
-      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         // If the user is signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
 
     } else if (pageType === PageType.SignUpCredential) {
-      if (res.locals.signin_status < SignInStatus.SigningUp) {
+      if (res.locals.signin_status < UserSignInStatus.SigningUp) {
         // If the user has not started signing in, redirect to the original entrance.
         return res.redirect(307, '/signup-form');
       }
-      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         // If the user is signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
       res.locals.username = getEphemeralUsername(req, res);
 
     } else if (pageType === PageType.SignIn) {
-      if (res.locals.signin_status >= SignInStatus.SignedIn) {
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         const queryParams = req.query;
         const search = new URLSearchParams(queryParams as Record<string, string>);
         // If the user is already signed in...
@@ -82,24 +123,24 @@ export function redirect(pageType: PageType): RequestHandlerParams {
       setEntrancePath(req, res);
 
     } else if (pageType === PageType.Reauth) {
-      if (res.locals.signin_status < SignInStatus.SigningIn) {
+      if (res.locals.signin_status < UserSignInStatus.SigningIn) {
         // If the user is not signing in, redirect to the original entrance.
         return res.redirect(307, getEntrancePath(req, res));
       }
-      if (res.locals.signin_status >= SignInStatus.RecentlySignedIn) {
+      if (res.locals.signin_status >= UserSignInStatus.RecentlySignedIn) {
         // If the user is recently signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
 
     } else if (pageType === PageType.SignedIn) {
-      if (res.locals.signin_status < SignInStatus.SignedIn) {
+      if (res.locals.signin_status < UserSignInStatus.SignedIn) {
         // If the user has not signed in yet, redirect to the original entrance.
         return res.redirect(307, getEntrancePath(req, res));
       }
       res.locals.user = getSessionUser(req, res);
 
     } else if (pageType === PageType.Sensitive) {
-      if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+      if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
         // Construct the redirect path as `r`
         const url = new URL(getEntrancePath(req, res), config.origin);
         const search = new URLSearchParams({'r': req.originalUrl});
@@ -116,6 +157,85 @@ export function redirect(pageType: PageType): RequestHandlerParams {
   }
 }
 
+export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
+  return async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    // The user is signing up: `/auth/new_user`
+    if (apiType === ApiType.Identifier) {
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+        // If the user is already signed in, this is an invalid access
+        return res.status(400).json({error: 'The user is already signed in.'});
+      }
+
+    // The user is entering a credential for signing up: `/auth/username-password`
+    } else if (apiType === ApiType.SignUpCredential) {
+      if (res.locals.signin_status !== UserSignInStatus.SigningUp) {
+        // Unless the user is signing up, this is an invalid access
+        return res.status(400).json({error: 'The user is already signed in.'});
+      }
+      res.locals.username = getEphemeralUsername(req, res);
+
+    } else if (apiType === ApiType.Authentication) {
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+        // If the user is already signed in, this is reauth
+        res.locals.username = getEphemeralUsername(req, res);
+        res.locals.user = getSessionUser(req, res);
+      }
+
+    } else if (apiType === ApiType.FirstCredential) {
+      if (res.locals.signin_status < UserSignInStatus.SigningIn) {
+        return res.status(400).json({error: 'The user is not signing in.'});
+      }
+      res.locals.username = getEphemeralUsername(req, res);
+    // // TODO: Revisit - look out the difference between "request" and "response"
+    // } else if (apiType === ApiType.PasskeyAuthentication) {
+    //   if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+    //     res.locals.user = getSessionUser(req, res);
+    //   }
+
+    // } else if (apiType === ApiType.Reauth) {
+    //   if (res.locals.signin_status < UserSignInStatus.SignedIn) {
+    //     // If the user is not signed in, return an error.
+    //     return res.status(401).json({error: 'The user is not signed in.'});
+    //   }
+    //   res.locals.username = getEphemeralUsername(req, res);
+    //   res.locals.user = getSessionUser(req, res);
+
+    } else if (apiType === ApiType.SignedIn) {
+      if (res.locals.signin_status < UserSignInStatus.SignedIn) {
+        // If the user is not signed in, return an error.
+        return res.status(401).json({error: 'The user is not signed in.'});
+      }
+      res.locals.username = getEphemeralUsername(req, res);
+      res.locals.user = getSessionUser(req, res);
+
+    } else if (apiType === ApiType.Sensitive) {
+      if (res.locals.signin_status < UserSignInStatus.SignedIn) {
+        // If the user is not signed in, return an error.
+        return res.status(401).json({error: 'The user is not signed in.'});
+      }
+      if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
+        // If the user has not authenticated recently, request a reauth.
+        return res.status(401).json({error: 'Insufficient privilege.'});
+      }
+      res.locals.username = getEphemeralUsername(req, res);
+      res.locals.user = getSessionUser(req, res);
+
+    // TODO: Revisit - look out the difference between "request" and "response"
+    } else if (apiType === ApiType.PasskeyRegistration) {
+      if (res.locals.signin_status < UserSignInStatus.SigningUp) {
+        res.status(400).json({error: 'Invalid request. User is not signing up.'});
+      }
+      if (res.locals.signin_status === UserSignInStatus.SigningUp) {
+        res.locals.username = getEphemeralUsername(req, res);
+      } 
+      if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+        res.locals.user = getSessionUser(req, res);
+      }
+    }
+    return next();
+  } 
+}
+
 /**
  * Checks session cookie.
  * If the session does not contain `signed-in` or a username, consider the user is not signed in.
@@ -127,11 +247,11 @@ export async function sessionCheck(
   next: NextFunction
 ): Promise<any> {
   // If the user is signing up, signing in, signed in or recently signed in:
-  if (res.locals.signin_status >= SignInStatus.SigningUp) {
+  if (res.locals.signin_status >= UserSignInStatus.SigningUp) {
     res.locals.username = getEphemeralUsername(req, res);
   }
   // If the user is signed in or recently signed in:
-  if (res.locals.signin_status >= SignInStatus.SignedIn) {
+  if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
     res.locals.user = getSessionUser(req, res);
   }
   return next();
@@ -169,32 +289,6 @@ export function getDeviceId(req: Request, res: Response): string {
     });
   }
   return device_id;
-}
-
-export function getSignInStatus(req: Request, res: Response): SignInStatus {
-  console.log(req.session);
-  const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
-
-  // TODO: Simplify this logic
-
-  if (!username) {
-    // The user is signed out.
-    return SignInStatus.SignedOut;
-  } else if (username && passkey_user_id) {
-    // The user is signing up.
-    return SignInStatus.SigningUp;
-  } else if (!signed_in) {
-    // The user is signing in, but not signed in yet.
-    return SignInStatus.SigningIn;
-  } else if (
-    !last_signedin_at ||
-    last_signedin_at < getTime(-config.short_session_duration)
-  ) {
-    // The user is signed in, but exceeds the short session duration (within the long session duration).
-    return SignInStatus.SignedIn;
-  }
-  // The user is signed in, and within the short session duration.
-  return SignInStatus.RecentlySignedIn;
 }
 
 /**
@@ -285,13 +379,6 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
   deleteEpehemeralPasskeyUserId(req, res);
 
-  // TODO: Do we really need this check?
-  if (
-    req.session.username !== undefined &&
-    req.session.username !== user.username
-  ) {
-    throw new Error('The user is trying to sign in with a wrong username.');
-  }
   req.session.username = user.username;
   req.session.signed_in = true;
   req.session.last_signedin_at = getTime();
@@ -303,7 +390,7 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
 }
 
 export function getSessionUser(req: Request, res: Response): User {
-  if (res.locals.signin_status < SignInStatus.SignedIn || !req.session.user) {
+  if (res.locals.signin_status < UserSignInStatus.SignedIn || !req.session.user) {
     throw new Error('User is not signed in.');
   }
   return req.session.user;

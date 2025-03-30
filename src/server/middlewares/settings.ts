@@ -18,8 +18,8 @@ import {Router, Request, Response} from 'express';
 
 import {
   PageType,
-  redirect,
-} from '../middlewares/session.ts';
+  pageAclCheck,
+} from '~project-sesame/server/middlewares/session.ts';
 
 const router = Router();
 
@@ -28,13 +28,13 @@ router.get('/', (req: Request, res: Response) => {
   return res.redirect(307, '/home');
 });
 
-router.get('/passkeys', redirect(PageType.Sensitive), (req: Request, res: Response) => {
+router.get('/passkeys', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
   return res.render('settings/passkeys.html', {
     title: 'Passkey Management',
   });
 });
 
-router.get('/password-change', redirect(PageType.Sensitive), (req: Request, res: Response) => {
+router.get('/password-change', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
   const username = req.session.username;
   return res.render('settings/password-change.html', {
     title: 'Password Change',
@@ -42,7 +42,7 @@ router.get('/password-change', redirect(PageType.Sensitive), (req: Request, res:
   });
 });
 
-router.get('/delete-account', redirect(PageType.Sensitive), (req: Request, res: Response) => {
+router.get('/delete-account', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
   return res.render('settings/delete-account.html', {
     title: 'Delete account',
   });

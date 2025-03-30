@@ -21,22 +21,22 @@ import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import {config} from './config.ts';
-import {auth} from './middlewares/auth.ts';
-import {federation} from './middlewares/federation.ts';
+import {config} from '~project-sesame/server/config.ts';
+import {auth} from '~project-sesame/server/middlewares/auth.ts';
+import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {
   PageType,
-  SignInStatus,
+  UserSignInStatus,
   getSignInStatus,
   initializeSession,
-  redirect,
+  pageAclCheck,
   setChallenge,
   setEntrancePath,
   signOut,
-} from './middlewares/session.ts';
-import {webauthn} from './middlewares/webauthn.ts';
-import {settings} from './middlewares/settings.ts';
-import {wellKnown} from './middlewares/well-known.ts';
+} from '~project-sesame/server/middlewares/session.ts';
+import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
+import {settings} from '~project-sesame/server/middlewares/settings.ts';
+import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 
 const app = express();
 
@@ -97,7 +97,7 @@ app.use((req: Request, res: Response, next) => {
   res.locals.signin_status = getSignInStatus(req, res);
 
   res.locals.helpers = {
-    isSignedIn: () => res.locals.signin_status >= SignInStatus.SignedIn
+    isSignedIn: () => res.locals.signin_status >= UserSignInStatus.SignedIn
   };
 
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
@@ -111,13 +111,13 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
-app.get('/', redirect(PageType.NoAuth), (req: Request, res: Response) => {
+app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
   return res.render('index.html', {
     title: 'Welcome!',
   });
 });
 
-app.get('/signup-form', redirect(PageType.SignUp), (req: Request, res: Response) => {
+app.get('/signup-form', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
   setEntrancePath(req, res, '/passkey-form-autofill');
 
   return res.render('signup-form.html', {
@@ -125,43 +125,43 @@ app.get('/signup-form', redirect(PageType.SignUp), (req: Request, res: Response)
   });
 });
 
-app.get('/new-password', redirect(PageType.SignUpCredential), (req: Request, res: Response) => {
+app.get('/new-password', pageAclCheck(PageType.SignUpCredential), (req: Request, res: Response) => {
   res.render('new-password.html', {
     title: 'Password',
   });
 });
 
-app.get('/signin-form', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/signin-form', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('signin-form.html', {
     title: 'Sign-In Form',
   });
 });
 
-app.get('/identifier-first-form', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/identifier-first-form', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('identifier-first-form.html', {
     title: 'Identifier-first form',
   });
 });
 
-app.get('/passkey-form-autofill', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/passkey-form-autofill', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('passkey-form-autofill.html', {
     title: 'Passkey form autofill',
   });
 });
 
-app.get('/passkey-one-button', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/passkey-one-button', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('passkey-one-button.html', {
     title: 'Passkey one button',
   });
 });
 
-app.get('/passkey-reauth', redirect(PageType.Reauth), (req: Request, res: Response) => {
+app.get('/passkey-reauth', pageAclCheck(PageType.Reauth), (req: Request, res: Response) => {
   res.render('passkey-reauth.html', {
     title: 'Passkey reauth',
   });
 });
 
-app.get('/unified-button', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/unified-button', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
@@ -171,7 +171,7 @@ app.get('/unified-button', redirect(PageType.SignIn), (req: Request, res: Respon
   });
 });
 
-app.get('/fedcm-rp', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/fedcm-rp', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
@@ -181,25 +181,25 @@ app.get('/fedcm-rp', redirect(PageType.SignIn), (req: Request, res: Response) =>
   });
 });
 
-app.get('/password-passkey', redirect(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/password-passkey', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('password-passkey.html', {
     title: 'Password and passkey unified Credential Manager',
   });
 });
 
-app.get('/password', redirect(PageType.Reauth), (req: Request, res: Response) => {
+app.get('/password', pageAclCheck(PageType.Reauth), (req: Request, res: Response) => {
   res.render('password.html', {
     title: 'Password',
   });
 });
 
-app.get('/home', redirect(PageType.SignedIn), (req: Request, res: Response) => {
+app.get('/home', pageAclCheck(PageType.SignedIn), (req: Request, res: Response) => {
   return res.render('home.html', {
     title: 'home',
   });
 });
 
-app.get('/signout', signOut);
+app.get('/signout', pageAclCheck(PageType.SignedIn), signOut);
 
 app.use('/auth', auth);
 app.use('/webauthn', webauthn);

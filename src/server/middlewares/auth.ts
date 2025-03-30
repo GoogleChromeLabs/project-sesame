@@ -16,23 +16,26 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users, generatePasskeyUserId} from '../libs/users.ts';
+import {Users, generatePasskeyUserId} from '~project-sesame/server/libs/users.ts';
 import {
-  sessionCheck,
   setEphemeralUsername,
   getEphemeralUsername,
-  SignInStatus,
+  UserSignInStatus,
   setSessionUser,
   setEphemeralPasskeyUserId,
-} from '../middlewares/session.ts';
-import {csrfCheck} from '../middlewares/common.ts';
+  apiAclCheck,
+  ApiType,
+} from '~project-sesame/server/middlewares/session.ts';
+import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
+
+router.use(csrfCheck);
 
 /**
  * Start creating a new user
  */
-router.post('/new-user', sessionCheck, async (req: Request, res: Response) => {
+router.post('/new-user', apiAclCheck(ApiType.Identifier), async (req: Request, res: Response) => {
   const {username} = <{username: string}>req.body;
   // TODO: Use Captcha to block bots.
 
@@ -70,7 +73,7 @@ router.post('/new-user', sessionCheck, async (req: Request, res: Response) => {
  * Check username, create a new account if it doesn't exist.
  * Set a `username` in the session.
  **/
-router.post('/username', async (req: Request, res: Response) => {
+router.post('/username', apiAclCheck(ApiType.Identifier), async (req: Request, res: Response) => {
   const {username} = <{username: string}>req.body;
 
   try {
@@ -94,28 +97,43 @@ router.post('/username', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/new-password', apiAclCheck(ApiType.SignUpCredential), async (req: Request, res: Response) => {
+  const {password} = req.body;
+  const {username} = res.locals;
+
+  // TODO: Validate entered parameter.
+  // TODO: Validate the password format
+  if (!Users.isValidPassword(password)) {
+    return res.status(401).json({error: 'Invalid password.'});
+  }
+
+  if (username) {
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      setSessionUser(user, req, res);
+
+      return res.json(user);
+    }
+  }
+
+  return res.status(401).json({error: 'Failed to sign in.'});
+});
+
 /**
  * Verifies user credential and let the user sign-in.
  * No preceding registration required.
  * This only checks if `username` is not empty string and ignores the password.
  **/
-router.post('/password', sessionCheck, async (req: Request, res: Response) => {
-  if (res.locals.signin_status !== SignInStatus.SigningIn) {
-    // If the user is not signing in, return an error.
-    return res.status(400).json({error: 'The user is not signing in.'});
-  }
+router.post('/password', apiAclCheck(ApiType.FirstCredential), async (req: Request, res: Response) => {
   const {password} = req.body;
+  const {username} = res.locals;
 
   // TODO: Validate entered parameter.
   if (!Users.isValidPassword(password)) {
     return res.status(401).json({error: 'Invalid password.'});
   }
-  if (res.locals.signin_status < SignInStatus.SigningIn) {
-    return res
-      .status(400)
-      .json({error: 'The user is not signing in.'});
-  }
-  const username = getEphemeralUsername(req, res);
+
   if (username) {
     const user = await Users.validatePassword(username, password);
     if (user) {
@@ -128,12 +146,7 @@ router.post('/password', sessionCheck, async (req: Request, res: Response) => {
   return res.status(401).json({error: 'Failed to sign in.'});
 });
 
-router.post('/username-password', sessionCheck, async (req: Request, res: Response) => {
-  if (res.locals.signin_status > SignInStatus.SignedOut) {
-    // If the user is already signed in, return an error.
-    return res.status(400).json({error: 'The user is already signed in.'});
-  }
-
+router.post('/username-password', apiAclCheck(ApiType.Authentication), async (req: Request, res: Response) => {
   const {username, password} = req.body;
 
   // TODO: Verify the current password
@@ -154,11 +167,7 @@ router.post('/username-password', sessionCheck, async (req: Request, res: Respon
   return res.status(401).json({error: 'Failed to sign in.'});
 });
 
-router.post('/password-change', sessionCheck, async (req: Request, res: Response) => {
-  if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
-    // If the user is already signed in, return an error.
-    return res.status(400).json({error: 'Insufficient privilege.'});
-  }
+router.post('/password-change', apiAclCheck(ApiType.Sensitive), async (req: Request, res: Response) => {
   const newPassword1 = req.body['new-password1'];
   const newPassword2 = req.body['new-password2'];
 
@@ -181,9 +190,9 @@ router.post('/password-change', sessionCheck, async (req: Request, res: Response
 router.post(
   '/userinfo',
   csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response) => {
-    if (res.locals.signin_status < SignInStatus.SignedIn) {
+    if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
       return res.status(401).json({error: 'The user needs to be signed in.'});
     }
@@ -198,9 +207,9 @@ router.post(
 router.post(
   '/updateDisplayName',
   csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response) => {
-    if (res.locals.signin_status < SignInStatus.SignedIn) {
+    if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
       return res.status(401).json({error: 'The user needs to be signed in.'});
     }
@@ -219,9 +228,9 @@ router.post(
 router.post(
   '/delete-user',
   csrfCheck,
-  sessionCheck,
+  apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response) => {
-    if (res.locals.signin_status < SignInStatus.RecentlySignedIn) {
+    if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
       // If the user has not signed in recently enough, return an error.
       return res.status(401).json({error: 'The user needs to reauthenticate.'});
     }

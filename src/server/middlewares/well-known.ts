@@ -15,7 +15,7 @@
  * limitations under the License
  */
 import express, {Request, Response} from 'express';
-import {config} from '../config.ts';
+import {config} from '~project-sesame/server/config.ts';
 const router = express.Router();
 
 router.get('/assetlinks.json', (req: Request, res: Response) => {

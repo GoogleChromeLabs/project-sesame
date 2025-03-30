@@ -22,12 +22,15 @@ import {IdentityProviders} from '../libs/identity-providers.ts';
 import {Users} from '../libs/users.ts';
 import {csrfCheck} from '../middlewares/common.ts';
 import {
+  apiAclCheck,
+  ApiType,
   getChallenge,
-  sessionCheck,
   setSessionUser,
 } from '../middlewares/session.ts';
 
 const router = express.Router();
+
+router.use(csrfCheck);
 
 interface IdToken extends JwtPayload {
   email?: string;
@@ -36,7 +39,7 @@ interface IdToken extends JwtPayload {
   picture?: string;
 }
 
-router.post('/idp', async (req, res) => {
+router.post('/idp', apiAclCheck(ApiType.NoAuth), async (req, res) => {
   const {url} = req.body;
   const idp = await IdentityProviders.findByOrigin(url);
   if (!idp) {
@@ -48,7 +51,7 @@ router.post('/idp', async (req, res) => {
   return res.json(idp);
 });
 
-router.post('/verify', csrfCheck, async (req, res) => {
+router.post('/verify', apiAclCheck(ApiType.Authentication), async (req, res) => {
   const {token: raw_token, url} = req.body;
   // console.error(raw_token);
 
