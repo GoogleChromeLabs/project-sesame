@@ -74,16 +74,7 @@ Add a server behavior in `src/server/app.ts`.
 For example, to add a behavior for `/sign-in`, add a code like so:
 
 ```ts
-app.get('/sign-in', sessionCheck, (req, res) => {
-  if (res.locals.signin_status < SignInStatus.SigningIn) {
-    // If the user has not started signing in, redirect to the original entrance.
-    return res.redirect(307, getEntrancePath(req, res));
-  }
-  if (res.locals.signin_status === SignInStatus.RecentlySignedIn) {
-    // If the user is signed in, redirect to `/home`.
-    return res.redirect(307, '/home');
-  }
-
+app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
   res.render('password.html', {
     title: 'Password',
     layout: 'password',
@@ -91,32 +82,43 @@ app.get('/sign-in', sessionCheck, (req, res) => {
 });
 ```
 
-#### `sessionCheck`
-By using `sessionCheck` middleware, a sign-in status is available at
-`res.locals.signin_status` and the user info is available at `res.locals.user`.
+#### `pageAclCheck`
 
-`res.locals.signin_status` has the following statuses:
+Define the type of the page from the following list with `pageAclCheck`.
 
 ```ts
-export enum SignInStatus {
-  Unregistered = 0,
-  SignedOut = 1,
-  SigningUp = 2,
-  SigningIn = 3,
-  SignedIn = 4,
-  RecentlySignedIn = 5,
+export enum PageType {
+  NoAuth = 0,           // No authentication is required
+  SignUp = 1,           // This is a sign-up page
+  SignUpCredential = 2, // The user must be signing up
+  SignIn = 3,           // This is a sign-in page
+  SignedIn = 4,         // The user must be signed in
+  Sensitive = 5,        // The user must be recently signed in
+  Reauth = 6,           // The user must be signed in and requires reauthentication
 }
 ```
 
-#### `setEntrancePath` and `getEntrancePath`
+The `pageAclCheck` middleware automatically redirects users in a wrong sign-in status.
 
-Project Sesame's goal is to demonstrate a specific sign-in flow by linking to
- the enterance path from a developer documentation. We try to prevent users from
- entering  unrelated sign-in flows, by bringing them back to the original
- entrance.
+#### `apiAclCheck`
 
-To do so, memorize where the user signs in by calling `setEntrancePath` and
-recall where the user signed in by calling `getEntrancePath`.
+Define the type of the API from the following list with `apiAclCheck`.
+
+```ts
+export enum ApiType {
+  NoAuth = 0,               // No authentication is required
+  PasskeyRegistration = 1,  // The user is either signing-up or signed-in
+  Identifier = 2,           // The user is about to sign-up
+  SignUpCredential = 3,     // The user is in the middle of signing up
+  Authentication = 4,       // The user is about to sign in with a username and a credential
+  FirstCredential = 5,      // The user is about to sign in
+  SecondCredential = 6,     // The user is about to sign in
+  SignedIn = 7,             // The user must be signed in
+  Sensitive = 8,            // The user must be recently signed in
+}
+```
+
+The `apiAclCheck` middleware automatically blocks users in a wrong sign-in status.
 
 #### Start a session
 
@@ -127,11 +129,7 @@ For example, if the you want to check a password at `/auth/sign-in`, create the
 endpoint in `src/server/middlewares/auth.ts`.
 
 ```ts
-router.post('/sign-in', sessionCheck, async (req: Request, res: Response) => {
-  if (res.locals.signin_status > SignInStatus.SignedOut) {
-    // If the user is already signed in, return an error.
-    return res.status(400).json({error: 'The user is already signed in.'});
-  }
+router.post('/sign-in', apiAclCheck(ApiType.Authentication), async (req: Request, res: Response) => {
   const {username, password} = req.body;
   // TODO: Validate entered parameter.
   if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {

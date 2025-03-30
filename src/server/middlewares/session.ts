@@ -33,28 +33,28 @@ export enum UserSignInStatus {
   RecentlySignedIn = 5,
 }
 
-// What ACL is required for this page
+// ACL requirement for a page
 export enum PageType {
   NoAuth = 0,           // No authentication is required
-  Reauth = 1,           // Reauthentication
-  SignUpCredential = 2, // The user is in the middle of signing up
-  SignedIn = 3,         // The user must be signed in
-  SignUp = 4,           // The user is about to sign-up
-  SignIn = 5,           // The user is about to sign in
-  Sensitive = 6,        // The user must be recently signed in
+  SignUp = 1,           // This is a sign-up page
+  SignUpCredential = 2, // The user must be signing up
+  SignIn = 3,           // This is a sign-in page
+  SignedIn = 4,         // The user must be signed in
+  Sensitive = 5,        // The user must be recently signed in
+  Reauth = 6,           // The user must be signed in and requires reauthentication
 }
 
-// What ACL is required for this page
+// ACL requirement for an API
 export enum ApiType {
-  NoAuth = 0,           // No authentication is required
-  PasskeyRegistration = 7,  // The user is either signing-up or signed-in
-  Identifier = 4,           // The user is about to sign-up
-  SignUpCredential = 2, // The user is in the middle of signing up
-  Authentication = 5,           // The user is about to sign in with a username and a credential
-  FirstCredential = 5.5, // The user is about to sign in
-  SecondCredential = 5.6, // The user is about to sign in
-  SignedIn = 3,         // The user must be signed in
-  Sensitive = 6,        // The user must be recently signed in
+  NoAuth = 0,               // No authentication is required
+  PasskeyRegistration = 1,  // The user is either signing-up or signed-in
+  Identifier = 2,           // The user is about to sign-up
+  SignUpCredential = 3,     // The user is in the middle of signing up
+  Authentication = 4,       // The user is about to sign in with a username and a credential
+  FirstCredential = 5,      // The user is about to sign in
+  SecondCredential = 6,     // The user is about to sign in
+  SignedIn = 7,             // The user must be signed in
+  Sensitive = 8,            // The user must be recently signed in
 }
 
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
@@ -83,7 +83,6 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
   return UserSignInStatus.RecentlySignedIn;
 }
 
-// TODO: Rename to `pageAclCheck`
 export function pageAclCheck(pageType: PageType): RequestHandlerParams {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (pageType === PageType.SignUp) {
@@ -186,19 +185,6 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
         return res.status(400).json({error: 'The user is not signing in.'});
       }
       res.locals.username = getEphemeralUsername(req, res);
-    // // TODO: Revisit - look out the difference between "request" and "response"
-    // } else if (apiType === ApiType.PasskeyAuthentication) {
-    //   if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
-    //     res.locals.user = getSessionUser(req, res);
-    //   }
-
-    // } else if (apiType === ApiType.Reauth) {
-    //   if (res.locals.signin_status < UserSignInStatus.SignedIn) {
-    //     // If the user is not signed in, return an error.
-    //     return res.status(401).json({error: 'The user is not signed in.'});
-    //   }
-    //   res.locals.username = getEphemeralUsername(req, res);
-    //   res.locals.user = getSessionUser(req, res);
 
     } else if (apiType === ApiType.SignedIn) {
       if (res.locals.signin_status < UserSignInStatus.SignedIn) {
@@ -220,7 +206,6 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
       res.locals.username = getEphemeralUsername(req, res);
       res.locals.user = getSessionUser(req, res);
 
-    // TODO: Revisit - look out the difference between "request" and "response"
     } else if (apiType === ApiType.PasskeyRegistration) {
       if (res.locals.signin_status < UserSignInStatus.SigningUp) {
         res.status(400).json({error: 'Invalid request. User is not signing up.'});

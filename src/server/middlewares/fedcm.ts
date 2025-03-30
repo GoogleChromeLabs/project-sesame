@@ -16,7 +16,7 @@
  */
 
 import {Base64URLString} from '@simplewebauthn/server';
-import express, {Request, Response} from 'express';
+import {Router, Request, Response} from 'express';
 import * as jwt from 'jsonwebtoken';
 
 import {config} from '../config.ts';
@@ -29,7 +29,7 @@ import {
   apiAclCheck,
 } from '../middlewares/session.ts';
 
-const router = express.Router();
+const router = Router();
 
 router.use(csrfCheck);
 
