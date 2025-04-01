@@ -22,6 +22,7 @@ interface FedCmOptions {
   loginHint?: string,
   context?: string,
   nonce?: string,
+  format?: string,
   fields?: string[],
   mediation?: 'silent' | 'optional' | 'required',
   params?: object,
@@ -84,6 +85,36 @@ export class IdentityProvider {
     if (navigator.credentials && navigator.credentials.preventSilentAccess) {
       await navigator.credentials.preventSilentAccess();
     }
+  }
+
+  async delegate(
+    options: FedCmOptions = {}
+  ): Promise<string | undefined> {
+    let { mode = '', nonce, fields, mediation, params = {} } = options;
+    if (!nonce) {
+      nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
+    }
+    if (!nonce || !this.clientId) {
+      throw new Error('nonce or client_id is not declared.');
+    }
+
+    const cred = await navigator.credentials.get({
+      // @ts-ignore
+      identity: {
+        providers: [{
+          format: "vc+sd-jwt",
+          fields,
+          configURL: this.configURL,
+          clientId: this.clientId,
+          nonce,
+        }]
+      },
+      mediation,
+    }).catch(e => {
+      throw new Error(e.message);
+    });
+    // @ts-ignore
+    return cred?.token;
   }
 
   async disconnect(accountId: string) {

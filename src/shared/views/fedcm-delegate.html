@@ -1,0 +1,19 @@
+    <main class="content center">
+      <h2>
+        Create your account
+      </h2>
+      <form id="form" method="POST" action="/auth/new-user" class="center">
+        <p class="instructions">Already have an account? <a href="/passkey-form-autofill">Sign in</a></p>
+        <mdui-text-field
+          type="text"
+          id="username"
+          name="username"
+          autocomplete="email webidentity"
+          label="username"
+          variant="outlined"
+          autofocus>
+        </mdui-text-field>
+        <mdui-button type="submit" variant="filled">Create your account</mdui-button>
+        <p class="instructions">By creating an account you accept our <a href="#">terms and conditions</a></p>
+      </form>
+    </main>

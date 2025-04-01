@@ -15,6 +15,8 @@
  * limitations under the License
  */
 
+import {config} from '../config.ts';
+
 export interface IdentityProvider {
   origin: string;
   configURL: string;
@@ -27,9 +29,21 @@ export class IdentityProviders {
     {
       origin: 'https://fedcm-idp-demo.glitch.me',
       configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
-      clientId: 'https://identity-demos.dev',
+      clientId: config.origin,
       secret: 'xxxxx',
     },
+    {
+      origin: 'https://issuer.sgo.to',
+      configURL: 'https://issuer.sgo.to/fedcm.json',
+      clientId: '1234',
+      secret: 'xxxxx',
+    },
+    {
+      origin: 'https://accounts.sandbox.google.com/',
+      configURL: 'https://accounts.sandbox.google.com/gsi/fedcm.json',
+      clientId: config.origin,
+      secret: '*****',
+    }
   ];
 
   static async findByOrigin(url: string): Promise<IdentityProvider | undefined> {

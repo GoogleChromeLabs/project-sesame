@@ -68,7 +68,7 @@ if (!config.is_localhost) {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          connectSrc: ["'self'", 'data:', 'https://fedcm-idp-demo.glitch.me'],
+          connectSrc: ["'self'", 'data:', 'https://fedcm-idp-demo.glitch.me', 'https://issuer.sgo.to'],
           scriptSrc: ["'self'", "'inline-speculation-rules'", 'https://fedcm-idp-demo.glitch.me'],
           imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
@@ -118,10 +118,18 @@ app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
 });
 
 app.get('/signup-form', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
-  setEntrancePath(req, res, '/passkey-form-autofill');
-
   return res.render('signup-form.html', {
     title: 'Sign-Up Form',
+  });
+});
+
+app.get('/fedcm-delegate', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
+  // Generate a new nonce.
+  const nonce = setChallenge(req, res);
+
+  return res.render('fedcm-delegate.html', {
+    title: 'FedCM sign-up Form',
+    nonce,
   });
 });
 
