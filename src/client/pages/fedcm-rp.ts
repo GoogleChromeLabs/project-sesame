@@ -39,7 +39,7 @@ const signIn = async () => {
       configURL: idpInfo.configURL,
       clientId: idpInfo.clientId,
     });
-    token = await idp.signIn({mode: 'button'});
+    token = await idp.signIn({mode: 'active'});
   } catch (e) {
     // Silently dismiss the request for now.
     // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?

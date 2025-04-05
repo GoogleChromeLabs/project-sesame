@@ -135,16 +135,7 @@ async function renderCredentials(): Promise<void> {
     res.length > 0
       ? // TODO: Define `cred` type across the server and the client
         html`${res.map((cred, i: number) => {
-          const created = new Date(cred.registeredAt);
-          const createdDate = created.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          });
-          const createdTime = created.toLocaleTimeString(undefined, {
-            timeStyle: 'short',
-            hour12: false,
-          });
-          let lastUsedStr = '';
+          let timestampStr = '';
           if (cred.lastUsedAt) {
             const lastUsed = new Date(cred.lastUsedAt);
             const lastUsedDate = lastUsed.toLocaleDateString(undefined, {
@@ -155,9 +146,19 @@ async function renderCredentials(): Promise<void> {
               timeStyle: 'short',
               hour12: false,
             });
-            lastUsedStr = cred.lastUsedAt?`, Last Used: ${lastUsedDate}, ${lastUsedTime}`:'';
+            timestampStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
+          } else {
+            const created = new Date(cred.registeredAt);
+            const createdDate = created.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            });
+            const createdTime = created.toLocaleTimeString(undefined, {
+              timeStyle: 'short',
+              hour12: false,
+            });
+            timestampStr = `Created: ${createdDate}, ${createdTime}`;
           }
-          const createdStr = `Created: ${createdDate}, ${createdTime}`;
           return html`${i > 0 && i < res.length
               ? html` <mdui-divider></mdui-divider> `
               : ''}
@@ -167,7 +168,7 @@ async function renderCredentials(): Promise<void> {
                 src="${icons[cred.aaguid].icon_light}"
                 title="${icons[cred.aaguid].name}"></mdui-icon>
               <span>${cred.name || 'Unnamed'}</span>
-              <span slot="description">${createdStr}${lastUsedStr}</span>
+              <span slot="description">${timestampStr}</span>
               ${!cred.credentialBackedUp?html`
               <mdui-button-icon
                 slot="end-icon"

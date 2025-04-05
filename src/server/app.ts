@@ -118,12 +118,18 @@ app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
 });
 
 app.get('/signup-form', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
+  // Manually set the entrance path as this is a sign-up page
+  setEntrancePath(req, res, '/passkey-form-autofill');
+
   return res.render('signup-form.html', {
     title: 'Sign-Up Form',
   });
 });
 
 app.get('/fedcm-delegate', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
+  // Manually set the entrance path as this is a sign-up page
+  setEntrancePath(req, res, '/passkey-form-autofill');
+
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
