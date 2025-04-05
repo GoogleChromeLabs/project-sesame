@@ -35,7 +35,7 @@ if (window.IdentityCredential) {
   let idpInfo: any;
   try {
     idpInfo = await post('/federation/idp', {
-      url: 'https://issuer.sgo.to',
+      url: 'https://accounts.sandbox.google.com',
     });
     idp = new IdentityProvider({
       configURL: idpInfo.configURL,
