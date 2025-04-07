@@ -251,7 +251,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('#signout')?.addEventListener('click', signOut);
 
   // View password toggle button. Listen when it's found.
-  $('#password-toggle')?.addEventListener('click', togglePasswordVisibility);
+  const toggles = document.querySelectorAll('.password-toggle');
+  if (toggles.length > 0) {
+    toggles.forEach((toggle: Element) => toggle.addEventListener('click', togglePasswordVisibility));
+  }
 
   // Show help dialog.
   $('#help')?.addEventListener('click', dialog.show.bind(dialog));

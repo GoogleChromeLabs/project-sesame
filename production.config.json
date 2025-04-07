@@ -14,5 +14,11 @@
     "AmyfBi0QCglmPufrFSQDf7Lvcq2ar6/8KkhpWxu2SBepJLDVpMmUjWnDoPQtxGzsiM1VxWFB0WG0NjyajsmM4AsAAABqeyJvcmlnaW4iOiJodHRwczovL3Byb2plY3Qtc2VzYW1lLTQyNjIwNi5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiRmVkQ21CdXR0b25Nb2RlIiwiZXhwaXJ5IjoxNzI3ODI3MTk5fQ=="
   ],
   "rp_name": "Project Sesame",
-  "project_name": "project-sesame-426206"
+  "project_name": "project-sesame-426206",
+  "csp": {
+    "connect_src": [ "https://fedcm-idp-demo.glitch.me", "https://issuer.sgo.to", "https://accounts.sandbox.google.com" ],
+    "script_src": [ "https://fedcm-idp-demo.glitch.me" ],
+    "img_src": [ "https://www.gravatar.com", "https://gravatar.com" ],
+    "font_src": [ "https://fonts.gstatic.com" ]
+  }
 }

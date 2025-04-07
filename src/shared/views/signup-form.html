@@ -1,19 +1,55 @@
-    <main class="content center">
-      <h2>
-        Create your account
-      </h2>
-      <form id="form" method="POST" action="/auth/new-user" class="center">
-        <p class="instructions">Already have an account? <a href="/passkey-form-autofill">Sign in</a></p>
-        <mdui-text-field
-          type="text"
-          id="username"
-          name="username"
-          autocomplete="username"
-          label="username"
-          variant="outlined"
-          autofocus>
-        </mdui-text-field>
-        <mdui-button type="submit" variant="filled">Create your account</mdui-button>
-        <p class="instructions">By creating an account you accept our <a href="#">terms and conditions</a></p>
-      </form>
-    </main>
+<main class="content center">
+  <h2>
+    Create your account
+  </h2>
+  <form id="form" method="POST" action="/auth/new-username-password" class="center">
+    <p class="instructions">Already have an account? <a href="/signin-form">Sign in</a></p>
+    <mdui-text-field
+      type="text"
+      id="username"
+      name="username"
+      autocomplete="username"
+      label="username"
+      width="100"
+      variant="outlined"
+      autofocus>
+    </mdui-text-field>
+    <mdui-text-field
+      type="password"
+      id="password1"
+      name="password1"
+      autocomplete="new-password"
+      label="New password"
+      width="100"
+      variant="outlined"
+      autofocus>
+      <mdui-button-icon
+        class="password-toggle"
+        slot="end-icon"
+        toggle slot="trailing-icon"
+        icon="visibility_off--outlined"
+        selected-icon="visibility--outlined"
+        selectable>
+      </mdui-button-icon>
+    </mdui-text-field>
+    <mdui-text-field
+      type="password"
+      id="password2"
+      name="password2"
+      autocomplete="new-password"
+      label="Confirm password"
+      width="100"
+      variant="outlined"
+      autofocus>
+      <mdui-button-icon
+        class="password-toggle"
+        slot="end-icon"
+        toggle slot="trailing-icon"
+        icon="visibility_off--outlined"
+        selected-icon="visibility--outlined"
+        selectable>
+      </mdui-button-icon>
+    </mdui-text-field>
+    <mdui-button type="submit" variant="filled">Sign up</mdui-button>
+  </form>
+</main>

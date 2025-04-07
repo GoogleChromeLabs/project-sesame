@@ -39,6 +39,7 @@ export default defineConfig({
       'passkey-form-autofill': './src/client/pages/passkey-form-autofill.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
+      'passkey-signup': './src/client/pages/passkey-signup.ts',
       'unified-button': './src/client/pages/unified-button.ts',
       'password': './src/client/pages/password.ts',
       'password-passkey': './src/client/pages/password-passkey.ts',

@@ -100,7 +100,17 @@ const {
   rp_name,
   project_name,
   origin_trials = [],
+  csp = {
+    connect_src: [],
+    script_src: [],
+    img_src: [],
+    font_src: [],
+  },
 } = (await import(path.join(project_root_file_path, `${env}.config.json`), {with:{type: 'json'}})).default;
+
+const { connect_src = [], script_src = [], img_src = [], font_src = [] } = csp;
+
+if (is_localhost) {}
 
 if (!project_name || !rp_name || !hostname) {
   throw new Error('Missing configuration.');
@@ -143,5 +153,11 @@ export const config = {
   short_session_duration,
   long_session_duration,
   origin_trials,
+  csp: {
+    connect_src,
+    script_src,
+    img_src,
+    font_src,
+  },
 };
 console.log(config);

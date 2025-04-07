@@ -62,23 +62,21 @@ function configureTemplateEngine(app: express.Application) {
 
 configureTemplateEngine(app);
 
-if (!config.is_localhost) {
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          connectSrc: ["'self'", 'data:', 'https://fedcm-idp-demo.glitch.me', 'https://issuer.sgo.to'],
-          scriptSrc: ["'self'", "'inline-speculation-rules'", 'https://fedcm-idp-demo.glitch.me'],
-          imgSrc: ["'self'", 'data:', 'https://www.gravatar.com', 'https://gravatar.com'],
-          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        },
-        // CSP is report-only if the app is running in debug mode.
-        reportOnly: config.debug,
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", 'data:', ...config.csp.connect_src],
+        scriptSrc: ["'self'", "'inline-speculation-rules'", ...config.csp.script_src],
+        imgSrc: ["'self'", 'data:', ...config.csp.img_src],
+        fontSrc: ["'self'", ...config.csp.font_src],
       },
-    })
-  );
-}
+      // CSP is report-only if the app is running in debug mode.
+      reportOnly: config.debug,
+    },
+  })
+);
 
 app.use(express.json());
 app.use(useragent.express());
@@ -119,7 +117,7 @@ app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
 
 app.get('/signup-form', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
   // Manually set the entrance path as this is a sign-up page
-  setEntrancePath(req, res, '/passkey-form-autofill');
+  setEntrancePath(req, res, '/signin-form');
 
   return res.render('signup-form.html', {
     title: 'Sign-Up Form',
@@ -172,6 +170,15 @@ app.get('/passkey-one-button', pageAclCheck(PageType.SignIn), (req: Request, res
 app.get('/passkey-reauth', pageAclCheck(PageType.Reauth), (req: Request, res: Response) => {
   res.render('passkey-reauth.html', {
     title: 'Passkey reauth',
+  });
+});
+
+app.get('/passkey-signup', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
+  // Manually set the entrance path as this is a sign-up page
+  setEntrancePath(req, res, '/passkey-form-autofill');
+
+  return res.render('passkey-signup.html', {
+    title: 'Passkey sign-up',
   });
 });
 

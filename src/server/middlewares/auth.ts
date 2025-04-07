@@ -97,6 +97,38 @@ router.post('/username', apiAclCheck(ApiType.Identifier), async (req: Request, r
   }
 });
 
+// TODO: This part is not really worked on yet
+router.post('/new-username-password', apiAclCheck(ApiType.SignUp), async (req: Request, res: Response) => {
+  const {username, password1, password2} = req.body;
+
+  if (!Users.isValidUsername(username)) {
+    return res.status(400).json({error: 'Invalid username'});
+  } else if (!Users.isValidPassword(password1) || password1 !== password2) {
+    return res.status(400).json({error: 'Invalid password'});
+  }
+
+  // TODO: Validate entered parameter.
+  // TODO: Validate the password format
+
+  try {
+    // Set username in the session
+    // setEphemeralUsername(username, req, res);
+
+    const user = await Users.validatePassword(username, password1);
+    if (user) {
+      // Set the user as a signed in status
+      setSessionUser(user, req, res);
+
+      return res.json(user);
+    }
+  } catch (e: any) {
+    console.error(e);
+    return res.status(400).send({error: e.message});
+  }
+
+  return res.status(401).json({error: 'Failed to sign in.'});
+});
+
 router.post('/new-password', apiAclCheck(ApiType.SignUpCredential), async (req: Request, res: Response) => {
   const {password} = req.body;
   const {username} = res.locals;

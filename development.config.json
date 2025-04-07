@@ -13,5 +13,11 @@
   "origin_trials": [
   ],
   "rp_name": "Project Sesame Development",
-  "project_name": "project-sesame-426206"
+  "project_name": "project-sesame-426206",
+  "csp": {
+    "connect_src": [ "https://fedcm-idp-demo.glitch.me", "https://issuer.sgo.to", "https://accounts.sandbox.google.com" ],
+    "script_src": [ "https://fedcm-idp-demo.glitch.me" ],
+    "img_src": [ "https://www.gravatar.com", "https://gravatar.com" ],
+    "font_src": [ "https://fonts.gstatic.com" ]
+  }
 }
