@@ -1,11 +1,10 @@
     <div id="help-text">
       <div class="help-headline">
-        Unified sign-in
+        FedCM active mode
       </div>
       <div class="help-description">
 
-        In this page, you can experience and learn unified sign-in flow using
-        passwords and passkeys.
+        In this page, you can experience and learn FedCM and its "active mode".
 
         ## How to use
 
@@ -19,10 +18,15 @@
     </div>
     <main class="content center">
       <h2>
-        Choose your account to sign in
+        Use your federated identity to sign in
       </h2>
       <section class="center">
-        <mdui-button id="signin" type="button" variant="filled">Sign-in</mdui-button>
+        <mdui-button
+          id="fedcm"
+          icon="lock--outlined"
+          variant="filled">
+          Sign in with fedcm-idp.demo.glitch.me
+        </mdui-button>
         <mdui-button href="/passkey-form-autofill" variant="text">Sign in with a form instead</mdui-button>
       </section>
     </main>

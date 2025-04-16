@@ -132,7 +132,7 @@ app.get('/fedcm-delegate', pageAclCheck(PageType.SignUp), (req: Request, res: Re
   const nonce = setChallenge(req, res);
 
   return res.render('fedcm-delegate.html', {
-    title: 'FedCM sign-up Form',
+    title: 'FedCM delegation flow',
     nonce,
   });
 });
@@ -182,22 +182,22 @@ app.get('/passkey-signup', pageAclCheck(PageType.SignUp), (req: Request, res: Re
   });
 });
 
-app.get('/unified-button', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/legacy-credman', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
-  return res.render('unified-button.html', {
-    title: 'Unified button',
+  return res.render('legacy-credman.html', {
+    title: 'Legacy Credential Management',
     nonce,
   });
 });
 
-app.get('/fedcm-rp', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
+app.get('/fedcm-active-mode', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   // Generate a new nonce.
   const nonce = setChallenge(req, res);
 
-  return res.render('fedcm-rp.html', {
-    title: 'FedCM RP',
+  return res.render('fedcm-active-mode.html', {
+    title: 'FedCM active mode',
     nonce,
   });
 });

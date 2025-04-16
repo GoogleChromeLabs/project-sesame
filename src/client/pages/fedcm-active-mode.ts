@@ -16,17 +16,11 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, post, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {$, post, toast} from '~project-sesame/client/helpers/index';
 import {saveFederation} from '~project-sesame/client/helpers/federated';
 // @ts-ignore
 const {IdentityProvider} = await import('https://fedcm-idp-demo.glitch.me/fedcm.js');
 // import {FedCMProvider} from '~project-sesame/client/helpers/federation';
-
-postForm().then(() => {
-  redirect('/password');
-}).catch(error => {
-  toast(error.message);
-});
 
 const signIn = async () => {
   let idpInfo: any;

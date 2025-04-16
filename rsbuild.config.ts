@@ -32,7 +32,7 @@ export default defineConfig({
       // This contains all pages from src/client/pages
       // this can be heavily cleaned up once the frontend code has
       // some more structure
-      'fedcm-rp': './src/client/pages/fedcm-rp.ts',
+      'fedcm-active-mode': './src/client/pages/fedcm-active-mode.ts',
       'fedcm-delegate': './src/client/pages/fedcm-delegate.ts',
       'home': './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
@@ -40,7 +40,7 @@ export default defineConfig({
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
       'passkey-signup': './src/client/pages/passkey-signup.ts',
-      'unified-button': './src/client/pages/unified-button.ts',
+      'legacy-credman': './src/client/pages/legacy-credman.ts',
       'password': './src/client/pages/password.ts',
       'password-passkey': './src/client/pages/password-passkey.ts',
       'signin-form': './src/client/pages/signin-form.ts',

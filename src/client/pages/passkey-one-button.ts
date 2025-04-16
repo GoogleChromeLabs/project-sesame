@@ -42,5 +42,7 @@ if (capabilities) {
   );
 } else {
   toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
-  redirect('/');
+  setTimeout(() => {
+    redirect('/signin-form');
+  }, 3000);
 }

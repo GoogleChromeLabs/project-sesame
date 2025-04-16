@@ -16,14 +16,8 @@
  */
 
 import '../layout';
-import {$, loading, redirect, postForm, toast} from '../helpers/index';
+import {$, loading, redirect, toast} from '../helpers/index';
 import {capabilities, authenticate} from '../helpers/unified';
-
-postForm().then(() => {
-  redirect('/password');
-}).catch(error => {
-  toast(error.message);
-});
 
 //@ts-ignore
 if (window.PasswordCredential && window.PublicKeyCredential && window.IdentityCredential) {

@@ -42,6 +42,8 @@ if (window.PasswordCredential) {
     }
   );
 } else {
-  toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
-  redirect('/');
+  toast("`PasswordCredential` and `FederatedCredential` aren't supported on this browser. Redirecting to a form.");
+  setTimeout(() => {
+    redirect('/passkey-form-autofill');
+  }, 3000);
 }
