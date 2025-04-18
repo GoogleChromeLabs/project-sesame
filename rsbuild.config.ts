@@ -33,6 +33,7 @@ export default defineConfig({
       // this can be heavily cleaned up once the frontend code has
       // some more structure
       'fedcm-active-mode': './src/client/pages/fedcm-active-mode.ts',
+      'fedcm-passive-mode': './src/client/pages/fedcm-passive-mode.ts',
       'fedcm-delegate': './src/client/pages/fedcm-delegate.ts',
       'home': './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',

@@ -39,6 +39,12 @@ export class IdentityProviders {
       secret: 'xxxxx',
     },
     {
+      origin: 'https://accounts.google.com',
+      configURL: 'https://accounts.google.com/gsi/fedcm.json',
+      clientId: '493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com',
+      secret: '*****',
+    },
+    {
       origin: 'https://accounts.sandbox.google.com',
       configURL: 'https://accounts.sandbox.google.com/gsi/vc.json',
       clientId: config.origin,

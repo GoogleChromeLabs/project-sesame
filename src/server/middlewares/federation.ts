@@ -40,15 +40,25 @@ interface IdToken extends JwtPayload {
 }
 
 router.post('/idp', apiAclCheck(ApiType.NoAuth), async (req, res) => {
-  const {url} = req.body;
-  const idp = await IdentityProviders.findByOrigin(url);
-  if (!idp) {
-    return res
-      .status(404)
-      .json({error: 'No matching identity provider found.'});
+  const idps = [];
+  const {urls} = req.body;
+  try {
+    for (let _url of urls) {
+      const url = new URL(_url)
+      const idp = await IdentityProviders.findByOrigin(url.toString());
+      if (!idp) {
+        return res
+          .status(404)
+          .json({error: 'No matching identity provider found.'});
+      }
+      idp.secret = '';
+      idps.push(idp);
+    }
+    return res.json(idps);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(400).json({error: e.message});
   }
-  idp.secret = '';
-  return res.json(idp);
 });
 
 router.post('/verify', apiAclCheck(ApiType.Authentication), async (req, res) => {

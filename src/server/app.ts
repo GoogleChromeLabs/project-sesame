@@ -202,6 +202,16 @@ app.get('/fedcm-active-mode', pageAclCheck(PageType.SignIn), (req: Request, res:
   });
 });
 
+app.get('/fedcm-passive-mode', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
+  // Generate a new nonce.
+  const nonce = setChallenge(req, res);
+
+  return res.render('fedcm-passive-mode.html', {
+    title: 'FedCM passive mode',
+    nonce,
+  });
+});
+
 app.get('/password-passkey', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
   return res.render('password-passkey.html', {
     title: 'Password and passkey unified Credential Manager',

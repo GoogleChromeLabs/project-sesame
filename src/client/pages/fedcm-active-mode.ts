@@ -16,38 +16,20 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, post, toast} from '~project-sesame/client/helpers/index';
-import {saveFederation} from '~project-sesame/client/helpers/federated';
+import {$, toast} from '~project-sesame/client/helpers/index';
 // @ts-ignore
-const {IdentityProvider} = await import('https://fedcm-idp-demo.glitch.me/fedcm.js');
-// import {FedCMProvider} from '~project-sesame/client/helpers/federation';
+// const {IdentityProvider} = await import('https://fedcm-idp-demo.glitch.me/fedcm.js');
+import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
 const signIn = async () => {
-  let idpInfo: any;
-  let token;
   try {
-    idpInfo = await post('/federation/idp', {
-      url: 'https://fedcm-idp-demo.glitch.me',
-    });
-    const idp = new IdentityProvider({
-      configURL: idpInfo.configURL,
-      clientId: idpInfo.clientId,
-    });
-    token = await idp.signIn({mode: 'active'});
-  } catch (e) {
-    // Silently dismiss the request for now.
-    // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?
-    console.info('The user is not signed in to the IdP.');
-    return;
-  }
-
-  try {
-    const user = await post('/federation/verify', {token, url: idpInfo.origin});
-    await saveFederation(user, idpInfo.configURL);
+    const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+    await idp.initialize();
+    await idp.signIn({mode: 'active'});
     location.href = '/home';
-  } catch (error: any) {
-    console.info(error);
-    toast(error.message);
+  } catch (e: any) {
+    console.error(e);
+    toast(e.message);
   }
 };
 

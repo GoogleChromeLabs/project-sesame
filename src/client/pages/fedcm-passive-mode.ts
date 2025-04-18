@@ -16,37 +16,30 @@
  */
 
 import '~project-sesame/client/layout';
-import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {$, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
 postForm().then(() => {
-  loading.stop();
   redirect('/home');
 }).catch(error => {
-  loading.stop();
+  // FIXME: `error.message` is not included.
   toast(error.message);
-  console.error(error);
 });
 
-// Feature detection: check if WebAuthn and conditional UI are supported.
-// @ts-ignore
-if (window.IdentityCredential) {
+if ('IdentityCredential' in window) {
   try {
-    const idp = new IdentityProvider(['https://accounts.sandbox.google.com']);
+    const idp = new IdentityProvider([
+        'https://fedcm-idp-demo.glitch.me',
+        'https://accounts.google.com',
+      ]);
     await idp.initialize();
-    await idp.delegate({
-      fields: ['name', 'email', 'picture'],
-      // @ts-ignore
-      mediation: 'conditional'
-    });
-    redirect('/home');
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    // `NotAllowedError` indicates a user cancellation.
-    if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-      toast(error.message);
-    }
+    await idp.signIn({mode: 'passive'});
+    location.href = '/home';
+  } catch (e: any) {
+    console.error(e);
+    toast(e.message);
   }
-
+} else {
+  $('#unsupported').classList.remove('hidden');
 }
+

@@ -27,7 +27,7 @@ postForm().then(() => {
 });
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
-if (capabilities?.conditionalGel) {
+if (capabilities?.conditionalGet) {
   try {
     // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
     const user = await authenticate(true);

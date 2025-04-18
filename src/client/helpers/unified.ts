@@ -15,7 +15,6 @@
  * limitations under the License
  */
 
-import {post} from "./index";
 import { capabilities, preparePublicKeyRequestOptions, verifyPublicKeyRequestResult } from "./publickey";
 import {IdentityProvider} from "./identity";
 import {verifyPassword} from "./password";
@@ -56,21 +55,12 @@ export async function authenticate(mediation: string = 'optional'): Promise<Pass
     } else if (cred?.type === 'public-key') {
       return verifyPublicKeyRequestResult(cred as PublicKeyCredential, options.rpId);
     } else if (cred?.type === 'federated') {
-      let idpInfo: any;
-      let token;
       try {
-        idpInfo = await post('/federation/idp', {
-          url: 'https://fedcm-idp-demo.glitch.me',
-        });
-        const idp = new IdentityProvider({
-          configURL: idpInfo.configURL,
-          clientId: idpInfo.clientId,
-        });
-        token = await idp.signIn({
-          mode: 'button',
+        const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+        await idp.initialize();
+        await idp.signIn({ mode: 'active',
           // loginHint: cred.id,
         });
-        await post('/federation/verify', {token, url: idpInfo.origin});
         return true;
       } catch (e) {
         // Silently dismiss the request for now.
@@ -121,21 +111,13 @@ export async function legacyAuthenticate(mediation: string = 'optional'): Promis
     } else if (cred?.type === 'public-key') {
       return verifyPublicKeyRequestResult(cred as PublicKeyCredential, options.rpId);
     } else if (cred?.type === 'federated') {
-      let idpInfo: any;
-      let token;
       try {
-        idpInfo = await post('/federation/idp', {
-          url: 'https://fedcm-idp-demo.glitch.me',
-        });
-        const idp = new IdentityProvider({
-          configURL: idpInfo.configURL,
-          clientId: idpInfo.clientId,
-        });
-        token = await idp.signIn({
-          mode: 'button',
+        const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+        await idp.initialize();
+        await idp.signIn({
+          mode: 'active',
           // loginHint: cred.id,
         });
-        await post('/federation/verify', {token, url: idpInfo.origin});
         return true;
       } catch (e) {
         // Silently dismiss the request for now.

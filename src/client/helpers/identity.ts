@@ -15,10 +15,11 @@
  * limitations under the License
  */
 
-import {$} from '~project-sesame/client/helpers/index';
+import {$, post} from '~project-sesame/client/helpers/index';
+import { saveFederation } from '~project-sesame/client/helpers/federated';
 
 interface FedCmOptions {
-  mode?: 'widget' | 'button',
+  mode?: 'active' | 'passive',
   loginHint?: string,
   context?: string,
   nonce?: string,
@@ -32,59 +33,80 @@ interface FedCmOptions {
 // Copied here since some integration needs custom implementation on the RP side.
 // ex: unified auth with password, multiple IdPs, etc.
 export class IdentityProvider {
-  origin: string
-  configURL: string
-  clientId: string
+  urls: string[] = [];
+  idps: {
+    origin: string
+    configURL: string
+    clientId: string
+  }[] = [];
 
   constructor(
-    options: {configURL: string, clientId: string}
+    urls: string[] = []
   ) {
-    if (!options.configURL || !options.clientId) {
-      throw new Error('configURL or client ID is not declared.');
+    for (let url of urls) {
+      this.urls.push((new URL(url)).toString());
     }
-    const url = new URL(options.configURL);
-    this.origin = url.origin;
-    this.configURL = options.configURL;
-    this.clientId = options.clientId;
+  }
+
+  async initialize() {
+    const options = await post('/federation/idp', {
+      urls: this.urls,
+    });
+
+    for (let option of options) {
+      if (!option.configURL || !option.clientId) {
+        throw new Error('configURL or client ID is not declared.');
+      }
+      const url = new URL(option.configURL);
+      const idp = {
+        origin: url.origin,
+        configURL: option.configURL,
+        clientId: option.clientId,
+      };
+      this.idps.push(idp);
+    }
   }
 
   async signIn(
     options: FedCmOptions = {}
-  ): Promise<string | undefined> {
-    let { mode = 'widget', loginHint, context, nonce, fields, mediation, params = {} } = options;
+    // @ts-ignore
+  ): Promise<IdentityCredential | undefined> {
+    let { mode = 'passive', loginHint, context, nonce, fields, mediation, params = {} } = options;
     if (!nonce) {
       nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
-    if (!nonce || !this.clientId) {
-      throw new Error('nonce or client_id is not declared.');
+    if (!nonce) {
+      throw new Error('nonce is not declared.');
+    }
+
+    const providers = [];
+    for (let idp of this.idps) {
+      providers.push({
+        configURL: idp.configURL,
+        clientId: idp.clientId,
+        nonce,
+        loginHint,
+        fields,
+        params,
+      });
     }
 
     const cred = await navigator.credentials.get({
       // @ts-ignore
-      identity: {
-        providers: [{
-          configURL: this.configURL,
-          clientId: this.clientId,
-          nonce,
-          loginHint,
-          fields,
-          params,
-        }],
-        mode,
-        context,
-      },
+      identity: { providers, mode, context, },
       mediation,
-    }).catch(e => {
-      throw new Error(e.message);
     });
-    // @ts-ignore
-    return cred?.token;
-  }
 
-  async signOut() {
-    if (navigator.credentials && navigator.credentials.preventSilentAccess) {
-      await navigator.credentials.preventSilentAccess();
-    }
+    /**
+     * IdentityCredential {
+     *   configURL: string,
+     *   id: string,
+     *   isAutoSelected: boolean,
+     *   token: string,
+     *   type: 'identity'
+     * }
+     */
+    return await this.verifyIdToken(cred);
   }
 
   async delegate(
@@ -94,49 +116,81 @@ export class IdentityProvider {
     if (!nonce) {
       nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
-    if (!nonce || !this.clientId) {
-      throw new Error('nonce or client_id is not declared.');
+    if (!nonce) {
+      throw new Error('nonce is not declared.');
+    }
+
+    const providers = [];
+    for (let idp of this.idps) {
+      providers.push({
+        format: "vc+sd-jwt",
+        configURL: idp.configURL,
+        clientId: idp.clientId,
+        nonce,
+        fields,
+        params,
+      });
     }
 
     const cred = await navigator.credentials.get({
       // @ts-ignore
-      identity: {
-        providers: [{
-          format: "vc+sd-jwt",
-          fields,
-          configURL: this.configURL,
-          clientId: this.clientId,
-          nonce,
-        }]
-      },
+      identity: { providers },
       mediation,
-    }).catch(e => {
-      throw new Error(e.message);
     });
+
     // @ts-ignore
     return cred?.token;
   }
 
-  async disconnect(accountId: string) {
-    try {
+  // @ts-ignore
+  private async verifyIdToken(cred: IdentityCredential): User {
+    const idp = this.idps.find(idp => {
       // @ts-ignore
-      return await IdentityCredential.disconnect({
-        configURL: this.configURL,
-        clientId: this.clientId,
-        accountHint: accountId
-      });      
-    } catch (e) {
-      throw new Error('Failed disconnecting.');
+      return idp.configURL === cred?.configURL;
+    });
+
+    if (!idp) {
+      throw new Error('No verified IdP found.');
+    }
+
+    // TODO: Make sure the response is User type
+    const user = await post('/federation/verify', {token: cred.token, url: idp.origin});
+    await saveFederation(user, idp.configURL);
+    return user;
+  }
+
+  // @ts-ignore
+  private async verifySdJwt(cred: IdentityCredential): User {
+    const idp = this.idps.find(idp => {
+      // @ts-ignore
+      return idp.configURL === cred?.configURL;
+    });
+
+    if (!idp) {
+      throw new Error('No verified IdP found.');
+    }
+
+    // TODO: Create an endpoint that verifies SD JWT
+    const user = await post('/federation/verify', {token: cred.token, url: idp.origin});
+    return user;
+  }
+  async signOut() {
+    if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+      await navigator.credentials.preventSilentAccess();
     }
   }
-}
 
-// let idpInfo: any;
-// try {
-//   idpInfo = await _fetch('/federation/idp', {
-//     url: 'https://fedcm-idp-demo.glitch.me',
-//   });
-// } catch (error: any) {
-//   console.error(error);
-//   toast(error.message);
-// }
+  // TODO: We must support multiple idp
+  // async disconnect(accountId: string) {
+  //   try {
+  //     // @ts-ignore
+  //     return await IdentityCredential.disconnect({
+  //       configURL: this.configURL,
+  //       clientId: this.clientId,
+  //       accountHint: accountId
+  //     });      
+  //   } catch (e) {
+  //     throw new Error('Failed disconnecting.');
+  //   }
+  // }
+}

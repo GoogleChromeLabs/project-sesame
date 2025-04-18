@@ -73,6 +73,7 @@ declare global {
 }
 
 declare module 'express-session' {
+  // TODO: Shouldn't we treat `username` and `passkey_user_id` separately?
   interface Session {
     // `true` if the user is signed in.
     signed_in: boolean;

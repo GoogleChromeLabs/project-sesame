@@ -6,7 +6,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
   },
-  "include": ["src/types.d.ts"],
+  "include": [
+    "src/types.d.ts",
+    "**/*.ts"
+  ],
   "typeRoots": [
     "node_modules/@types"
   ],
