@@ -22,8 +22,8 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
-import packageConfig from '../../package.json' with {type:'json'};
-import firebaseConfig from '../../firebase.json' with {type:'json'};
+import packageConfig from '../../package.json' with {type: 'json'};
+import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
 const is_localhost =
   process.env.NODE_ENV !== 'development' &&
@@ -38,7 +38,10 @@ const is_localhost =
 const is_development_proxy = process.env.PROXY;
 
 const project_root_file_path = path.join(
-  url.fileURLToPath(import.meta.url), '..', '..', '..'
+  url.fileURLToPath(import.meta.url),
+  '..',
+  '..',
+  '..'
 );
 const dist_root_file_path = path.join(project_root_file_path, 'dist');
 
@@ -100,17 +103,25 @@ const {
   rp_name,
   project_name,
   origin_trials = [],
-  csp = {
-    connect_src: [],
-    script_src: [],
-    img_src: [],
-    font_src: [],
-  },
-} = (await import(path.join(project_root_file_path, `${env}.config.json`), {with:{type: 'json'}})).default;
+  csp,
+} = (
+  await import(path.join(project_root_file_path, `${env}.config.json`), {
+    with: {type: 'json'},
+  })
+).default;
 
-const { connect_src = [], script_src = [], img_src = [], font_src = [] } = csp;
+const {
+  connect_src = [],
+  font_src = [],
+  frame_src = [],
+  img_src = [],
+  script_src = [],
+  style_src = [],
+  style_src_elem = [],
+} = csp;
 
-if (is_localhost) {}
+if (is_localhost) {
+}
 
 if (!project_name || !rp_name || !hostname) {
   throw new Error('Missing configuration.');
@@ -131,7 +142,11 @@ associated_origins.push(origin);
 export const store = initializeFirestore();
 
 console.log('hostname', hostname, new URL(origin).hostname);
-console.log('port', port, is_development_proxy ? 8080 : process.env.PORT || 8080);
+console.log(
+  'port',
+  port,
+  is_development_proxy ? 8080 : process.env.PORT || 8080
+);
 
 export const config = {
   project_name,
@@ -155,9 +170,12 @@ export const config = {
   origin_trials,
   csp: {
     connect_src,
-    script_src,
-    img_src,
     font_src,
+    frame_src,
+    img_src,
+    script_src,
+    style_src,
+    style_src_elem,
   },
 };
 console.log(config);

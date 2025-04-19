@@ -68,12 +68,22 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         connectSrc: ["'self'", 'data:', ...config.csp.connect_src],
-        scriptSrc: ["'self'", "'inline-speculation-rules'", ...config.csp.script_src],
+        scriptSrc: [
+          "'self'",
+          "'inline-speculation-rules'",
+          ...config.csp.script_src,
+        ],
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
+        frameSrc: ["'self'", ...config.csp.frame_src],
+        styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
+        styleSrcElem: ["'self'", ...config.csp.style_src_elem],
       },
       // CSP is report-only if the app is running in debug mode.
       reportOnly: config.debug,
+    },
+    crossOriginOpenerPolicy: {
+      policy: 'same-origin-allow-popups',
     },
   })
 );
@@ -95,7 +105,7 @@ app.use((req: Request, res: Response, next) => {
   res.locals.signin_status = getSignInStatus(req, res);
 
   res.locals.helpers = {
-    isSignedIn: () => res.locals.signin_status >= UserSignInStatus.SignedIn
+    isSignedIn: () => res.locals.signin_status >= UserSignInStatus.SignedIn,
   };
 
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
@@ -115,120 +125,180 @@ app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
   });
 });
 
-app.get('/signup-form', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
-  // Manually set the entrance path as this is a sign-up page
-  setEntrancePath(req, res, '/signin-form');
+app.get(
+  '/signup-form',
+  pageAclCheck(PageType.SignUp),
+  (req: Request, res: Response) => {
+    // Manually set the entrance path as this is a sign-up page
+    setEntrancePath(req, res, '/signin-form');
 
-  return res.render('signup-form.html', {
-    title: 'Sign-Up Form',
-  });
-});
+    return res.render('signup-form.html', {
+      title: 'Sign-Up Form',
+    });
+  }
+);
 
-app.get('/fedcm-delegate', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
-  // Manually set the entrance path as this is a sign-up page
-  setEntrancePath(req, res, '/passkey-form-autofill');
+app.get(
+  '/fedcm-delegate',
+  pageAclCheck(PageType.SignUp),
+  (req: Request, res: Response) => {
+    // Manually set the entrance path as this is a sign-up page
+    setEntrancePath(req, res, '/passkey-form-autofill');
 
-  // Generate a new nonce.
-  const nonce = setChallenge(req, res);
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
 
-  return res.render('fedcm-delegate.html', {
-    title: 'FedCM delegation flow',
-    nonce,
-  });
-});
+    return res.render('fedcm-delegate.html', {
+      title: 'FedCM delegation flow',
+      nonce,
+    });
+  }
+);
 
-app.get('/new-password', pageAclCheck(PageType.SignUpCredential), (req: Request, res: Response) => {
-  res.render('new-password.html', {
-    title: 'Password',
-  });
-});
+app.get(
+  '/new-password',
+  pageAclCheck(PageType.SignUpCredential),
+  (req: Request, res: Response) => {
+    res.render('new-password.html', {
+      title: 'Password',
+    });
+  }
+);
 
-app.get('/signin-form', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  return res.render('signin-form.html', {
-    title: 'Sign-In Form',
-  });
-});
+app.get(
+  '/signin-form',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('signin-form.html', {
+      title: 'Sign-In Form',
+    });
+  }
+);
 
-app.get('/identifier-first-form', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  return res.render('identifier-first-form.html', {
-    title: 'Identifier-first form',
-  });
-});
+app.get(
+  '/identifier-first-form',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('identifier-first-form.html', {
+      title: 'Identifier-first form',
+    });
+  }
+);
 
-app.get('/passkey-form-autofill', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  return res.render('passkey-form-autofill.html', {
-    title: 'Passkey form autofill',
-  });
-});
+app.get(
+  '/passkey-form-autofill',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('passkey-form-autofill.html', {
+      title: 'Passkey form autofill',
+    });
+  }
+);
 
-app.get('/passkey-one-button', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  return res.render('passkey-one-button.html', {
-    title: 'Passkey one button',
-  });
-});
+app.get(
+  '/passkey-one-button',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('passkey-one-button.html', {
+      title: 'Passkey one button',
+    });
+  }
+);
 
-app.get('/passkey-reauth', pageAclCheck(PageType.Reauth), (req: Request, res: Response) => {
-  res.render('passkey-reauth.html', {
-    title: 'Passkey reauth',
-  });
-});
+app.get(
+  '/passkey-reauth',
+  pageAclCheck(PageType.Reauth),
+  (req: Request, res: Response) => {
+    res.render('passkey-reauth.html', {
+      title: 'Passkey reauth',
+    });
+  }
+);
 
-app.get('/passkey-signup', pageAclCheck(PageType.SignUp), (req: Request, res: Response) => {
-  // Manually set the entrance path as this is a sign-up page
-  setEntrancePath(req, res, '/passkey-form-autofill');
+app.get(
+  '/passkey-signup',
+  pageAclCheck(PageType.SignUp),
+  (req: Request, res: Response) => {
+    // Manually set the entrance path as this is a sign-up page
+    setEntrancePath(req, res, '/passkey-form-autofill');
 
-  return res.render('passkey-signup.html', {
-    title: 'Passkey sign-up',
-  });
-});
+    return res.render('passkey-signup.html', {
+      title: 'Passkey sign-up',
+    });
+  }
+);
 
-app.get('/legacy-credman', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  // Generate a new nonce.
-  const nonce = setChallenge(req, res);
+app.get(
+  '/legacy-credman',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
 
-  return res.render('legacy-credman.html', {
-    title: 'Legacy Credential Management',
-    nonce,
-  });
-});
+    return res.render('legacy-credman.html', {
+      title: 'Legacy Credential Management',
+      nonce,
+    });
+  }
+);
 
-app.get('/fedcm-active-mode', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  // Generate a new nonce.
-  const nonce = setChallenge(req, res);
+app.get(
+  '/fedcm-active-mode',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
 
-  return res.render('fedcm-active-mode.html', {
-    title: 'FedCM active mode',
-    nonce,
-  });
-});
+    return res.render('fedcm-active-mode.html', {
+      title: 'FedCM active mode',
+      nonce,
+    });
+  }
+);
 
-app.get('/fedcm-passive-mode', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  // Generate a new nonce.
-  const nonce = setChallenge(req, res);
+app.get(
+  '/fedcm-passive-mode',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
 
-  return res.render('fedcm-passive-mode.html', {
-    title: 'FedCM passive mode',
-    nonce,
-  });
-});
+    return res.render('fedcm-passive-mode.html', {
+      title: 'FedCM passive mode',
+      nonce,
+    });
+  }
+);
 
-app.get('/password-passkey', pageAclCheck(PageType.SignIn), (req: Request, res: Response) => {
-  return res.render('password-passkey.html', {
-    title: 'Password and passkey unified Credential Manager',
-  });
-});
+app.get(
+  '/password-passkey',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('password-passkey.html', {
+      title: 'Password and passkey unified Credential Manager',
+    });
+  }
+);
 
-app.get('/password', pageAclCheck(PageType.Reauth), (req: Request, res: Response) => {
-  res.render('password.html', {
-    title: 'Password',
-  });
-});
+app.get(
+  '/password',
+  pageAclCheck(PageType.Reauth),
+  (req: Request, res: Response) => {
+    res.render('password.html', {
+      title: 'Password',
+    });
+  }
+);
 
-app.get('/home', pageAclCheck(PageType.SignedIn), (req: Request, res: Response) => {
-  return res.render('home.html', {
-    title: 'home',
-  });
-});
+app.get(
+  '/home',
+  pageAclCheck(PageType.SignedIn),
+  (req: Request, res: Response) => {
+    return res.render('home.html', {
+      title: 'home',
+    });
+  }
+);
 
 app.get('/signout', pageAclCheck(PageType.SignedIn), signOut);
 

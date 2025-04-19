@@ -4,9 +4,21 @@
   "rp_name": "Project Sesame",
   "project_name": "project-sesame-426206",
   "csp": {
-    "connect_src": [ "ws://localhost:3000", "https://fedcm-idp-demo.glitch.me", "https://issuer.sgo.to", "https://accounts.sandbox.google.com" ],
-    "script_src": [ "https://fedcm-idp-demo.glitch.me" ],
-    "img_src": [ "https://www.gravatar.com", "https://gravatar.com" ],
-    "font_src": [ "https://fonts.gstatic.com" ]
+    "connect_src": [
+      "ws://localhost:3000",
+      "https://fedcm-idp-demo.glitch.me",
+      "https://issuer.sgo.to",
+      "https://accounts.google.com/gsi/",
+      "https://accounts.sandbox.google.com"
+    ],
+    "font_src": ["https://fonts.gstatic.com"],
+    "frame_src": ["https://accounts.google.com/gsi/"],
+    "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
+    "script_src": [
+      "https://fedcm-idp-demo.glitch.me",
+      "https://accounts.google.com/gsi/client"
+    ],
+    "style_src": ["https://accounts.google.com/gsi/style"],
+    "style_src_elem": ["https://fonts.googleapis.com/icon"]
   }
 }
