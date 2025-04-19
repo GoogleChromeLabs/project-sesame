@@ -15,12 +15,12 @@
  * limitations under the License
  */
 
-import { LinearProgress } from 'mdui/components/linear-progress';
-import { Dialog } from 'mdui/components/dialog';
-import { ButtonIcon } from 'mdui/components/button-icon';
-import { TextField } from 'mdui/components/text-field';
-import { NavigationDrawer } from 'mdui/components/navigation-drawer';
-import { marked } from 'marked';
+import {LinearProgress} from 'mdui/components/linear-progress';
+import {Dialog} from 'mdui/components/dialog';
+import {ButtonIcon} from 'mdui/components/button-icon';
+import {TextField} from 'mdui/components/text-field';
+import {NavigationDrawer} from 'mdui/components/navigation-drawer';
+import {marked} from 'marked';
 
 export const $: any = document.querySelector.bind(document);
 
@@ -129,7 +129,7 @@ class SesameDialog {
     this.dialog.open = true;
   }
 
-  close(): void{
+  close(): void {
     this.dialog.open = false;
   }
 }
@@ -183,7 +183,7 @@ export function postForm(): Promise<void> {
         if (id && password) {
           await navigator.credentials.create({
             // @ts-ignore
-            password: { id, password }
+            password: {id, password},
           });
           console.log('PasswordCredential stored');
         }
@@ -192,21 +192,25 @@ export function postForm(): Promise<void> {
       const cred = {} as any;
       form.forEach((v, k) => (cred[k] = v));
       loading.start();
-      post(s.target.action, cred).then(results => {
-        resolve(results);
-      }).catch(e => {
-        loading.stop();
-        console.error(e.message);
-        reject(new Error(e.error));
-      });
+      post(s.target.action, cred)
+        .then(results => {
+          resolve(results);
+        })
+        .catch(e => {
+          loading.stop();
+          console.error(e.message);
+          reject(new Error(e.error));
+        });
     });
   });
 }
 
 function togglePasswordVisibility(e: MouseEvent) {
   e.preventDefault();
-  if (e.target instanceof ButtonIcon &&
-      e.target.parentNode instanceof TextField) {
+  if (
+    e.target instanceof ButtonIcon &&
+    e.target.parentNode instanceof TextField
+  ) {
     // Toggle password visibility when visibility icon is clicked.
     e.target.parentNode.type = e.target.selected ? 'text' : 'password';
   }
@@ -235,7 +239,7 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
     bar.style.display = 'none';
     drawer.open = true;
   }
-};
+}
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
@@ -245,15 +249,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Menu button. Listen when it's found.
-  $('#menu-button')?.addEventListener('click', () => (drawer.open = !drawer.open));
+  $('#menu-button')?.addEventListener(
+    'click',
+    () => (drawer.open = !drawer.open)
+  );
 
   // Sign-out button. Listen when it's found.
   $('#signout')?.addEventListener('click', signOut);
 
   // View password toggle button. Listen when it's found.
-  const toggles = document.querySelectorAll('.password-toggle');
+  const toggles = document.querySelectorAll<ButtonIcon>('.password-toggle');
   if (toggles.length > 0) {
-    toggles.forEach((toggle: Element) => toggle.addEventListener('click', togglePasswordVisibility));
+    toggles.forEach((toggle: ButtonIcon) =>
+      toggle.addEventListener('click', togglePasswordVisibility)
+    );
   }
 
   // Show help dialog.
@@ -266,7 +275,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const description = $('#help-text .help-description')?.innerText?.trim();
   const headline = $('#help-text .help-headline')?.innerText?.trim();
   if (headline && description) {
-    const serialized = description.split('\n').map((line: string) => line.trim()).join('\n');
+    const serialized = description
+      .split('\n')
+      .map((line: string) => line.trim())
+      .join('\n');
     const mkDesc = await marked.parse(serialized);
     dialog.set(headline, mkDesc);
   }

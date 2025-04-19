@@ -24,34 +24,35 @@ import {compareUrls} from '../libs/helpers.ts';
 import {RelyingParties} from '../libs/relying-parties.ts';
 import {Users} from '../libs/users.ts';
 import {csrfCheck, getTime} from '../middlewares/common.ts';
-import {
-  ApiType,
-  apiAclCheck,
-} from '../middlewares/session.ts';
+import {ApiType, apiAclCheck} from '../middlewares/session.ts';
 
 const router = Router();
 
 router.use(csrfCheck);
 
-router.get('/config.json', apiAclCheck(ApiType.NoAuth), (req: Request, res: Response): Response => {
-  return res.json({
-    accounts_endpoint: '/fedcm/accounts',
-    client_metadata_endpoint: '/fedcm/metadata',
-    id_assertion_endpoint: '/fedcm/idtokens',
-    disconnect_endpoint: '/fedcm/disconnect',
-    login_url: '/identifier-first-form',
-    branding: {
-      background_color: '#6200ee',
-      color: '#ffffff',
-      icons: [
-        {
-          url: `${config.origin}/images/favicon.svg`,
-          size: 256,
-        },
-      ],
-    },
-  });
-});
+router.get(
+  '/config.json',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response): Response => {
+    return res.json({
+      accounts_endpoint: '/fedcm/accounts',
+      client_metadata_endpoint: '/fedcm/metadata',
+      id_assertion_endpoint: '/fedcm/idtokens',
+      disconnect_endpoint: '/fedcm/disconnect',
+      login_url: '/identifier-first-form',
+      branding: {
+        background_color: '#6200ee',
+        color: '#ffffff',
+        icons: [
+          {
+            url: `${config.origin}/images/favicon.svg`,
+            size: 256,
+          },
+        ],
+      },
+    });
+  }
+);
 
 router.get(
   '/accounts',
@@ -74,16 +75,20 @@ router.get(
   }
 );
 
-router.get('/metadata', apiAclCheck(ApiType.NoAuth), (req: Request, res: Response): Response => {
-  return res.json({
-    privacy_policy_url: `${config.origin}/privacy_policy`,
-    terms_of_service_url: `${config.origin}/terms_of_service`,
-  });
-});
+router.get(
+  '/metadata',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response): Response => {
+    return res.json({
+      privacy_policy_url: `${config.origin}/privacy_policy`,
+      terms_of_service_url: `${config.origin}/terms_of_service`,
+    });
+  }
+);
 
 router.post(
   '/idtokens',
-  apiAclCheck(ApiType.SignedIn), 
+  apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<Response> => {
     const {
       client_id,

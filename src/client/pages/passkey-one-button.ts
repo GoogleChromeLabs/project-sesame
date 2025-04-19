@@ -16,8 +16,16 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, loading, redirect, toast} from '~project-sesame/client/helpers/index';
-import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
+import {
+  $,
+  loading,
+  redirect,
+  toast,
+} from '~project-sesame/client/helpers/index';
+import {
+  capabilities,
+  authenticate,
+} from '~project-sesame/client/helpers/publickey';
 
 if (capabilities) {
   $('#passkey-signin').addEventListener(

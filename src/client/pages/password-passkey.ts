@@ -17,27 +17,35 @@
 
 import '../layout';
 import {$, loading, redirect, toast} from '../helpers/index';
-import {capabilities, authenticate} from '../helpers/unified';
+import {authenticate} from '../helpers/unified';
 
-//@ts-ignore
-if (window.PasswordCredential && window.PublicKeyCredential && window.IdentityCredential) {
-  $('#signin').addEventListener('click', async (e: {target: HTMLButtonElement}) => {
-    try {
-      loading.start();
-      const user = await authenticate('immediate');
-      if (user) {
-        redirect('/home');
-      } else {
-        throw new Error('User is not found.');
-      }
-    } catch (error: any) {
-      loading.stop();
-      console.error(error);
-      if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-        toast(error.message);
+if (
+  //@ts-ignore
+  window.PasswordCredential &&
+  window.PublicKeyCredential &&
+  //@ts-ignore
+  window.IdentityCredential
+) {
+  $('#signin').addEventListener(
+    'click',
+    async (e: {target: HTMLButtonElement}) => {
+      try {
+        loading.start();
+        const user = await authenticate('immediate');
+        if (user) {
+          redirect('/home');
+        } else {
+          throw new Error('User is not found.');
+        }
+      } catch (error: any) {
+        loading.stop();
+        console.error(error);
+        if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+          toast(error.message);
+        }
       }
     }
-  });
+  );
 } else {
   toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
   redirect('/');

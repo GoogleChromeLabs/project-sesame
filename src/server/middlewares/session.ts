@@ -22,7 +22,7 @@ import {FirestoreStore} from '@google-cloud/connect-firestore';
 import {getTime} from '~project-sesame/server/middlewares/common.ts';
 import {store, config} from '~project-sesame/server/config.ts';
 import {User} from '~project-sesame/server/libs/users.ts';
-import { generateRandomString } from '~project-sesame/server/libs/helpers.ts';
+import {generateRandomString} from '~project-sesame/server/libs/helpers.ts';
 
 export enum UserSignInStatus {
   Unregistered = 0,
@@ -35,31 +35,32 @@ export enum UserSignInStatus {
 
 // ACL requirement for a page
 export enum PageType {
-  NoAuth = 0,           // No authentication is required
-  SignUp = 1,           // This is a sign-up page
+  NoAuth = 0, // No authentication is required
+  SignUp = 1, // This is a sign-up page
   SignUpCredential = 2, // The user must be signing up
-  SignIn = 3,           // This is a sign-in page
-  SignedIn = 4,         // The user must be signed in
-  Sensitive = 5,        // The user must be recently signed in
-  Reauth = 6,           // The user must be signed in and requires reauthentication
+  SignIn = 3, // This is a sign-in page
+  SignedIn = 4, // The user must be signed in
+  Sensitive = 5, // The user must be recently signed in
+  Reauth = 6, // The user must be signed in and requires reauthentication
 }
 
 // ACL requirement for an API
 export enum ApiType {
-  NoAuth = 0,               // No authentication is required
-  PasskeyRegistration = 1,  // The user is either signing-up or signed-in
-  Identifier = 2,           // The user is about to sign-up
-  SignUpCredential = 3,     // The user is in the middle of signing up
-  Authentication = 4,       // The user is about to sign in with a username and a credential
-  FirstCredential = 5,      // The user is about to sign in
-  SecondCredential = 6,     // The user is about to sign in
-  SignedIn = 7,             // The user must be signed in
-  Sensitive = 8,            // The user must be recently signed in
+  NoAuth = 0, // No authentication is required
+  PasskeyRegistration = 1, // The user is either signing-up or signed-in
+  Identifier = 2, // The user is about to sign-up
+  SignUpCredential = 3, // The user is in the middle of signing up
+  Authentication = 4, // The user is about to sign in with a username and a credential
+  FirstCredential = 5, // The user is about to sign in
+  SecondCredential = 6, // The user is about to sign in
+  SignedIn = 7, // The user must be signed in
+  Sensitive = 8, // The user must be recently signed in
 }
 
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
   console.log(req.session);
-  const {username, signed_in, last_signedin_at, user, passkey_user_id} = req.session;
+  const {username, signed_in, last_signedin_at, user, passkey_user_id} =
+    req.session;
 
   // TODO: Simplify this logic
 
@@ -90,7 +91,6 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         // If the user is signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
-
     } else if (pageType === PageType.SignUpCredential) {
       if (res.locals.signin_status < UserSignInStatus.SigningUp) {
         // If the user has not started signing in, redirect to the original entrance.
@@ -101,11 +101,12 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         return res.redirect(307, '/home');
       }
       res.locals.username = getEphemeralUsername(req, res);
-
     } else if (pageType === PageType.SignIn) {
       if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         const queryParams = req.query;
-        const search = new URLSearchParams(queryParams as Record<string, string>);
+        const search = new URLSearchParams(
+          queryParams as Record<string, string>
+        );
         // If the user is already signed in...
         const entrance = getEntrancePath(req, res);
         const url = new URL(config.origin);
@@ -120,7 +121,6 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         return res.redirect(307, url.pathname + url.search);
       }
       setEntrancePath(req, res);
-
     } else if (pageType === PageType.Reauth) {
       if (res.locals.signin_status < UserSignInStatus.SigningIn) {
         // If the user is not signing in, redirect to the original entrance.
@@ -130,19 +130,17 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         // If the user is recently signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
-
     } else if (pageType === PageType.SignedIn) {
       if (res.locals.signin_status < UserSignInStatus.SignedIn) {
         // If the user has not signed in yet, redirect to the original entrance.
         return res.redirect(307, getEntrancePath(req, res));
       }
       res.locals.user = getSessionUser(req, res);
-
     } else if (pageType === PageType.Sensitive) {
       if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
         // Construct the redirect path as `r`
         const url = new URL(getEntrancePath(req, res), config.origin);
-        const search = new URLSearchParams({'r': req.originalUrl});
+        const search = new URLSearchParams({r: req.originalUrl});
         url.search = search.toString();
         console.log(url.toString());
 
@@ -150,14 +148,17 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         return res.redirect(307, url.pathname + url.search);
       }
       res.locals.user = getSessionUser(req, res);
-
     }
     return next();
-  }
+  };
 }
 
 export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
-  return async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
     // The user is signing up: `/auth/new_user`
     if (apiType === ApiType.Identifier) {
       if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
@@ -165,27 +166,24 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
         return res.status(400).json({error: 'The user is already signed in.'});
       }
 
-    // The user is entering a credential for signing up: `/auth/username-password`
+      // The user is entering a credential for signing up: `/auth/username-password`
     } else if (apiType === ApiType.SignUpCredential) {
       if (res.locals.signin_status !== UserSignInStatus.SigningUp) {
         // Unless the user is signing up, this is an invalid access
         return res.status(400).json({error: 'The user is already signed in.'});
       }
       res.locals.username = getEphemeralUsername(req, res);
-
     } else if (apiType === ApiType.Authentication) {
       if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         // If the user is already signed in, this is reauth
         res.locals.username = getEphemeralUsername(req, res);
         res.locals.user = getSessionUser(req, res);
       }
-
     } else if (apiType === ApiType.FirstCredential) {
       if (res.locals.signin_status < UserSignInStatus.SigningIn) {
         return res.status(400).json({error: 'The user is not signing in.'});
       }
       res.locals.username = getEphemeralUsername(req, res);
-
     } else if (apiType === ApiType.SignedIn) {
       if (res.locals.signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
@@ -193,7 +191,6 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
       }
       res.locals.username = getEphemeralUsername(req, res);
       res.locals.user = getSessionUser(req, res);
-
     } else if (apiType === ApiType.Sensitive) {
       if (res.locals.signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
@@ -205,20 +202,21 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
       }
       res.locals.username = getEphemeralUsername(req, res);
       res.locals.user = getSessionUser(req, res);
-
     } else if (apiType === ApiType.PasskeyRegistration) {
       if (res.locals.signin_status < UserSignInStatus.SigningUp) {
-        res.status(400).json({error: 'Invalid request. User is not signing up.'});
+        res
+          .status(400)
+          .json({error: 'Invalid request. User is not signing up.'});
       }
       if (res.locals.signin_status === UserSignInStatus.SigningUp) {
         res.locals.username = getEphemeralUsername(req, res);
-      } 
+      }
       if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
         res.locals.user = getSessionUser(req, res);
       }
     }
     return next();
-  } 
+  };
 }
 
 /**
@@ -270,7 +268,7 @@ export function getDeviceId(req: Request, res: Response): string {
       path: '/',
       httpOnly: true,
       secure: !config.is_localhost, // `false` on localhost
-      maxAge: config.forever_cookie_duration
+      maxAge: config.forever_cookie_duration,
     });
   }
   return device_id;
@@ -288,7 +286,7 @@ export function getDeviceId(req: Request, res: Response): string {
 export function setChallenge(
   req: Request,
   res: Response,
-  challenge?: string,
+  challenge?: string
 ): string {
   challenge ??= generateRandomString();
   console.log('set challenge:', challenge);
@@ -319,7 +317,10 @@ export function setEphemeralPasskeyUserId(
   return;
 }
 
-export function getEphemeralPasskeyUserId(req: Request, res: Response): string | undefined {
+export function getEphemeralPasskeyUserId(
+  req: Request,
+  res: Response
+): string | undefined {
   if (req.session.passkey_user_id) {
     return req.session.passkey_user_id;
   } else {
@@ -327,9 +328,12 @@ export function getEphemeralPasskeyUserId(req: Request, res: Response): string |
     console.log('TODO: passkey user id does not exist yet.');
     return undefined;
   }
-} 
+}
 
-export function deleteEpehemeralPasskeyUserId(req: Request, res: Response): void {
+export function deleteEpehemeralPasskeyUserId(
+  req: Request,
+  res: Response
+): void {
   delete req.session.passkey_user_id;
   return;
 }
@@ -356,7 +360,10 @@ export function setEphemeralUsername(
   return;
 }
 
-export function getEphemeralUsername(req: Request, res: Response): string | undefined {
+export function getEphemeralUsername(
+  req: Request,
+  res: Response
+): string | undefined {
   return req.session.username;
 }
 
@@ -375,7 +382,10 @@ export function setSessionUser(user: User, req: Request, res: Response): void {
 }
 
 export function getSessionUser(req: Request, res: Response): User {
-  if (res.locals.signin_status < UserSignInStatus.SignedIn || !req.session.user) {
+  if (
+    res.locals.signin_status < UserSignInStatus.SignedIn ||
+    !req.session.user
+  ) {
     throw new Error('User is not signed in.');
   }
   return req.session.user;
@@ -399,22 +409,26 @@ export function signOut(req: Request, res: Response) {
  * users from entering unrelated sign-in flows, as Project Sesame's goal is to
  * demonstrate a specific sign-in flow by linking to the enterance, by making
  * sure the user is brought back to the original entrance when they sign out.
- * @param req 
- * @param res 
+ * @param req
+ * @param res
  * @param path optional entrance path in string. Pass it when you want to
  * specify a path that is not the same as where the user is.
- * @returns 
+ * @returns
  */
-export function setEntrancePath(req: Request, res: Response, path?: string): void {
+export function setEntrancePath(
+  req: Request,
+  res: Response,
+  path?: string
+): void {
   req.session.entrance = path || req.path;
   return;
 }
 
 /**
  * Recall from where the user has entered the website.
- * @param req 
- * @param res 
- * @returns 
+ * @param req
+ * @param res
+ * @returns
  */
 export function getEntrancePath(req: Request, res: Response): string {
   return req.session?.entrance || '/';

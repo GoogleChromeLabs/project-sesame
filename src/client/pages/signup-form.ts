@@ -16,13 +16,20 @@
  */
 
 import '~project-sesame/client/layout';
-import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {
+  loading,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
 
-postForm().then(() => {
-  loading.stop();
-  redirect('/home');
-}).catch(error => {
-  loading.stop();
-  toast(error.message);
-  console.error(error);
-});
+postForm()
+  .then(() => {
+    loading.stop();
+    redirect('/home');
+  })
+  .catch(error => {
+    loading.stop();
+    toast(error.message);
+    console.error(error);
+  });

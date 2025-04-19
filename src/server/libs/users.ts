@@ -17,7 +17,10 @@
 
 import {Base64URLString} from '@simplewebauthn/server';
 
-import {generateRandomString, getGravatarUrl} from '~project-sesame/server/libs/helpers.ts';
+import {
+  generateRandomString,
+  getGravatarUrl,
+} from '~project-sesame/server/libs/helpers.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 
@@ -37,7 +40,7 @@ export interface User {
  */
 export function generatePasskeyUserId(): Base64URLString {
   return generateRandomString();
-};
+}
 
 export class Users {
   static collection = 'users';
@@ -96,7 +99,9 @@ export class Users {
     }
   }
 
-  static async findByPasskeyUserId(passkey_user_id: Base64URLString): Promise<User | undefined> {
+  static async findByPasskeyUserId(
+    passkey_user_id: Base64URLString
+  ): Promise<User | undefined> {
     const results: User[] = [];
     const refs = await store
       .collection(Users.collection)
@@ -120,7 +125,10 @@ export class Users {
     return results.length > 0 ? results[0] : undefined;
   }
 
-  static async setPassword(username: string, password: string): Promise<User | undefined> {
+  static async setPassword(
+    username: string,
+    password: string
+  ): Promise<User | undefined> {
     const user = await Users.findByUsername(username);
     if (user) {
       // TODO: Hash the password
@@ -130,7 +138,10 @@ export class Users {
     return;
   }
 
-  static async validatePassword(username: string, password: string): Promise<User | undefined> {
+  static async validatePassword(
+    username: string,
+    password: string
+  ): Promise<User | undefined> {
     const user = await Users.findByUsername(username);
     if (user) {
       // TODO: Validate the password with hash
@@ -160,7 +171,10 @@ export class Users {
     if (passkey_user_id) {
       PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
       console.log(`Passkeys for ${user.username} have been deleted.`);
-      const doc = await store.collection(Users.collection).doc(user_id).delete();
+      const doc = await store
+        .collection(Users.collection)
+        .doc(user_id)
+        .delete();
       console.log(`The user account ${user.username} has been deleted.`);
       return;
     } else {

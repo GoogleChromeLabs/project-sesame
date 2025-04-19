@@ -16,14 +16,21 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {
+  $,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
 
-postForm().then(() => {
-  $('#form').style = 'display:none';
-  toast('You password has been changed. Redirecting to the home page.');
-  setTimeout(() => {
-    redirect('/home');
-  }, 3000);
-}).catch(error => {
-  toast(error.message);
-});
+postForm()
+  .then(() => {
+    $('#form').style = 'display:none';
+    toast('You password has been changed. Redirecting to the home page.');
+    setTimeout(() => {
+      redirect('/home');
+    }, 3000);
+  })
+  .catch(error => {
+    toast(error.message);
+  });

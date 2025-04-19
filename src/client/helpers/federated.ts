@@ -15,43 +15,35 @@
  * limitations under the License
  */
 
-import {post} from "~project-sesame/client/helpers/index";
-import {IdentityProvider} from "~project-sesame/client/helpers/identity";
-import {User} from '~project-sesame/server/libs/users.ts';
+import {toast} from '~project-sesame/client/helpers/index';
+import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {User} from '~project-sesame/server/libs/users';
 
-// @ts-ignore
-export async function authenticate(): Promise<PasswordCredential | string | undefined> {
+export async function authenticate(): Promise<
+  // @ts-ignore
+  PasswordCredential | string | undefined
+> {
   try {
+    const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+    await idp.initialize();
     const cred = await navigator.credentials.get({
       // temporary experiment for unified auth
       // @ts-ignore
       federated: {
-        providers: [ 'https://fedcm-idp-demo.glitch.me' ],
+        providers: idp.urls,
       },
       mediation: 'required',
     });
     if (cred) {
-      let idpInfo: any;
-      let token;
       try {
-        idpInfo = await post('/federation/idp', {
-          url: 'https://fedcm-idp-demo.glitch.me',
-        });
-        const idp = new IdentityProvider({
-          configURL: idpInfo.configURL,
-          clientId: idpInfo.clientId,
-        });
-        token = await idp.signIn({
-          mode: 'button',
+        await idp.signIn({
+          mode: 'active',
           // loginHint: cred.id,
         });
-        await post('/federation/verify', {token, url: idpInfo.origin});
         return true;
-      } catch (e) {
-        // Silently dismiss the request for now.
-        // TODO: What was I supposed to do when FedCM fails other reasons than "not signed in"?
-        console.info('The user is not signed in to the IdP.');
-        return false;
+      } catch (e: any) {
+        console.error(e);
+        toast(e.message);
       }
     } else {
       return false;
@@ -65,16 +57,19 @@ export async function authenticate(): Promise<PasswordCredential | string | unde
 /**
  * Saves a FederatedCredential to the password manager so that the user can
  * easily remember which identity provider is used.
- * @param user 
- * @param configURL 
- * @returns 
+ * @param user
+ * @param configURL
+ * @returns
  */
-export async function saveFederation(user: User, configURL: string): Promise<boolean> {
+export async function saveFederation(
+  user: User,
+  configURL: string
+): Promise<boolean> {
   try {
     // @ts-ignore
     const cred = new FederatedCredential({
       id: user.username,
-      name: user.name,
+      name: user.displayName,
       provider: configURL,
       iconURL: user.picture,
     });

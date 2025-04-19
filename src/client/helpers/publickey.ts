@@ -28,9 +28,9 @@ import {
 import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';
 import 'webauthn-polyfills';
 
-
-export const capabilities = window?.PublicKeyCredential &&
-  await PublicKeyCredential.getClientCapabilities();
+export const capabilities =
+  window?.PublicKeyCredential &&
+  (await PublicKeyCredential.getClientCapabilities());
 
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
@@ -41,7 +41,10 @@ export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCreden
   return PublicKeyCredential.parseCreationOptionsFromJSON(options);
 }
 
-export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential, rpId: string = ''): Promise<any> {
+export async function verifyPublicKeyCreationResult(
+  cred: PublicKeyCredential,
+  rpId: string = ''
+): Promise<any> {
   const encodedCredential = cred.toJSON();
 
   try {
@@ -58,7 +61,9 @@ export async function verifyPublicKeyCreationResult(cred: PublicKeyCredential, r
         rpId,
         credentialId: cred.id,
       });
-      console.info('The passkey failed to register has been signaled to the password manager.');
+      console.info(
+        'The passkey failed to register has been signaled to the password manager.'
+      );
     }
     throw new Error(e.error);
   }
@@ -72,7 +77,8 @@ export async function preparePublicKeyRequestOptions(
     '/webauthn/signinRequest'
   );
 
-  const decodedOptions = PublicKeyCredential.parseRequestOptionsFromJSON(options);
+  const decodedOptions =
+    PublicKeyCredential.parseRequestOptionsFromJSON(options);
 
   // Empty `allowCredentials` if `conditional` is true.
   if (conditional) {
@@ -82,8 +88,10 @@ export async function preparePublicKeyRequestOptions(
   return decodedOptions;
 }
 
-export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential, rpId: string = ''): Promise<any> {
-
+export async function verifyPublicKeyRequestResult(
+  cred: PublicKeyCredential,
+  rpId: string = ''
+): Promise<any> {
   const encodedCredential = cred.toJSON();
 
   try {
@@ -97,11 +105,15 @@ export async function verifyPublicKeyRequestResult(cred: PublicKeyCredential, rp
       await PublicKeyCredential.signalUnknownCredential({
         rpId,
         credentialId: cred.id,
-      }).then(() => {
-        console.info('The passkey associated with the credential not found has been signaled to the password manager.');
-      }).catch((e: any) => {
-        console.error(e);
-      });
+      })
+        .then(() => {
+          console.info(
+            'The passkey associated with the credential not found has been signaled to the password manager.'
+          );
+        })
+        .catch((e: any) => {
+          console.error(e);
+        });
     }
     throw new Error(e.error);
   }
@@ -120,10 +132,13 @@ export async function registerCredential(): Promise<any> {
   })) as RegistrationCredential;
 
   if (!cred) {
-    throw new Error("Failed to create a credential");
+    throw new Error('Failed to create a credential');
   }
 
-  return verifyPublicKeyCreationResult(<PublicKeyCredential>cred, options.rp.id);
+  return verifyPublicKeyCreationResult(
+    <PublicKeyCredential>cred,
+    options.rp.id
+  );
 }
 
 /**
@@ -142,7 +157,7 @@ export async function authenticate(conditional = false): Promise<any> {
   })) as AuthenticationCredential;
 
   if (!cred) {
-    throw new Error("Failed to get a credential");
+    throw new Error('Failed to get a credential');
   }
 
   return verifyPublicKeyRequestResult(<PublicKeyCredential>cred, options.rpId);
@@ -154,33 +169,41 @@ export async function authenticate(conditional = false): Promise<any> {
  * Base64URL encoded credential ID.
  * @returns a promise that resolve with undefined.
  */
-export async function getAllCredentials(): Promise<SesamePublicKeyCredential[]> {
-  const { rpId, userId, credentials } = (await post('/webauthn/getKeys')) as {
-    rpId: string,
-    userId: string,
-    credentials: SesamePublicKeyCredential[]
+export async function getAllCredentials(): Promise<
+  SesamePublicKeyCredential[]
+> {
+  const {rpId, userId, credentials} = (await post('/webauthn/getKeys')) as {
+    rpId: string;
+    userId: string;
+    credentials: SesamePublicKeyCredential[];
   };
   // @ts-ignore
   if (PublicKeyCredential.signalAllAcceptedCredentials) {
-    const allAcceptedCredentialIds = credentials.map((cred: SesamePublicKeyCredential) => cred.id);
+    const allAcceptedCredentialIds = credentials.map(
+      (cred: SesamePublicKeyCredential) => cred.id
+    );
     // @ts-ignore
     await PublicKeyCredential.signalAllAcceptedCredentials({
       rpId,
       userId, // base64url encoded user ID
-      allAcceptedCredentialIds
-    }).then(() => {
-      console.info('Passkeys list have been signaled to the password manager.');
-    }).catch((e: any) => {
-      console.error(e.message);
-    });
+      allAcceptedCredentialIds,
+    })
+      .then(() => {
+        console.info(
+          'Passkeys list have been signaled to the password manager.'
+        );
+      })
+      .catch((e: any) => {
+        console.error(e.message);
+      });
   }
   return credentials;
 }
 
 export async function deleteAllCredentials(): Promise<void> {
-  const { rpId, userId } = (await post('/webauthn/getKeys')) as {
-    rpId: string,
-    userId: string,
+  const {rpId, userId} = (await post('/webauthn/getKeys')) as {
+    rpId: string;
+    userId: string;
   };
   // @ts-ignore
   if (PublicKeyCredential.signalAllAcceptedCredentials) {
@@ -189,7 +212,7 @@ export async function deleteAllCredentials(): Promise<void> {
       await PublicKeyCredential.signalAllAcceptedCredentials({
         rpId,
         userId, // base64url encoded user ID
-        allAcceptedCredentialIds: []
+        allAcceptedCredentialIds: [],
       });
       console.info('Passkeys list have been signaled to the password manager.');
     } catch (e: any) {

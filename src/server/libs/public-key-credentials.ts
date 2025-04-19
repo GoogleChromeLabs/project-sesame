@@ -85,7 +85,7 @@ export class PublicKeyCredentials {
   }
 
   static async remove(
-    credential_id: Base64URLString,
+    credential_id: Base64URLString
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)
@@ -96,7 +96,8 @@ export class PublicKeyCredentials {
   static async deleteByPasskeyUserId(
     passkey_user_id: Base64URLString
   ): Promise<void> {
-    const creds = await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);
+    const creds =
+      await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);
     if (creds) {
       creds.forEach(async cred => {
         await PublicKeyCredentials.remove(cred.id);

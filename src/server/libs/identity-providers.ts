@@ -41,7 +41,8 @@ export class IdentityProviders {
     {
       origin: 'https://accounts.google.com',
       configURL: 'https://accounts.google.com/gsi/fedcm.json',
-      clientId: '493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com',
+      clientId:
+        '493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com',
       secret: '*****',
     },
     {
@@ -49,10 +50,12 @@ export class IdentityProviders {
       configURL: 'https://accounts.sandbox.google.com/gsi/vc.json',
       clientId: config.origin,
       secret: '*****',
-    }
+    },
   ];
 
-  static async findByOrigin(url: string): Promise<IdentityProvider | undefined> {
+  static async findByOrigin(
+    url: string
+  ): Promise<IdentityProvider | undefined> {
     const idp = IdentityProviders.idps.find(idp => {
       return idp.origin === new URL(url).origin;
     });

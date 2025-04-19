@@ -27,7 +27,7 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
         target: {
           namespace: 'android_app',
           package_name: domain.package_name,
-          sha256_cert_fingerprints: [ domain.sha256_cert_fingerprints ]
+          sha256_cert_fingerprints: [domain.sha256_cert_fingerprints],
         },
       });
     } else {

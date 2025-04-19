@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {post} from "~project-sesame/client/helpers/index";
+import {post} from '~project-sesame/client/helpers/index';
 
 export async function verifyPassword(
   // @ts-ignore
@@ -24,13 +24,15 @@ export async function verifyPassword(
   await post('/auth/username-password', {
     username: cred.id,
     // @ts-ignore
-    password: cred.password
+    password: cred.password,
   });
   return true;
 }
 
-// @ts-ignore
-export async function authenticate(): Promise<PasswordCredential | string | undefined> {
+export async function authenticate(): Promise<
+  // @ts-ignore
+  PasswordCredential | string | undefined
+> {
   try {
     const cred = await navigator.credentials.get({
       // @ts-ignore

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "esnext",
-    "lib": [ "ESNext", "DOM" ],
+    "lib": ["ESNext", "DOM"],
     "baseUrl": "./",
     "outDir": "../dist",
     "strict": true,
@@ -17,7 +17,8 @@
     "esModuleInterop": true,
     "paths": {
       "~project-sesame/client/*": ["./*"],
-      "~project-sesame/shared/*": ["../shared/*"],
+      "~project-sesame/server/*": ["../server/*"],
+      "~project-sesame/shared/*": ["../shared/*"]
     }
   }
 }

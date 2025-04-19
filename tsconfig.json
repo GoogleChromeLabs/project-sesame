@@ -4,13 +4,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
-  "include": [
-    "src/types.d.ts",
-    "**/*.ts"
-  ],
-  "typeRoots": [
-    "node_modules/@types"
-  ],
+  "include": ["src/types.d.ts", "**/*.ts"],
+  "typeRoots": ["node_modules/@types"]
 }

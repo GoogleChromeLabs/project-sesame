@@ -37,7 +37,10 @@ import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import {generatePasskeyUserId, Users} from '~project-sesame/server/libs/users.ts';
+import {
+  generatePasskeyUserId,
+  Users,
+} from '~project-sesame/server/libs/users.ts';
 import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   apiAclCheck,
@@ -53,7 +56,7 @@ import {
   setEphemeralPasskeyUserId,
   setSessionUser,
 } from '~project-sesame/server/middlewares/session.ts';
-import aaguids from '~project-sesame/shared/public/aaguids.json' with { type: 'json' };
+import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
   [key: string]: {
@@ -72,10 +75,12 @@ router.post(
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response) => {
     const {user} = res.locals;
-    const credentials = await PublicKeyCredentials.findByPasskeyUserId(user.passkeyUserId);
-    const rpId = config.hostname
+    const credentials = await PublicKeyCredentials.findByPasskeyUserId(
+      user.passkeyUserId
+    );
+    const rpId = config.hostname;
     const userId = user.passkeyUserId;
-    return res.json({ rpId, userId, credentials });
+    return res.json({rpId, userId, credentials});
   }
 );
 
@@ -89,7 +94,11 @@ router.post(
     const {credId, newName} = req.body;
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
-    if (!user || !credential || user.passkeyUserId !== credential?.passkeyUserId) {
+    if (
+      !user ||
+      !credential ||
+      user.passkeyUserId !== credential?.passkeyUserId
+    ) {
       return res.status(401).json({error: 'User not authorized.'});
     }
     credential.name = newName;
@@ -106,7 +115,7 @@ router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response) => {
-    // TODO: Check if the user is authorized to remove the credential.  
+    // TODO: Check if the user is authorized to remove the credential.
     const credId = <Base64URLString>req.query.credId;
 
     await PublicKeyCredentials.remove(credId);
@@ -137,8 +146,9 @@ router.post(
 
     try {
       // Create `excludeCredentials` from a list of stored credentials.
-      const excludeCredentials: PublicKeyCredentialDescriptorJSON[] = [];
-      const credentials = await PublicKeyCredentials.findByPasskeyUserId(passkeyUserId);
+      const excludeCredentials = [];
+      const credentials =
+        await PublicKeyCredentials.findByPasskeyUserId(passkeyUserId);
       for (const cred of credentials || []) {
         excludeCredentials.push({
           id: cred.id,
@@ -232,8 +242,9 @@ router.post(
       );
 
       const aaguid = registrationInfo?.aaguid;
-      const name = aaguid === undefined ||
-          aaguid === '00000000-0000-0000-0000-000000000000'
+      const name =
+        aaguid === undefined ||
+        aaguid === '00000000-0000-0000-0000-000000000000'
           ? req.useragent?.platform
           : (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
 
@@ -286,10 +297,13 @@ router.post(
 
     // For reauthentication
     if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
-
-      const credentials = await PublicKeyCredentials.findByPasskeyUserId(res.locals.user.passkeyUserId);
+      const credentials = await PublicKeyCredentials.findByPasskeyUserId(
+        res.locals.user.passkeyUserId
+      );
       if (!credentials?.length) {
-        return res.status(404).json({error: 'No credentials found to sign in with.'});
+        return res
+          .status(404)
+          .json({error: 'No credentials found to sign in with.'});
       }
 
       // If the device ID is known, pick the credential by the device ID.
@@ -350,15 +364,17 @@ router.post(
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
         deleteChallenge(req, res);
-        return res.status(404).json({error:
-          'Matching credential not found on the server.'
-        });
+        return res
+          .status(404)
+          .json({error: 'Matching credential not found on the server.'});
       }
 
       // If the user is already signed in and passkey user ID doesn't match,
       // return an error.
-      if (res.locals.signin_status >= UserSignInStatus.SignedIn &&
-          res.locals.user.passkeyUserId !== cred.passkeyUserId) {
+      if (
+        res.locals.signin_status >= UserSignInStatus.SignedIn &&
+        res.locals.user.passkeyUserId !== cred.passkeyUserId
+      ) {
         deleteChallenge(req, res);
         return res.status(400).json({error: 'Wrong sign-in account.'});
       }

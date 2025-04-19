@@ -16,35 +16,49 @@
  */
 
 import '~project-sesame/client/layout';
-import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
-import {capabilities, registerCredential} from '~project-sesame/client/helpers/publickey';
+import {
+  loading,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
+import {
+  capabilities,
+  registerCredential,
+} from '~project-sesame/client/helpers/publickey';
 
-postForm().then(async () => {
-  // Are UVPAA and conditional UI available on this browser?
-  if (capabilities?.userVerifyingPlatformAuthenticator &&
-      capabilities?.conditionalGet) {
-    return registerCredential().then(() => {
-      redirect('/home');
-    }).catch(error => {
-      // 'InvalidStateError' indicates a passkey already exists on the device.
-      if (error.name === 'InvalidStateError') {
-        toast('A passkey already exists for this device.');
-        // `NotAllowedError` indicates the user canceled the operation.
-      } else if (error.name === 'NotAllowedError') {
-        return;
-        // Show other errors in an toast.
-      } else {
-        loading.stop();
-        toast(error.message);
-        console.error(error);
-      }
-    });
-  } else {
+postForm()
+  .then(async () => {
+    // Are UVPAA and conditional UI available on this browser?
+    if (
+      capabilities?.userVerifyingPlatformAuthenticator &&
+      capabilities?.conditionalGet
+    ) {
+      return registerCredential()
+        .then(() => {
+          redirect('/home');
+        })
+        .catch(error => {
+          // 'InvalidStateError' indicates a passkey already exists on the device.
+          if (error.name === 'InvalidStateError') {
+            toast('A passkey already exists for this device.');
+            // `NotAllowedError` indicates the user canceled the operation.
+          } else if (error.name === 'NotAllowedError') {
+            return;
+            // Show other errors in an toast.
+          } else {
+            loading.stop();
+            toast(error.message);
+            console.error(error);
+          }
+        });
+    } else {
+      loading.stop();
+      redirect('/new-password');
+    }
+  })
+  .catch(error => {
     loading.stop();
-    redirect('/new-password');
-  }
-}).catch(error => {
-  loading.stop();
-  toast(error.message);
-  console.error(error);
-});
+    toast(error.message);
+    console.error(error);
+  });

@@ -28,24 +28,36 @@ router.get('/', (req: Request, res: Response) => {
   return res.redirect(307, '/home');
 });
 
-router.get('/passkeys', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
-  return res.render('settings/passkeys.html', {
-    title: 'Passkey Management',
-  });
-});
+router.get(
+  '/passkeys',
+  pageAclCheck(PageType.Sensitive),
+  (req: Request, res: Response) => {
+    return res.render('settings/passkeys.html', {
+      title: 'Passkey Management',
+    });
+  }
+);
 
-router.get('/password-change', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
-  const username = req.session.username;
-  return res.render('settings/password-change.html', {
-    title: 'Password Change',
-    username,
-  });
-});
+router.get(
+  '/password-change',
+  pageAclCheck(PageType.Sensitive),
+  (req: Request, res: Response) => {
+    const username = req.session.username;
+    return res.render('settings/password-change.html', {
+      title: 'Password Change',
+      username,
+    });
+  }
+);
 
-router.get('/delete-account', pageAclCheck(PageType.Sensitive), (req: Request, res: Response) => {
-  return res.render('settings/delete-account.html', {
-    title: 'Delete account',
-  });
-});
+router.get(
+  '/delete-account',
+  pageAclCheck(PageType.Sensitive),
+  (req: Request, res: Response) => {
+    return res.render('settings/delete-account.html', {
+      title: 'Delete account',
+    });
+  }
+);
 
 export {router as settings};

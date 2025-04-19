@@ -16,14 +16,25 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
-import {capabilities, authenticate} from '~project-sesame/client/helpers/publickey';
+import {
+  $,
+  loading,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
+import {
+  capabilities,
+  authenticate,
+} from '~project-sesame/client/helpers/publickey';
 
-postForm().then(() => {
-  redirect('/password');
-}).catch(error => {
-  toast(error.message);
-});
+postForm()
+  .then(() => {
+    redirect('/password');
+  })
+  .catch(error => {
+    toast(error.message);
+  });
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 if (capabilities?.conditionalGet) {

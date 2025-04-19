@@ -52,7 +52,8 @@ async function renderDisplayName(): Promise<void> {
           slot="end"
           data-display-name="${res.displayName || res.username}"
           @click="${changeDisplayName}"
-          title="Edit your display name">
+          title="Edit your display name"
+        >
           <mdui-icon name="edit--outlined"></mdui-icon>
         </mdui-button-icon>
       </div>

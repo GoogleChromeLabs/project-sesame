@@ -17,18 +17,18 @@
 
 import '../../layout';
 import {$, post, loading, redirect, toast} from '../../helpers/index';
-import { deleteAllCredentials } from '../../helpers/publickey';
+import {deleteAllCredentials} from '../../helpers/publickey';
 
 async function deleteAccount(e: MouseEvent): Promise<void> {
   loading.start();
-  const confirmation = confirm(
-    'Do you really want to detele your account?'
-  );
+  const confirmation = confirm('Do you really want to detele your account?');
   if (confirmation) {
     try {
       await post('/auth/delete-user');
       await deleteAllCredentials();
-      toast('You account and passkeys have been deleted. Redirecting to the top page.');
+      toast(
+        'You account and passkeys have been deleted. Redirecting to the top page.'
+      );
       setTimeout(() => {
         // By redirecting to /home, the user should be redirected to the login page.
         redirect('/signout');

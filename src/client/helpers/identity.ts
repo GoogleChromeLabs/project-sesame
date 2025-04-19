@@ -16,17 +16,17 @@
  */
 
 import {$, post} from '~project-sesame/client/helpers/index';
-import { saveFederation } from '~project-sesame/client/helpers/federated';
+import {saveFederation} from '~project-sesame/client/helpers/federated';
 
 interface FedCmOptions {
-  mode?: 'active' | 'passive',
-  loginHint?: string,
-  context?: string,
-  nonce?: string,
-  format?: string,
-  fields?: string[],
-  mediation?: 'silent' | 'optional' | 'required',
-  params?: object,
+  mode?: 'active' | 'passive';
+  loginHint?: string;
+  context?: string;
+  nonce?: string;
+  format?: string;
+  fields?: string[];
+  mediation?: 'silent' | 'optional' | 'required';
+  params?: object;
 }
 
 // This is almost identical to the IdentityProvider class at https://fedcm-idp-demo.glitch.me/fedcm.js.
@@ -35,16 +35,14 @@ interface FedCmOptions {
 export class IdentityProvider {
   urls: string[] = [];
   idps: {
-    origin: string
-    configURL: string
-    clientId: string
+    origin: string;
+    configURL: string;
+    clientId: string;
   }[] = [];
 
-  constructor(
-    urls: string[] = []
-  ) {
+  constructor(urls: string[] = []) {
     for (let url of urls) {
-      this.urls.push((new URL(url)).toString());
+      this.urls.push(new URL(url).toString());
     }
   }
 
@@ -71,7 +69,15 @@ export class IdentityProvider {
     options: FedCmOptions = {}
     // @ts-ignore
   ): Promise<IdentityCredential | undefined> {
-    let { mode = 'passive', loginHint, context, nonce, fields, mediation, params = {} } = options;
+    let {
+      mode = 'passive',
+      loginHint,
+      context,
+      nonce,
+      fields,
+      mediation,
+      params = {},
+    } = options;
     if (!nonce) {
       nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
@@ -93,7 +99,7 @@ export class IdentityProvider {
 
     const cred = await navigator.credentials.get({
       // @ts-ignore
-      identity: { providers, mode, context, },
+      identity: {providers, mode, context},
       mediation,
     });
 
@@ -109,10 +115,8 @@ export class IdentityProvider {
     return await this.verifyIdToken(cred);
   }
 
-  async delegate(
-    options: FedCmOptions = {}
-  ): Promise<string | undefined> {
-    let { mode = '', nonce, fields, mediation, params = {} } = options;
+  async delegate(options: FedCmOptions = {}): Promise<string | undefined> {
+    let {mode = '', nonce, fields, mediation, params = {}} = options;
     if (!nonce) {
       nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
@@ -123,7 +127,7 @@ export class IdentityProvider {
     const providers = [];
     for (let idp of this.idps) {
       providers.push({
-        format: "vc+sd-jwt",
+        format: 'vc+sd-jwt',
         configURL: idp.configURL,
         clientId: idp.clientId,
         nonce,
@@ -134,12 +138,11 @@ export class IdentityProvider {
 
     const cred = await navigator.credentials.get({
       // @ts-ignore
-      identity: { providers },
+      identity: {providers},
       mediation,
     });
 
-    // @ts-ignore
-    return cred?.token;
+    return await this.verifySdJwt(cred);
   }
 
   // @ts-ignore
@@ -154,7 +157,10 @@ export class IdentityProvider {
     }
 
     // TODO: Make sure the response is User type
-    const user = await post('/federation/verify', {token: cred.token, url: idp.origin});
+    const user = await post('/federation/verifyIdToken', {
+      token: cred.token,
+      url: idp.origin,
+    });
     await saveFederation(user, idp.configURL);
     return user;
   }
@@ -171,7 +177,10 @@ export class IdentityProvider {
     }
 
     // TODO: Create an endpoint that verifies SD JWT
-    const user = await post('/federation/verify', {token: cred.token, url: idp.origin});
+    const user = await post('/federation/verifySdJwt', {
+      token: cred.token,
+      url: idp.origin,
+    });
     return user;
   }
   async signOut() {
@@ -188,7 +197,7 @@ export class IdentityProvider {
   //       configURL: this.configURL,
   //       clientId: this.clientId,
   //       accountHint: accountId
-  //     });      
+  //     });
   //   } catch (e) {
   //     throw new Error('Failed disconnecting.');
   //   }

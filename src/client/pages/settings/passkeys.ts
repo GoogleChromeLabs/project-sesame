@@ -63,7 +63,8 @@ async function renderDisplayName(): Promise<void> {
           data-display-name="${res.displayName || res.username}"
           @click="${changeDisplayName}"
           icon="edit"
-          title="Edit your display name"></mdui-button-icon>
+          title="Edit your display name"
+        ></mdui-button-icon>
       </div>
     `,
     $('#userinfo')
@@ -116,8 +117,10 @@ async function remove(event: {target: HTMLButtonElement}): Promise<void> {
 const createPasskey = $('#create-passkey');
 
 // Is WebAuthn available on this browser?
-if (capabilities?.userVerifyingPlatformAuthenticator &&
-    capabilities?.conditionalGet) {
+if (
+  capabilities?.userVerifyingPlatformAuthenticator &&
+  capabilities?.conditionalGet
+) {
   // If both are available, reveal the "Create a passkey" button.
   createPasskey.classList.remove('hidden');
 } else {
@@ -166,25 +169,31 @@ async function renderCredentials(): Promise<void> {
               <mdui-icon
                 slot="icon"
                 src="${icons[cred.aaguid].icon_light}"
-                title="${icons[cred.aaguid].name}"></mdui-icon>
+                title="${icons[cred.aaguid].name}"
+              ></mdui-icon>
               <span>${cred.name || 'Unnamed'}</span>
               <span slot="description">${timestampStr}</span>
-              ${!cred.credentialBackedUp?html`
-              <mdui-button-icon
-                slot="end-icon"
-                icon="sync_disabled--outlined"></mdui-button-icon>
-              `:''}
+              ${!cred.credentialBackedUp
+                ? html`
+                    <mdui-button-icon
+                      slot="end-icon"
+                      icon="sync_disabled--outlined"
+                    ></mdui-button-icon>
+                  `
+                : ''}
               <mdui-button-icon
                 slot="end-icon"
                 data-cred-id="${cred.id}"
                 data-name="${cred.name || 'Unnamed'}"
                 icon="edit--outlined"
-                @click="${rename}"></mdui-button-icon>
+                @click="${rename}"
+              ></mdui-button-icon>
               <mdui-button-icon
                 slot="end-icon"
                 data-cred-id="${cred.id}"
                 icon="delete--outlined"
-                @click="${remove}"></mdui-button-icon>
+                @click="${remove}"
+              ></mdui-button-icon>
             </mdui-list-item>`;
         })}`
       : html`<mdui-list-item>No credentials found.</mdui-list-item>`;

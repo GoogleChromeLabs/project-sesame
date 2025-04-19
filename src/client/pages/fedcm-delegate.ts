@@ -16,17 +16,24 @@
  */
 
 import '~project-sesame/client/layout';
-import {loading, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {
+  loading,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-postForm().then(() => {
-  loading.stop();
-  redirect('/home');
-}).catch(error => {
-  loading.stop();
-  toast(error.message);
-  console.error(error);
-});
+postForm()
+  .then(() => {
+    loading.stop();
+    redirect('/home');
+  })
+  .catch(error => {
+    loading.stop();
+    toast(error.message);
+    console.error(error);
+  });
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 // @ts-ignore
@@ -37,7 +44,7 @@ if (window.IdentityCredential) {
     await idp.delegate({
       fields: ['name', 'email', 'picture'],
       // @ts-ignore
-      mediation: 'conditional'
+      mediation: 'conditional',
     });
     redirect('/home');
   } catch (error: any) {
@@ -48,5 +55,4 @@ if (window.IdentityCredential) {
       toast(error.message);
     }
   }
-
 }

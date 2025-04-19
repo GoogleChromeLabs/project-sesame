@@ -42,7 +42,9 @@ if (window.PasswordCredential) {
     }
   );
 } else {
-  toast("`PasswordCredential` and `FederatedCredential` aren't supported on this browser. Redirecting to a form.");
+  toast(
+    "`PasswordCredential` and `FederatedCredential` aren't supported on this browser. Redirecting to a form."
+  );
   setTimeout(() => {
     redirect('/passkey-form-autofill');
   }, 3000);

@@ -16,24 +16,31 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {
+  $,
+  redirect,
+  postForm,
+  toast,
+} from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-postForm().then(() => {
-  redirect('/home');
-}).catch(error => {
-  // FIXME: `error.message` is not included.
-  toast(error.message);
-});
+postForm()
+  .then(() => {
+    redirect('/home');
+  })
+  .catch(error => {
+    // FIXME: `error.message` is not included.
+    toast(error.message);
+  });
 
 if ('IdentityCredential' in window) {
   try {
     const idp = new IdentityProvider([
-        'https://fedcm-idp-demo.glitch.me',
-        'https://accounts.google.com',
-      ]);
+      'https://fedcm-idp-demo.glitch.me',
+      'https://accounts.google.com',
+    ]);
     await idp.initialize();
-    await idp.signIn({mode: 'passive'});
+    await idp.signIn({mode: 'passive', mediation: 'required'});
     location.href = '/home';
   } catch (e: any) {
     console.error(e);
@@ -42,4 +49,3 @@ if ('IdentityCredential' in window) {
 } else {
   $('#unsupported').classList.remove('hidden');
 }
-
