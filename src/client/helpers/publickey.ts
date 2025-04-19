@@ -32,6 +32,8 @@ export const capabilities =
   window?.PublicKeyCredential &&
   (await PublicKeyCredential.getClientCapabilities());
 
+let controller = new AbortController();
+
 export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await post(
@@ -43,13 +45,18 @@ export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCreden
 
 export async function verifyPublicKeyCreationResult(
   cred: PublicKeyCredential,
-  rpId: string = ''
+  rpId: string = '',
+  conditional: boolean
 ): Promise<any> {
   const encodedCredential = cred.toJSON();
 
   try {
+    const path = conditional
+      ? '/webauthn/registerResponse?conditional'
+      : '/webauthn/registerResponse';
+
     // Send the result to the server and return the promise.
-    const result = await post('/webauthn/registerResponse', encodedCredential);
+    const result = await post(path, encodedCredential);
     return result;
   } catch (e: any) {
     // Detect if the credential was not found.
@@ -123,12 +130,21 @@ export async function verifyPublicKeyRequestResult(
  * Create and register a new passkey
  * @returns A promise that resolves with a server response.
  */
-export async function registerCredential(): Promise<any> {
+export async function registerCredential(
+  conditional: boolean = false
+): Promise<any> {
+  // Abort ongoing WebAuthn request
+  controller.abort();
+  controller = new AbortController();
+
   const options = await preparePublicKeyCreationOptions();
 
   // Invoke WebAuthn create
   const cred = (await navigator.credentials.create({
     publicKey: options,
+    signal: controller.signal,
+    // @ts-ignore
+    mediation: conditional ? 'conditional' : 'optional',
   })) as RegistrationCredential;
 
   if (!cred) {
@@ -137,7 +153,8 @@ export async function registerCredential(): Promise<any> {
 
   return verifyPublicKeyCreationResult(
     <PublicKeyCredential>cred,
-    options.rp.id
+    options.rp.id,
+    conditional
   );
 }
 
@@ -147,11 +164,16 @@ export async function registerCredential(): Promise<any> {
  * @returns A promise that resolves with a server response.
  */
 export async function authenticate(conditional = false): Promise<any> {
+  // Abort ongoing WebAuthn request
+  controller.abort();
+  controller = new AbortController();
+
   const options = await preparePublicKeyRequestOptions(conditional);
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
     publicKey: options,
+    signal: controller.signal,
     // Request a conditional UI
     mediation: conditional ? 'conditional' : 'optional',
   })) as AuthenticationCredential;

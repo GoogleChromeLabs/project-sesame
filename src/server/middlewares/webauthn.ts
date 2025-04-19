@@ -207,6 +207,7 @@ router.post(
     }
 
     // Set expected values.
+    const conditional = req.query.hasOwnProperty('conditional');
     const response = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
     const expectedOrigin = config.associated_origins;
@@ -223,6 +224,7 @@ router.post(
         expectedChallenge,
         expectedOrigin,
         expectedRPID,
+        requireUserPresence: !conditional,
         requireUserVerification: false,
       });
 
