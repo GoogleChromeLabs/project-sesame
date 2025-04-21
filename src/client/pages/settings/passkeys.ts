@@ -145,22 +145,24 @@ async function renderCredentials(): Promise<void> {
               month: 'short',
               day: 'numeric',
             });
-            const lastUsedTime = lastUsed.toLocaleTimeString(undefined, {
-              timeStyle: 'short',
-              hour12: false,
-            });
-            timestampStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
+            // const lastUsedTime = lastUsed.toLocaleTimeString(undefined, {
+            //   timeStyle: 'short',
+            //   hour12: false,
+            // });
+            timestampStr = `Last used: ${lastUsedDate}`;
+            // timestampStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
           } else {
             const created = new Date(cred.registeredAt);
             const createdDate = created.toLocaleDateString(undefined, {
               month: 'short',
               day: 'numeric',
             });
-            const createdTime = created.toLocaleTimeString(undefined, {
-              timeStyle: 'short',
-              hour12: false,
-            });
-            timestampStr = `Created: ${createdDate}, ${createdTime}`;
+            // const createdTime = created.toLocaleTimeString(undefined, {
+            //   timeStyle: 'short',
+            //   hour12: false,
+            // });
+            timestampStr = `Created: ${createdDate}`;
+            // timestampStr = `Created: ${createdDate}, ${createdTime}`;
           }
           return html`${i > 0 && i < res.length
               ? html` <mdui-divider></mdui-divider> `

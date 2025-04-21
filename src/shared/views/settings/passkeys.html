@@ -1,10 +1,33 @@
-    <main class="content center">
-      <section id="passkeys">
-        <h3>
-          Your passkeys:
-        </h3>
-        <mdui-list id="list"></mdui-list>
-      </section>
-      <p id="message" class="instructions"></p>
-      <mdui-button id="create-passkey" class="hidden" variant="filled">Create a passkey</mdui-button>
-    </main>
+<div id="help-text">
+  <!-- prettier-ignore -->
+  <div class="help-headline">
+Passkey management
+  </div>
+  <!-- prettier-ignore -->
+  <div class="help-description">
+In this page, you can experience and learn general passkey management and
+Signal API.
+
+## How to use
+
+TBD
+
+## How to develop
+
+TBD
+  </div>
+</div>
+<main class="content center">
+  <section id="passkeys">
+    <h3>Your passkeys</h3>
+    <mdui-list id="list"></mdui-list>
+  </section>
+  <p id="message" class="instructions"></p>
+  <mdui-button
+    id="create-passkey"
+    icon="add--outlined"
+    class="hidden"
+    variant="filled"
+    >Create a passkey</mdui-button
+  >
+</main>
