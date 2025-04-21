@@ -28,6 +28,7 @@ import {
   setEphemeralPasskeyUserId,
   apiAclCheck,
   ApiType,
+  signOut,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
@@ -256,7 +257,6 @@ router.post(
  */
 router.post(
   '/userinfo',
-  csrfCheck,
   apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response) => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
@@ -273,7 +273,6 @@ router.post(
  */
 router.post(
   '/updateDisplayName',
-  csrfCheck,
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response) => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
@@ -294,7 +293,6 @@ router.post(
 
 router.post(
   '/delete-user',
-  csrfCheck,
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response) => {
     if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
@@ -303,6 +301,13 @@ router.post(
     }
     const {user} = res.locals;
     await Users.delete(user.id);
+
+    // Destroy the session
+    req.session.destroy(() => {});
+
+    // Set a login status using the Login Status API
+    res.set('Set-Login', 'logged-out');
+
     return res.json({});
   }
 );
