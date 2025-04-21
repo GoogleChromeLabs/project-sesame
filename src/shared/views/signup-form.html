@@ -1,28 +1,35 @@
 <div id="help-text">
+  <!-- prettier-ignore -->
   <div class="help-headline">
-    Sign-up form
+Sign-up form
   </div>
+  <!-- prettier-ignore -->
   <div class="help-description">
 
-    In this page, you can experience and learn a sign-up flow using a
-    username and a password.
+In this page, you can experience and learn a sign-up flow using a
+username and a password.
 
-    ## How to use
+## How to use
 
-    TBD
+TBD
 
-    ## How to develop
+## How to develop
 
-    TBD
+TBD
 
   </div>
 </div>
 <main class="content center">
-  <h2>
-    Create your account
-  </h2>
-  <form id="form" method="POST" action="/auth/new-username-password" class="center">
-    <p class="instructions">Already have an account? <a href="/signin-form">Sign in</a></p>
+  <h2>Create your account</h2>
+  <form
+    id="form"
+    method="POST"
+    action="/auth/new-username-password"
+    class="center"
+  >
+    <p class="instructions">
+      Already have an account? <a href="/signin-form">Sign in</a>
+    </p>
     <mdui-text-field
       type="text"
       id="username"
@@ -31,7 +38,8 @@
       label="username"
       width="100"
       variant="outlined"
-      autofocus>
+      autofocus
+    >
     </mdui-text-field>
     <mdui-text-field
       type="password"
@@ -41,14 +49,17 @@
       label="New password"
       width="100"
       variant="outlined"
-      autofocus>
+      autofocus
+    >
       <mdui-button-icon
         class="password-toggle"
         slot="end-icon"
-        toggle slot="trailing-icon"
+        toggle
+        slot="trailing-icon"
         icon="visibility_off--outlined"
         selected-icon="visibility--outlined"
-        selectable>
+        selectable
+      >
       </mdui-button-icon>
     </mdui-text-field>
     <mdui-text-field
@@ -59,14 +70,17 @@
       label="Confirm password"
       width="100"
       variant="outlined"
-      autofocus>
+      autofocus
+    >
       <mdui-button-icon
         class="password-toggle"
         slot="end-icon"
-        toggle slot="trailing-icon"
+        toggle
+        slot="trailing-icon"
         icon="visibility_off--outlined"
         selected-icon="visibility--outlined"
-        selectable>
+        selectable
+      >
       </mdui-button-icon>
     </mdui-text-field>
     <mdui-button type="submit" variant="filled">Sign up</mdui-button>

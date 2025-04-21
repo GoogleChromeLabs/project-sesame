@@ -1,38 +1,45 @@
-    <div id="help-text">
-      <div class="help-headline">
-        Sign-up with passkeys
-      </div>
-      <div class="help-description">
+<div id="help-text">
+  <!-- prettier-ignore -->
+  <div class="help-headline">
+Sign-up with passkeys
+  </div>
+  <!-- prettier-ignore -->
+  <div class="help-description">
 
-        In this page, you can experience and learn sign-up flow using
-        passkeys.
+In this page, you can experience and learn sign-up flow using
+passkeys.
 
-        ## How to use
+## How to use
 
-        TBD
+TBD
 
-        ## How to develop
+## How to develop
 
-        TBD
+TBD
 
-      </div>
-    </div>
-    <main class="content center">
-      <h2>
-        Create your account
-      </h2>
-      <form id="form" method="POST" action="/auth/new-user" class="center">
-        <p class="instructions">Already have an account? <a href="/passkey-form-autofill">Sign in</a></p>
-        <mdui-text-field
-          type="text"
-          id="username"
-          name="username"
-          autocomplete="username"
-          label="username"
-          variant="outlined"
-          autofocus>
-        </mdui-text-field>
-        <mdui-button type="submit" variant="filled">Create your account</mdui-button>
-        <p class="instructions">By creating an account you accept our <a href="#">terms and conditions</a></p>
-      </form>
-    </main>
+  </div>
+</div>
+<main class="content center">
+  <h2>Create your account</h2>
+  <form id="form" method="POST" action="/auth/new-user" class="center">
+    <p class="instructions">
+      Already have an account? <a href="/passkey-form-autofill">Sign in</a>
+    </p>
+    <mdui-text-field
+      type="text"
+      id="username"
+      name="username"
+      autocomplete="username"
+      label="username"
+      variant="outlined"
+      autofocus
+    >
+    </mdui-text-field>
+    <mdui-button type="submit" variant="filled"
+      >Create your account</mdui-button
+    >
+    <p class="instructions">
+      By creating an account you accept our <a href="#">terms and conditions</a>
+    </p>
+  </form>
+</main>

@@ -1,57 +1,62 @@
-    <div id="help-text">
-      <div class="help-headline">
-        Sign-in form
-      </div>
-      <div class="help-description">
+<div id="help-text">
+  <!-- prettier-ignore -->
+  <div class="help-headline">
+Sign-in form
+  </div>
+  <!-- prettier-ignore -->
+  <div class="help-description">
 
-        In this page, you can experience and learn a sign-in flow using a
-        username and a password.
+In this page, you can experience and learn a sign-in flow using a
+username and a password.
 
-        ## How to use
+## How to use
 
-        TBD
+TBD
 
-        ## How to develop
+## How to develop
 
-        TBD
+TBD
 
-      </div>
-    </div>
-    <main class="content center">
-      <h2>
-        Log in
-      </h2>
-      <form id="form" method="POST" action="/auth/username-password" class="center">
-        <p class="instructions">Don't have an account yet? <a href="/signup-form">Register now</a></p>
-        <mdui-text-field
-          type="text"
-          id="username"
-          name="username"
-          autocomplete="username webauthn"
-          label="username"
-          width="100"
-          variant="outlined"
-          autofocus>
-        </mdui-text-field>
-        <mdui-text-field
-          type="password"
-          id="password"
-          name="password"
-          autocomplete="current-password"
-          label="password"
-          width="100"
-          variant="outlined"
-          autofocus>
-          <mdui-button-icon
-            class="password-toggle"
-            toggle
-            slot="end-icon"
-            icon="visibility_off--outlined"
-            selected-icon="visibility--outlined"
-            selectable>
-          </mdui-button-icon>
-        </mdui-text-field>
-        <mdui-button type="submit" variant="filled">Login</mdui-button>
-        <mdui-button href="#" variant="text">Forgot password?</mdui-button>
-      </form>
-    </main>
+  </div>
+</div>
+<main class="content center">
+  <h2>Log in</h2>
+  <form id="form" method="POST" action="/auth/username-password" class="center">
+    <p class="instructions">
+      Don't have an account yet? <a href="/signup-form">Register now</a>
+    </p>
+    <mdui-text-field
+      type="text"
+      id="username"
+      name="username"
+      autocomplete="username webauthn"
+      label="username"
+      width="100"
+      variant="outlined"
+      autofocus
+    >
+    </mdui-text-field>
+    <mdui-text-field
+      type="password"
+      id="password"
+      name="password"
+      autocomplete="current-password"
+      label="password"
+      width="100"
+      variant="outlined"
+      autofocus
+    >
+      <mdui-button-icon
+        class="password-toggle"
+        toggle
+        slot="end-icon"
+        icon="visibility_off--outlined"
+        selected-icon="visibility--outlined"
+        selectable
+      >
+      </mdui-button-icon>
+    </mdui-text-field>
+    <mdui-button type="submit" variant="filled">Login</mdui-button>
+    <mdui-button href="#" variant="text">Forgot password?</mdui-button>
+  </form>
+</main>

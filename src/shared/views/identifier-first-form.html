@@ -1,74 +1,75 @@
-    <div id="help-text">
-      <div class="help-headline">
-        Passkey form autofill
-      </div>
-      <div class="help-description">
+<div id="help-text">
+  <!-- prettier-ignore -->
+  <div class="help-headline">
+Passkey form autofill
+  </div>
+  <!-- prettier-ignore -->
+  <div class="help-description">
 
-        ## How to use
+## How to use
 
-        Use a passkey or a password through form autofill to sign in, or enter a
-        username to continue.
+Use a passkey or a password through form autofill to sign in, or enter a
+username to continue.
 
-        If you haven't created a passkey on this website yet, you can enter an
-        arbitrary username and continue. No account creation is required.
-        
-        At the next page, enter a random password and you will be signed in.
-        Also, your account will be created.
-        
-        Once you are signed in, create a new passkey and sign out to come back
-        here to try the passkey.
+If you haven't created a passkey on this website yet, you can enter an
+arbitrary username and continue. No account creation is required.
 
-        ### Sign in with a passkey
+At the next page, enter a random password and you will be signed in.
+Also, your account will be created.
 
-        To sign in with a passkey, place your cursor on the username field.
-        You'll notice the autofill dialog contains your passkeys as well as
-        passwords. Select the passkey you want to sign in with, and perform
-        [user verification](https://web.dev/articles/webauthn-user-verification)
-        when prompted. Then you'll be signed in.
+Once you are signed in, create a new passkey and sign out to come back
+here to try the passkey.
 
-        ## How to develop
+### Sign in with a passkey
 
-        ### Passkey form autofill
+To sign in with a passkey, place your cursor on the username field.
+You'll notice the autofill dialog contains your passkeys as well as
+passwords. Select the passkey you want to sign in with, and perform
+[user verification](https://web.dev/articles/webauthn-user-verification)
+when prompted. Then you'll be signed in.
 
-        You can learn how to build passkeys form autofill experience at [Sign in
-        with a passkey through form
-        autofill](https://web.dev/articles/passkey-form-autofill) and
-        [Server-side passkey
-        authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication).
+## How to develop
 
-        You can also learn through a codelab: [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
+### Passkey form autofill
 
-        ### Signal API
+You can learn how to build passkeys form autofill experience at [Sign in
+with a passkey through form
+autofill](https://web.dev/articles/passkey-form-autofill) and
+[Server-side passkey
+authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication).
 
-        If your sign-in attempt with a passkey fails on the server after a
-        successful user verification, it's most likely due to the signature not
-        being verified on the server, because the public key is not found. In
-        such a circumstance, keeping the passkey in the passkey provider is
-        nothing but confusing.
+You can also learn through a codelab: [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
 
-        By using Signal API, the RP can let the passkey provider know a specific
-        passkey is not known to the RP, so that it can delete the matching
-        passkey from the passkey provider, if it supports the feature.
+### Signal API
 
-        [Learn more about Signal API](https://developer.chrome.com/blog/passkeys-signal-api).
-      </div>
-    </div>
-    <main class="content center">
-      <h2>
-        Welcome back!
-      </h2>
-      <form id="form" method="POST" action="/auth/username" class="center">
-        <p class="instructions">Don't have an account yet? Register now</p>
-        <mdui-text-field
-          type="text"
-          id="username"
-          name="username"
-          autocomplete="username webauthn"
-          label="username"
-          variant="outlined"
-          autofocus>
-        </mdui-text-field>
-        <input type="password" class="hidden" name="password" />
-        <mdui-button type="submit" variant="filled">Continue</mdui-button>
-      </form>
-    </main>
+If your sign-in attempt with a passkey fails on the server after a
+successful user verification, it's most likely due to the signature not
+being verified on the server, because the public key is not found. In
+such a circumstance, keeping the passkey in the passkey provider is
+nothing but confusing.
+
+By using Signal API, the RP can let the passkey provider know a specific
+passkey is not known to the RP, so that it can delete the matching
+passkey from the passkey provider, if it supports the feature.
+
+[Learn more about Signal API](https://developer.chrome.com/blog/passkeys-signal-api).
+  </div>
+</div>
+<main class="content center">
+  <h2>Welcome back!</h2>
+  <form id="form" method="POST" action="/auth/username" class="center">
+    <p class="instructions">Don't have an account yet? Register now</p>
+    <mdui-text-field
+      type="text"
+      id="username"
+      name="username"
+      autocomplete="username webauthn"
+      label="username"
+      variant="outlined"
+      autofocus
+    >
+    </mdui-text-field>
+    <input type="password" class="hidden" name="password" />
+    <mdui-button type="submit" variant="filled">Continue</mdui-button>
+  </form>
+</main>
