@@ -15,9 +15,12 @@
  * limitations under the License
  */
 
-import express from 'express';
-import jwt, {JwtPayload} from 'jsonwebtoken';
-import {FederationMappings} from '../libs/federation-mappings.ts';
+import {Router, Request, Response} from 'express';
+import jwt from 'jsonwebtoken';
+import {
+  FederationMap,
+  FederationMappings,
+} from '../libs/federation-mappings.ts';
 import {IdentityProviders} from '../libs/identity-providers.ts';
 import {OAuth2Client} from 'google-auth-library';
 import {Users} from '../libs/users.ts';
@@ -29,44 +32,56 @@ import {
   setSessionUser,
 } from '../middlewares/session.ts';
 
-const router = express.Router();
+const router = Router();
 const googleClient = new OAuth2Client();
 
 router.use(csrfCheck);
 
-interface IdToken extends JwtPayload {
-  email?: string;
-  email_verified?: boolean;
-  name?: string;
-  picture?: string;
-}
-
-router.post('/idp', apiAclCheck(ApiType.NoAuth), async (req, res) => {
-  const idps = [];
-  const {urls} = req.body;
-  try {
-    for (let _url of urls) {
-      const url = new URL(_url);
-      const idp = await IdentityProviders.findByOrigin(url.toString());
-      if (!idp) {
-        return res
-          .status(404)
-          .json({error: 'No matching identity provider found.'});
+router.post(
+  '/idp',
+  apiAclCheck(ApiType.NoAuth),
+  async (req: Request, res: Response) => {
+    const idps = [];
+    const {urls} = req.body;
+    try {
+      for (let _url of urls) {
+        const url = new URL(_url);
+        const idp = await IdentityProviders.findByOrigin(url.toString());
+        if (!idp) {
+          return res
+            .status(404)
+            .json({error: 'No matching identity provider found.'});
+        }
+        idp.secret = '';
+        idps.push(idp);
       }
-      idp.secret = '';
-      idps.push(idp);
+      return res.json(idps);
+    } catch (e: any) {
+      console.error(e);
+      return res.status(400).json({error: e.message});
     }
-    return res.json(idps);
-  } catch (e: any) {
-    console.error(e);
-    return res.status(400).json({error: e.message});
   }
-});
+);
+
+router.get(
+  '/mappings',
+  apiAclCheck(ApiType.SignedIn),
+  async (req: Request, res: Response) => {
+    const {user} = res.locals;
+    try {
+      const maps = await FederationMappings.findByUserId(user.id);
+      return res.json(maps);
+    } catch (e: any) {
+      console.error(e);
+      return res.status(400).json({error: e.message});
+    }
+  }
+);
 
 router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.Authentication),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const {token: raw_token, url} = req.body;
     // console.error(raw_token);
 
@@ -91,7 +106,7 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
-        payload = <IdToken>jwt.verify(raw_token, idp.secret, {
+        payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
           audience: idp.clientId,
@@ -122,12 +137,13 @@ router.post(
       // TODO: Beware that the email is verified.
       let user = await Users.findByUsername(payload.email);
       if (user && payload.iss) {
-        const map = FederationMappings.findByIssuer(payload.iss);
-        if (!map) {
+        const maps = await FederationMappings.findByIssuer(payload.iss);
+        if (maps.length === 0) {
           // If the email address matches, merge the user.
           FederationMappings.create(user.id, payload);
         } else {
           // TODO: Think about how each IdP provided properties match against RP's.
+          console.log('More than 1 federation mappings found:', maps);
         }
       } else {
         // If the user does not exist yet, create a new user.

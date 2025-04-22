@@ -24,14 +24,17 @@ import {
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 
+export type UserId = Base64URLString;
+export type PasskeyUserId = Base64URLString;
+
 export interface User {
-  id: Base64URLString;
+  id: UserId;
   username: string;
   displayName?: string;
   email?: string;
   picture?: string;
   password?: string;
-  passkeyUserId?: string;
+  passkeyUserId?: PasskeyUserId;
 }
 
 /**

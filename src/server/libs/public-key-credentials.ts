@@ -22,10 +22,11 @@ import {
 } from '@simplewebauthn/server';
 
 import {store} from '~project-sesame/server/config.ts';
+import {PasskeyUserId} from './users.ts';
 
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
-  passkeyUserId: Base64URLString;
+  passkeyUserId: PasskeyUserId;
   deviceId?: Base64URLString;
   name?: string;
   // User visible identifier.
@@ -63,7 +64,7 @@ export class PublicKeyCredentials {
   }
 
   static async findByPasskeyUserId(
-    passkey_user_id: Base64URLString
+    passkey_user_id: PasskeyUserId
   ): Promise<SesamePublicKeyCredential[] | undefined> {
     const results: SesamePublicKeyCredential[] = [];
     const refs = await store
@@ -94,7 +95,7 @@ export class PublicKeyCredentials {
   }
 
   static async deleteByPasskeyUserId(
-    passkey_user_id: Base64URLString
+    passkey_user_id: PasskeyUserId
   ): Promise<void> {
     const creds =
       await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);

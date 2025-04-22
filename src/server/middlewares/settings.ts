@@ -51,6 +51,16 @@ router.get(
 );
 
 router.get(
+  '/identity-providers',
+  pageAclCheck(PageType.SignedIn),
+  (req: Request, res: Response) => {
+    return res.render('settings/identity-providers.html', {
+      title: 'Associated Identity Providers',
+    });
+  }
+);
+
+router.get(
   '/delete-account',
   pageAclCheck(PageType.Sensitive),
   (req: Request, res: Response) => {

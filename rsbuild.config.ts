@@ -15,8 +15,8 @@
  * limitations under the License
  */
 
-import { defineConfig } from '@rsbuild/core';
-import { pluginSass } from '@rsbuild/plugin-sass';
+import {defineConfig} from '@rsbuild/core';
+import {pluginSass} from '@rsbuild/plugin-sass';
 
 /** Configuration for [rsbuild](https://rsbuild.dev/), building
  * the frontend of Project Sesame and also copying shared files
@@ -24,7 +24,7 @@ import { pluginSass } from '@rsbuild/plugin-sass';
  */
 
 export default defineConfig({
-  plugins: [ pluginSass() ],
+  plugins: [pluginSass()],
   source: {
     tsconfigPath: './src/client/tsconfig.json',
     entry: {
@@ -35,20 +35,24 @@ export default defineConfig({
       'fedcm-active-mode': './src/client/pages/fedcm-active-mode.ts',
       'fedcm-passive-mode': './src/client/pages/fedcm-passive-mode.ts',
       'fedcm-delegate': './src/client/pages/fedcm-delegate.ts',
-      'home': './src/client/pages/home.ts',
+      home: './src/client/pages/home.ts',
       'identifier-first-form': './src/client/pages/identifier-first-form.ts',
       'passkey-form-autofill': './src/client/pages/passkey-form-autofill.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',
       'passkey-signup': './src/client/pages/passkey-signup.ts',
       'legacy-credman': './src/client/pages/legacy-credman.ts',
-      'password': './src/client/pages/password.ts',
+      password: './src/client/pages/password.ts',
       'password-passkey': './src/client/pages/password-passkey.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',
       'settings/passkeys': './src/client/pages/settings/passkeys.ts',
-      'settings/password-change': './src/client/pages/settings/password-change.ts',
-      'settings/delete-account': './src/client/pages/settings/delete-account.ts',
+      'settings/password-change':
+        './src/client/pages/settings/password-change.ts',
+      'settings/identity-providers':
+        './src/client/pages/settings/identity-providers.ts',
+      'settings/delete-account':
+        './src/client/pages/settings/delete-account.ts',
     },
   },
   html: {

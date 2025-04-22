@@ -16,28 +16,84 @@
  */
 
 import {Base64URLString} from '@simplewebauthn/server';
+import {generateRandomString} from './helpers.ts';
+import {store} from '../config.ts';
+import {JwtPayload} from 'jsonwebtoken';
+import {UserId} from './users.ts';
 
-/*
-  {
-    user_id: string
-    issuer: string
-    subject: string
-    name: string
-    email: string
-    given_name: string
-    family_name: string
-    picture: string
-    issued_at: number
-    expires_at: number
-  }
+export interface IdToken extends JwtPayload {
+  /**
+interface JwtPayload {
+  [key: string]: any;
+  iss?: string | undefined;
+  sub?: string | undefined;
+  aud?: string | string[] | undefined;
+  exp?: number | undefined;
+  nbf?: number | undefined;
+  iat?: number | undefined;
+  jti?: string | undefined;
+}
 */
+}
+
+export interface FederationMap extends IdToken {
+  id?: Base64URLString;
+  user_id?: UserId;
+  given_name?: string;
+  family_name?: string;
+  nickname?: string;
+  name?: string;
+  picture?: string;
+  locale?: string;
+  email?: string;
+  email_verified?: boolean;
+}
+
 export class FederationMappings {
-  static async create(
-    user_id: Base64URLString,
-    options: any = {}
-  ): Promise<any> {}
+  static collection = 'federation_mappings';
 
-  static async findByIssuer(url: string) {}
+  static async create(user_id: UserId, idtoken: IdToken): Promise<any> {
+    idtoken.user_id = user_id;
+    return FederationMappings.update(idtoken);
+  }
 
-  static async findByUserId(user_id: Base64URLString) {}
+  static async findByIssuer(url: string): Promise<FederationMap[]> {
+    const results: FederationMap[] = [];
+    const refs = await store
+      .collection(FederationMappings.collection)
+      // TODO: Does `iss` always match our issuer identity?
+      .where('iss', '==', url)
+      .get();
+    refs.forEach(map => results.push(<FederationMap>map.data()));
+    return results;
+  }
+
+  static async findByUserId(user_id: UserId) {
+    const results: FederationMap[] = [];
+    const refs = await store
+      .collection(FederationMappings.collection)
+      .where('user_id', '==', user_id)
+      .get();
+    refs.forEach(map => results.push(<FederationMap>map.data()));
+    return results;
+  }
+
+  static async update(
+    map: FederationMap
+  ): Promise<FirebaseFirestore.WriteResult> {
+    map.id = map.id || generateRandomString();
+    const ref = await store
+      .collection(FederationMappings.collection)
+      .doc(map.id);
+    return ref.set(map);
+  }
+
+  static async remove(
+    map_id: Base64URLString
+  ): Promise<FirebaseFirestore.WriteResult> {
+    const ref = await store
+      .collection(FederationMappings.collection)
+      .doc(map_id);
+    return ref.delete();
+  }
 }

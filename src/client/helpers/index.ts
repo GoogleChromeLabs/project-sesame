@@ -46,7 +46,7 @@ export async function get(path: string, payload: any = ''): Promise<any> {
     'X-Requested-With': 'XMLHttpRequest',
   };
 
-  const url = new URL(path);
+  const url = new URL(path, location.origin);
 
   for (const key in payload) {
     if (payload.hasOwnProperty(key)) {

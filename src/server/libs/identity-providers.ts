@@ -18,6 +18,8 @@
 import {config} from '../config.ts';
 
 export interface IdentityProvider {
+  name: string;
+  iconURL?: string;
   origin: string;
   configURL: string;
   clientId: string;
@@ -27,18 +29,23 @@ export interface IdentityProvider {
 export class IdentityProviders {
   static idps: IdentityProvider[] = [
     {
+      name: 'FedCM Demo IdP',
+      iconURL:
+        'https://cdn.glitch.global/4673feef-8c3a-4ea6-91b5-aad78b1d7251/idp-logo-512.png?v=1713514252268',
       origin: 'https://fedcm-idp-demo.glitch.me',
       configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
       clientId: config.origin,
       secret: 'xxxxx',
     },
     {
+      name: 'SGO',
       origin: 'https://issuer.sgo.to',
       configURL: 'https://issuer.sgo.to/fedcm.json',
       clientId: '1234',
       secret: 'xxxxx',
     },
     {
+      name: 'Google',
       origin: 'https://accounts.google.com',
       configURL: 'https://accounts.google.com/gsi/fedcm.json',
       clientId:
@@ -46,6 +53,8 @@ export class IdentityProviders {
       secret: '*****',
     },
     {
+      name: 'Google Sandbox',
+      iconURL: 'https://accounts.google.com/gsi-static/google-logo.png',
       origin: 'https://accounts.sandbox.google.com',
       configURL: 'https://accounts.sandbox.google.com/gsi/vc.json',
       clientId: config.origin,

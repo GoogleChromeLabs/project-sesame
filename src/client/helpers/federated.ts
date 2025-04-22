@@ -15,7 +15,9 @@
  * limitations under the License
  */
 
-import {toast} from '~project-sesame/client/helpers/index';
+import '~project-sesame/client/layout';
+import {html, render} from 'lit';
+import {toast, get} from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 import {User} from '~project-sesame/server/libs/users';
 
@@ -80,4 +82,8 @@ export async function saveFederation(
     // Return without throwing.
     return false;
   }
+}
+
+export async function getAllIdentityProviders(): Promise<any> {
+  return get('/federation/mappings');
 }
