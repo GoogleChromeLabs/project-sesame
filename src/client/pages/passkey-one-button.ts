@@ -33,7 +33,9 @@ if (capabilities) {
     async (e: {target: HTMLButtonElement}) => {
       try {
         loading.start();
-        const user = await authenticate();
+        // TODO: feature detection with immediate mediation when it's available.
+        // @ts-ignore
+        const user = await authenticate('immediate');
         if (user) {
           redirect('/home');
         } else {
@@ -42,7 +44,14 @@ if (capabilities) {
       } catch (error: any) {
         loading.stop();
         console.error(error);
-        if (error.name !== 'NotAllowedError') {
+        if (error.name === 'NotAllowedError') {
+          toast(
+            'No passkeys are found. Sign in with a password instead. Redirecting...'
+          );
+          setTimeout(() => {
+            redirect('/signin-form');
+          }, 3000);
+        } else {
           toast(error.message);
         }
       }

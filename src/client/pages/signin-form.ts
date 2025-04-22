@@ -41,7 +41,7 @@ postForm()
 if (capabilities?.conditionalGet) {
   try {
     // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-    const user = await authenticate(true);
+    const user = await authenticate('conditional');
     if (user) {
       // When the user is signed in, redirect to the home page.
       $('#username').value = user.username;
