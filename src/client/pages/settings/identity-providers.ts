@@ -22,7 +22,7 @@ import {getAllIdentityProviders} from '~project-sesame/client/helpers/federated'
 
 // TODO: Fetch list of IdPs.
 const idps = await post('/federation/idp', {
-  urls: ['https://fedcm-idp-demo.glitch.me'],
+  urls: ['https://fedcm-idp-demo.glitch.me', 'https://accounts.google.com'],
 });
 
 // /**
@@ -121,7 +121,9 @@ async function renderIdentityProviders(): Promise<void> {
               <span>${idpName}</span>
             </mdui-list-item>`;
         })}`
-      : html`<mdui-list-item>No identity providers found.</mdui-list-item>`;
+      : html`<mdui-list-item
+          >No identity providers are associated yet.</mdui-list-item
+        >`;
   render(result, list);
 }
 

@@ -28,7 +28,12 @@
     ],
     "font_src": ["https://fonts.gstatic.com"],
     "frame_src": ["https://accounts.google.com/gsi/"],
-    "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
+    "img_src": [
+      "https://www.gravatar.com",
+      "https://gravatar.com",
+      "https://accounts.google.com/gsi-static",
+      "https://cdn.glitch.global"
+    ],
     "script_src": [
       "https://fedcm-idp-demo.glitch.me",
       "https://accounts.google.com/gsi/client"

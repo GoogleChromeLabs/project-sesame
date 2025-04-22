@@ -77,7 +77,7 @@ export async function verifyPublicKeyCreationResult(
 }
 
 export async function preparePublicKeyRequestOptions(
-  conditional: boolean = false
+  mediation: CredentialMediationRequirement
 ): Promise<PublicKeyCredentialRequestOptions> {
   // Fetch passkey request options from the server.
   const options: PublicKeyCredentialRequestOptionsJSON = await post(
@@ -88,7 +88,7 @@ export async function preparePublicKeyRequestOptions(
     PublicKeyCredential.parseRequestOptionsFromJSON(options);
 
   // Empty `allowCredentials` if `conditional` is true.
-  if (conditional) {
+  if (mediation === 'conditional') {
     decodedOptions.allowCredentials = [];
   }
 
@@ -160,22 +160,24 @@ export async function registerCredential(
 
 /**
  * Authenticate with a passkey.
- * @param { boolean } conditional Set to `true` if this is for a conditional UI.
+ * @param { boolean } mediation Set to `true` if this is for a conditional UI.
  * @returns A promise that resolves with a server response.
  */
-export async function authenticate(conditional = false): Promise<any> {
+export async function authenticate(
+  mediation: CredentialMediationRequirement = 'optional'
+): Promise<any> {
   // Abort ongoing WebAuthn request
   controller.abort();
   controller = new AbortController();
 
-  const options = await preparePublicKeyRequestOptions(conditional);
+  const options = await preparePublicKeyRequestOptions(mediation);
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
     publicKey: options,
     signal: controller.signal,
     // Request a conditional UI
-    mediation: conditional ? 'conditional' : 'optional',
+    mediation,
   })) as AuthenticationCredential;
 
   if (!cred) {
