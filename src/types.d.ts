@@ -75,9 +75,13 @@ declare global {
 declare module 'express-session' {
   // TODO: Shouldn't we treat `username` and `passkey_user_id` separately?
   interface Session {
-    // `true` if the user is signed in.
+    // Claimed username. This isn't validated.
+    signin_username: string;
+    // Claimed username. DB does not have a conflicting entry.
+    signup_username: string;
+    // (deprecating) `true` if the user is signed in.
     signed_in: boolean;
-    // Claimed username. This alone doesn't mean the user is signed in.
+    // (deprecating) Claimed username.
     username: string;
     // User information if the user is signed in.
     user?: User;

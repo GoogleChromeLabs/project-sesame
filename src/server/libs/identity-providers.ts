@@ -46,6 +46,7 @@ export class IdentityProviders {
     },
     {
       name: 'Google',
+      iconURL: 'https://accounts.google.com/gsi-static/google-logo.png',
       origin: 'https://accounts.google.com',
       configURL: 'https://accounts.google.com/gsi/fedcm.json',
       clientId:

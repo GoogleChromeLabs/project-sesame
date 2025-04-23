@@ -90,7 +90,7 @@ Define the type of the page from the following list with `pageAclCheck`.
 export enum PageType {
   NoAuth = 0,           // No authentication is required
   SignUp = 1,           // This is a sign-up page
-  SignUpCredential = 2, // The user must be signing up
+  SigningUp = 2, // The user must be signing up
   SignIn = 3,           // This is a sign-in page
   SignedIn = 4,         // The user must be signed in
   Sensitive = 5,        // The user must be recently signed in
@@ -109,7 +109,7 @@ export enum ApiType {
   NoAuth = 0,               // No authentication is required
   PasskeyRegistration = 1,  // The user is either signing-up or signed-in
   Identifier = 2,           // The user is about to sign-up
-  SignUpCredential = 3,     // The user is in the middle of signing up
+  SigningUp = 3,     // The user is in the middle of signing up
   Authentication = 4,       // The user is about to sign in with a username and a credential
   FirstCredential = 5,      // The user is about to sign in
   SecondCredential = 6,     // The user is about to sign in

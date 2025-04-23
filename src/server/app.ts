@@ -157,7 +157,7 @@ app.get(
 
 app.get(
   '/new-password',
-  pageAclCheck(PageType.SignUpCredential),
+  pageAclCheck(PageType.SigningUp),
   (req: Request, res: Response) => {
     res.render('new-password.html', {
       title: 'Password',

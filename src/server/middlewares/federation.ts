@@ -29,7 +29,7 @@ import {
   apiAclCheck,
   ApiType,
   getChallenge,
-  setSessionUser,
+  setSignedIn,
 } from '../middlewares/session.ts';
 
 const router = Router();
@@ -156,7 +156,7 @@ router.post(
       }
 
       // Set the user as a signed in status
-      setSessionUser(user, req, res);
+      setSignedIn(user, req, res);
 
       return res.status(200).json(user);
     } catch (error: any) {

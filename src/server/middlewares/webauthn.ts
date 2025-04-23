@@ -51,10 +51,9 @@ import {
   getChallenge,
   getDeviceId,
   getEphemeralPasskeyUserId,
-  getEphemeralUsername,
   setChallenge,
   setEphemeralPasskeyUserId,
-  setSessionUser,
+  setSignedIn,
 } from '~project-sesame/server/middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
@@ -196,13 +195,12 @@ router.post(
   '/registerResponse',
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
-    let user, username, passkeyUserId;
+    let user, passkeyUserId;
+    const username = res.locals.username;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-      username = getEphemeralUsername(req, res);
       passkeyUserId = getEphemeralPasskeyUserId(req, res);
     } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
       user = res.locals.user;
-      username = res.locals.username;
       passkeyUserId = user.passkeyUserId;
     }
 
@@ -273,8 +271,8 @@ router.post(
 
       // If this is a sign-up, create a new user
       if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-        user = await Users.create(username, {passkeyUserId: passkeyUserId});
-        setSessionUser(user, req, res);
+        user = await Users.create(username, {passkeyUserId});
+        setSignedIn(user, req, res);
       }
 
       // Respond with the user information.
@@ -420,7 +418,7 @@ router.post(
       await PublicKeyCredentials.update(cred);
 
       // Set the user as a signed in status
-      await setSessionUser(user, req, res);
+      setSignedIn(user, req, res);
 
       return res.json(user);
     } catch (error: any) {

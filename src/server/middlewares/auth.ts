@@ -22,13 +22,13 @@ import {
 } from '~project-sesame/server/libs/users.ts';
 import {
   setEphemeralUsername,
-  getEphemeralUsername,
   UserSignInStatus,
-  setSessionUser,
+  setSignedIn,
   setEphemeralPasskeyUserId,
   apiAclCheck,
   ApiType,
   signOut,
+  setSigningUp,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
@@ -41,7 +41,7 @@ router.use(csrfCheck);
  */
 router.post(
   '/new-user',
-  apiAclCheck(ApiType.Identifier),
+  apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     const {username} = <{username: string}>req.body;
     // TODO: Use Captcha to block bots.
@@ -60,13 +60,12 @@ router.post(
         }
 
         // Set username in the session
-        // TODO: This needs to be reset to avoid unexpected bug.
-        setEphemeralUsername(username, req, res);
+        setSigningUp(username, req, res);
 
-        // Generate a new passkey user id
-        const passkey_user_id = generatePasskeyUserId();
-        // TODO: This needs to be reset to avoid unexpected bug.
-        setEphemeralPasskeyUserId(passkey_user_id, req, res);
+        // // Generate a new passkey user id
+        // const passkey_user_id = generatePasskeyUserId();
+        // // TODO: This needs to be reset to avoid unexpected bug.
+        // setEphemeralPasskeyUserId(passkey_user_id, req, res);
 
         return res.json({});
       } else {
@@ -85,7 +84,7 @@ router.post(
  **/
 router.post(
   '/username',
-  apiAclCheck(ApiType.Identifier),
+  apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     const {username} = <{username: string}>req.body;
 
@@ -114,7 +113,7 @@ router.post(
 // TODO: This part is not really worked on yet
 router.post(
   '/new-username-password',
-  apiAclCheck(ApiType.SignUp),
+  apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     const {username, password1, password2} = req.body;
 
@@ -134,7 +133,7 @@ router.post(
       const user = await Users.validatePassword(username, password1);
       if (user) {
         // Set the user as a signed in status
-        setSessionUser(user, req, res);
+        setSignedIn(user, req, res);
 
         return res.json(user);
       }
@@ -149,7 +148,7 @@ router.post(
 
 router.post(
   '/new-password',
-  apiAclCheck(ApiType.SignUpCredential),
+  apiAclCheck(ApiType.SigningUp),
   async (req: Request, res: Response) => {
     const {password} = req.body;
     const {username} = res.locals;
@@ -164,7 +163,7 @@ router.post(
       const user = await Users.validatePassword(username, password);
       if (user) {
         // Set the user as a signed in status
-        setSessionUser(user, req, res);
+        setSignedIn(user, req, res);
 
         return res.json(user);
       }
@@ -195,7 +194,7 @@ router.post(
       const user = await Users.validatePassword(username, password);
       if (user) {
         // Set the user as a signed in status
-        setSessionUser(user, req, res);
+        setSignedIn(user, req, res);
 
         return res.json(user);
       }
@@ -219,7 +218,7 @@ router.post(
       const user = await Users.validatePassword(username, password);
       if (user) {
         // Set the user as a signed in status
-        setSessionUser(user, req, res);
+        setSignedIn(user, req, res);
 
         return res.json(user);
       }
