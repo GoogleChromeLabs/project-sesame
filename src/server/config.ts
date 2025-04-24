@@ -141,13 +141,6 @@ associated_origins.push(origin);
 
 export const store = initializeFirestore();
 
-console.log('hostname', hostname, new URL(origin).hostname);
-console.log(
-  'port',
-  port,
-  is_development_proxy ? 8080 : process.env.PORT || 8080
-);
-
 export const config = {
   project_name,
   debug: is_localhost,

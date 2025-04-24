@@ -178,7 +178,7 @@ export class Users {
         .collection(Users.collection)
         .doc(user_id)
         .delete();
-      console.log(`The user account ${user.username} has been deleted.`);
+      console.log(`The user account "${user.username}" has been deleted.`);
       return;
     } else {
       throw new Error('Invalid passkey_user_id.');

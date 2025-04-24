@@ -144,6 +144,7 @@ async function renderCredentials(): Promise<void> {
             const lastUsedDate = lastUsed.toLocaleDateString(undefined, {
               month: 'short',
               day: 'numeric',
+              year: 'numeric',
             });
             // const lastUsedTime = lastUsed.toLocaleTimeString(undefined, {
             //   timeStyle: 'short',
@@ -156,6 +157,7 @@ async function renderCredentials(): Promise<void> {
             const createdDate = created.toLocaleDateString(undefined, {
               month: 'short',
               day: 'numeric',
+              year: 'numeric',
             });
             // const createdTime = created.toLocaleTimeString(undefined, {
             //   timeStyle: 'short',

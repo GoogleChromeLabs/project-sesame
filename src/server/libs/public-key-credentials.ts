@@ -72,7 +72,6 @@ export class PublicKeyCredentials {
       .where('passkeyUserId', '==', passkey_user_id)
       .orderBy('registeredAt', 'desc')
       .get();
-    console.log('public key credentials:', refs?.docs?.length);
     refs.forEach(cred => results.push(<SesamePublicKeyCredential>cred.data()));
     return results;
   }
