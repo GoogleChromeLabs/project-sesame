@@ -49,7 +49,7 @@ export class PublicKeyCredentials {
   static collection = 'public_key_credentials';
 
   static async findById(
-    credential_id: Base64URLString
+    credential_id: Base64URLString = ''
   ): Promise<SesamePublicKeyCredential | undefined> {
     const doc = await store
       .collection(PublicKeyCredentials.collection)
@@ -64,7 +64,7 @@ export class PublicKeyCredentials {
   }
 
   static async findByPasskeyUserId(
-    passkey_user_id: PasskeyUserId
+    passkey_user_id: PasskeyUserId = ''
   ): Promise<SesamePublicKeyCredential[] | undefined> {
     const results: SesamePublicKeyCredential[] = [];
     const refs = await store
@@ -72,6 +72,7 @@ export class PublicKeyCredentials {
       .where('passkeyUserId', '==', passkey_user_id)
       .orderBy('registeredAt', 'desc')
       .get();
+    console.log('public key credentials:', refs?.docs?.length);
     refs.forEach(cred => results.push(<SesamePublicKeyCredential>cred.data()));
     return results;
   }
@@ -86,7 +87,7 @@ export class PublicKeyCredentials {
   }
 
   static async remove(
-    credential_id: Base64URLString
+    credential_id: Base64URLString = ''
   ): Promise<FirebaseFirestore.WriteResult> {
     const ref = store
       .collection(PublicKeyCredentials.collection)
@@ -95,7 +96,7 @@ export class PublicKeyCredentials {
   }
 
   static async deleteByPasskeyUserId(
-    passkey_user_id: PasskeyUserId
+    passkey_user_id: PasskeyUserId = ''
   ): Promise<void> {
     const creds =
       await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);

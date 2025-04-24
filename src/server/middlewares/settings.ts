@@ -42,7 +42,7 @@ router.get(
   '/password-change',
   pageAclCheck(PageType.Sensitive),
   (req: Request, res: Response) => {
-    const username = req.session.username;
+    const username = res.locals.username;
     return res.render('settings/password-change.html', {
       title: 'Password Change',
       username,

@@ -21,14 +21,14 @@ import {
   generatePasskeyUserId,
 } from '~project-sesame/server/libs/users.ts';
 import {
-  setEphemeralUsername,
   UserSignInStatus,
   setSignedIn,
   setEphemeralPasskeyUserId,
   apiAclCheck,
   ApiType,
-  signOut,
   setSigningUp,
+  setSigningIn,
+  setSignedOut,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
@@ -97,7 +97,7 @@ router.post(
         // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
         // Set username in the session
-        setEphemeralUsername(username, req, res);
+        setSigningIn(username, req, res);
 
         return res.json({});
       } else {
@@ -127,9 +127,6 @@ router.post(
     // TODO: Validate the password format
 
     try {
-      // Set username in the session
-      // setEphemeralUsername(username, req, res);
-
       const user = await Users.validatePassword(username, password1);
       if (user) {
         // Set the user as a signed in status
@@ -301,11 +298,7 @@ router.post(
     const {user} = res.locals;
     await Users.delete(user.id);
 
-    // Destroy the session
-    req.session.destroy(() => {});
-
-    // Set a login status using the Login Status API
-    res.set('Set-Login', 'logged-out');
+    setSignedOut(req, res);
 
     return res.json({});
   }

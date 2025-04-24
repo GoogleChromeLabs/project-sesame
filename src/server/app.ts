@@ -32,7 +32,8 @@ import {
   pageAclCheck,
   setChallenge,
   setEntrancePath,
-  signOut,
+  getEntrancePath,
+  setSignedOut,
 } from '~project-sesame/server/middlewares/session.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
@@ -300,7 +301,17 @@ app.get(
   }
 );
 
-app.get('/signout', pageAclCheck(PageType.SignedIn), signOut);
+app.get(
+  '/signout',
+  pageAclCheck(PageType.SignedIn),
+  (req: Request, res: Response) => {
+    const entrancePath = getEntrancePath(req, res);
+
+    setSignedOut(req, res);
+
+    return res.redirect(307, entrancePath);
+  }
+);
 
 app.use('/auth', auth);
 app.use('/webauthn', webauthn);
