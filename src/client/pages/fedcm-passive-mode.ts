@@ -34,6 +34,7 @@ postForm()
   });
 
 if ('IdentityCredential' in window) {
+  $('#unsupported').classList.add('hidden');
   try {
     const idp = new IdentityProvider([
       'https://fedcm-idp-demo.glitch.me',
@@ -46,6 +47,4 @@ if ('IdentityCredential' in window) {
     console.error(e);
     toast(e.message);
   }
-} else {
-  $('#unsupported').classList.remove('hidden');
 }

@@ -6,19 +6,41 @@ Passkeys one button
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn passkeys one button sign-in.
+In this page, you can experience authentication through a dedicated **Sign-in
+with a passkey** button. We call it "passkey one button" flow. In addition, you
+can try WebAuthn Signal API.
 
 ## How to use
 
 Tap on **Sign in with a passkey** button. If you have a passkey, it displays the
 passkey dialog. Otherwise, you will be redirected to a password-based sign-in
-form.
+form if "immediate mediation" is supported. If "immediate mediation" is not
+supported, a QR code dialog is displayed so you can scan it and sign in using a
+passkey stored to that device.
+
+If your sign-in attempt is rejected by the server because the public key is not
+found on the server, the password manager will delete the passkey to avoid
+further confusion. This is done by WebAuthn Signal API.
 
 ## How to develop
 
-TBD
+### Immediate mediation
 
-* Use `mediation: 'immediate'`.
+Still in development. Use `mediation: 'immediate'`.
+
+### WebAuthn Signal API
+
+If your sign-in attempt with a passkey fails on the server after a successful
+user verification, it's most likely due to the signature not verified on the
+server, because the public key is not found. In such a circumstance, keeping the
+passkey in the passkey provider is nothing but confusing.
+
+By using Signal API, the RP can let the passkey provider know a specific passkey
+is not known to the RP, so that it can delete the matching passkey from the
+passkey provider, if it supports the feature.
+
+* [Keep passkeys consistent with credentials on your server with the Signal
+API](https://developer.chrome.com/docs/identity/webauthn-signal-api)
 
   </div>
 </div>

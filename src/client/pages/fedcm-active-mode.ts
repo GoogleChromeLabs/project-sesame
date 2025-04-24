@@ -18,13 +18,15 @@
 import '~project-sesame/client/layout';
 import {$, toast} from '~project-sesame/client/helpers/index';
 // @ts-ignore
-// const {IdentityProvider} = await import('https://fedcm-idp-demo.glitch.me/fedcm.js');
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-const signIn = async () => {
+const fedcm = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+fedcm.initialize();
+const google = new IdentityProvider(['https://accounts.google.com']);
+google.initialize();
+
+const signIn = async (idp: IdentityProvider) => {
   try {
-    const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
-    await idp.initialize();
     await idp.signIn({mode: 'active'});
     location.href = '/home';
   } catch (e: any) {
@@ -34,10 +36,16 @@ const signIn = async () => {
 };
 
 if ('IdentityCredential' in window) {
+  $('#hidden').classList.remove('hidden');
+  $('#unsupported').classList.add('hidden');
+
+  $('#google').addEventListener('click', (event: any) => {
+    event.preventDefault();
+    signIn(google);
+  });
+
   $('#fedcm').addEventListener('click', (event: any) => {
     event.preventDefault();
-    signIn();
+    signIn(fedcm);
   });
-} else {
-  $('#unsupported').classList.remove('hidden');
 }

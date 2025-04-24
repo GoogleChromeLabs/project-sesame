@@ -6,26 +6,43 @@ FedCM active mode
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn FedCM and its "active mode".
+In this page, you can experience and learn FedCM active mode.
+
+FedCM has two modes: "passive" and "active".
+
+* "active": FedCM prompt must be initiated by user interaction (such as clicking a button).
+* "passive": FedCM prompt will be initiated without direct user interaction. 
 
 ## How to use
 
-TBD
+Click on **Sign-in with Google** button or **Sign-in with FedCM Demo IdP**
+button. Follow the instructions and sign in.
 
 ## How to develop
 
-TBD
+Use `mode: "active"` to indicate that a FedCM invocation should be initiated by
+user interaction. Learn more:
+
+* [Implement an identity solution with FedCM on the Relying Party side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
 
   </div>
 </div>
 <main class="content center">
   <h2>Use your federated identity to sign in</h2>
   <section class="center">
-    <mdui-button id="fedcm" icon="lock--outlined" variant="filled">
-      Sign in with fedcm-idp.demo.glitch.me
+    <div id="hidden" class="hidden center">
+      <mdui-button id="google" icon="lock--outlined" variant="filled">
+        Sign-in with Google
+      </mdui-button>
+      <mdui-button id="fedcm" icon="lock--outlined" variant="filled">
+        Sign-in with FedCM Demo IdP
+      </mdui-button>
+    </div>
+    <p id="unsupported" class="instructions">
+      This browser does not support FedCM.
+    </p>
+    <mdui-button href="/passkey-form-autofill" variant="text">
+      Sign in with a form instead
     </mdui-button>
-    <mdui-button href="/passkey-form-autofill" variant="text"
-      >Sign in with a form instead</mdui-button
-    >
   </section>
 </main>

@@ -1,21 +1,35 @@
 <div id="help-text">
   <!-- prettier-ignore -->
   <div class="help-headline">
-Sign-in form
+FedCM passive mode
   </div>
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn a sign-in flow using a
-username and a password.
+In this page, you can experience and learn FedCM passive mode.
+
+FedCM has two modes: "passive" and "active".
+
+* "active": FedCM prompt must be initiated by user interaction (such as clicking a button).
+* "passive": FedCM prompt will be initiated without direct user interaction. 
 
 ## How to use
 
-TBD
+If the browser supports FedCM, a FedCM widget will appear at the top right
+corner as soon as you land this page. FedCM on this website supports "[FedCM
+Demo IdP](https://fedcm-idp-demo.glitch.me)" and
+"[Google](https://accounts.google.com)".
+
+Select one of identity providers (IdP) and a popup window appears if you haven't
+signed in to the IdP yet. As soon as you are signed in to the IdP, you're signed
+in to this website.
 
 ## How to develop
 
-TBD
+Learn how to implement FedCM on a relying party:
+
+* [Implement an identity solution with FedCM on the Relying Party
+side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
 
   </div>
 </div>
@@ -56,6 +70,9 @@ TBD
       >
       </mdui-button-icon>
     </mdui-text-field>
+    <p id="unsupported" class="instructions">
+      This browser does not support FedCM.
+    </p>
     <mdui-button type="submit" variant="filled">Login</mdui-button>
     <mdui-button href="#" variant="text">Forgot password?</mdui-button>
   </form>
