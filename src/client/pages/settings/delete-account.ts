@@ -24,8 +24,8 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
   const confirmation = confirm('Do you really want to detele your account?');
   if (confirmation) {
     try {
-      await post('/auth/delete-user');
       await deleteAllCredentials();
+      await post('/auth/delete-user');
       toast(
         'You account and passkeys have been deleted. Redirecting to the top page.'
       );
