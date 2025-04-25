@@ -166,4 +166,46 @@ router.post(
   }
 );
 
+router.post(
+  '/verifySdJwt',
+  apiAclCheck(ApiType.Authentication),
+  async (req: Request, res: Response) => {
+    // Respond with static result for now.
+    // TODO: Implement SD-JWT parser
+    const payload = {
+      iss: 'https://accounts.google.com',
+      email: 'chromedemojp@gmail.com',
+      name: 'Elisa Beckett',
+      picture:
+        'https://www.gravatar.com/avatar/e09dfabed7f7cf97dbccad33b1769000?s=200',
+    };
+
+    // Find a matching user by querying with the email address
+    // TODO: Beware that the email is verified.
+    let user = await Users.findByUsername(payload.email);
+    if (user && payload.iss) {
+      const maps = await FederationMappings.findByIssuer(payload.iss);
+      if (maps.length === 0) {
+        // If the email address matches, merge the user.
+        FederationMappings.create(user.id, payload);
+      } else {
+        // TODO: Think about how each IdP provided properties match against RP's.
+        console.log('More than 1 federation mappings found:', maps);
+      }
+    } else {
+      // If the user does not exist yet, create a new user.
+      user = await Users.create(payload.email, {
+        email: payload.email,
+        displayName: payload.name,
+        picture: payload.picture,
+      });
+      FederationMappings.create(user.id, payload);
+    }
+
+    // Set the user as a signed in status
+    setSignedIn(user, req, res);
+    return res.json({});
+  }
+);
+
 export {router as federation};
