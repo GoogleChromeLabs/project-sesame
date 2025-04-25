@@ -26,10 +26,26 @@ import {
 import {
   capabilities,
   authenticate,
+  registerCredential,
 } from '~project-sesame/client/helpers/publickey';
 
 postForm()
-  .then(() => {
+  .then(async () => {
+    if (capabilities?.conditionalCreate) {
+      try {
+        await registerCredential(true);
+      } catch (error: any) {
+        if (error.name === 'InvalidStateError') {
+          console.info('A passkey is already registered for the user.');
+        } else if (error.name === 'NotAllowedError') {
+          console.info(
+            "Passkey was not created because the password didn't match the one in the password manager."
+          );
+        } else if (error.name !== 'AbortError') {
+          console.error(error);
+        }
+      }
+    }
     redirect('/home');
   })
   .catch(error => {
@@ -54,7 +70,8 @@ if (capabilities?.conditionalGet) {
     loading.stop();
     console.error(error);
     // `NotAllowedError` indicates a user cancellation.
-    if (error.name !== 'NotAllowedError') {
+    // `AbortError` indicates an abort.
+    if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
       toast(error.message);
     }
   }
