@@ -28,6 +28,9 @@ import {
 } from '~project-sesame/client/helpers/publickey';
 
 if (capabilities) {
+  $('#hidden').classList.remove('hidden');
+  $('#unsupported').classList.add('hidden');
+
   $('#passkey-signin').addEventListener(
     'click',
     async (e: {target: HTMLButtonElement}) => {
@@ -35,7 +38,8 @@ if (capabilities) {
         loading.start();
         // TODO: feature detection with immediate mediation when it's available.
         // @ts-ignore
-        const user = await authenticate('immediate');
+        // const user = await authenticate('immediate');
+        const user = await authenticate();
         if (user) {
           redirect('/home');
         } else {
@@ -57,9 +61,4 @@ if (capabilities) {
       }
     }
   );
-} else {
-  toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
-  setTimeout(() => {
-    redirect('/signin-form');
-  }, 3000);
 }

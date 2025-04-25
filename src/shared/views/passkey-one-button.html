@@ -47,9 +47,14 @@ API](https://developer.chrome.com/docs/identity/webauthn-signal-api)
 <main class="content center">
   <h2>Choose your passkey to sign in</h2>
   <section class="center">
-    <mdui-button id="passkey-signin" icon="key--outlined" variant="filled">
-      Sign-in with a passkey
-    </mdui-button>
+    <div id="hidden" class="hidden center">
+      <mdui-button id="passkey-signin" icon="key--outlined" variant="filled">
+        Sign-in with a passkey
+      </mdui-button>
+    </div>
+    <p id="unsupported" class="instructions">
+      This browser does not support passkeys.
+    </p>
   </section>
   <mdui-button href="/passkey-form-autofill" variant="text"
     >Sign in with a form instead</mdui-button
