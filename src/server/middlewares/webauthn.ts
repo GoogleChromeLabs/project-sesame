@@ -79,6 +79,14 @@ router.post(
     );
     const rpId = config.hostname;
     const userId = user.passkeyUserId;
+    if (credentials && credentials.length > 0) {
+      for (let credential of credentials) {
+        const aaguid =
+          credential.aaguid ?? '00000000-0000-0000-0000-000000000000';
+        const entry = (aaguids as AAGUIDs)[aaguid];
+        credential.provider_icon = entry.icon_light;
+      }
+    }
     return res.json({rpId, userId, credentials});
   }
 );

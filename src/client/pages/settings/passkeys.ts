@@ -27,9 +27,6 @@ import {
 } from '~project-sesame/client/helpers/publickey';
 import '~project-sesame/client/layout';
 
-const aaguids = await fetch('/aaguids.json');
-const icons = await aaguids.json();
-
 /**
  * Change and update the user's display name.
  */
@@ -172,8 +169,8 @@ async function renderCredentials(): Promise<void> {
             <mdui-list-item nonclickable>
               <mdui-icon
                 slot="icon"
-                src="${icons[cred.aaguid].icon_light}"
-                title="${icons[cred.aaguid].name}"
+                src="${cred.provider_icon}"
+                title="${cred.name}"
               ></mdui-icon>
               <span>${cred.name || 'Unnamed'}</span>
               <span slot="description">${timestampStr}</span>
