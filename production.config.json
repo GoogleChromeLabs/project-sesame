@@ -38,7 +38,10 @@
       "https://fedcm-idp-demo.glitch.me",
       "https://accounts.google.com/gsi/client"
     ],
-    "style_src": ["https://accounts.google.com/gsi/style"],
+    "style_src": [
+      "https://accounts.google.com/gsi/style",
+      "https://fonts.gstatic.com/icon"
+    ],
     "style_src_elem": ["https://fonts.googleapis.com/icon"]
   }
 }
