@@ -38,6 +38,7 @@ import {
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+import {admin} from '~project-sesame/server/middlewares/admin.ts';
 
 const app = express();
 
@@ -317,6 +318,7 @@ app.use('/auth', auth);
 app.use('/webauthn', webauthn);
 app.use('/federation', federation);
 app.use('/settings', settings);
+app.use('/admin', admin);
 app.use('/.well-known', wellKnown);
 
 app.use(

@@ -88,12 +88,12 @@ export class FederationMappings {
     return ref.set(map);
   }
 
-  static async remove(
-    map_id: Base64URLString
+  static async deleteByUserId(
+    user_id: Base64URLString
   ): Promise<FirebaseFirestore.WriteResult> {
-    const ref = await store
+    return store
       .collection(FederationMappings.collection)
-      .doc(map_id);
-    return ref.delete();
+      .doc(user_id)
+      .delete();
   }
 }

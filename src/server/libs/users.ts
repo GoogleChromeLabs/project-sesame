@@ -23,6 +23,7 @@ import {
 } from '~project-sesame/server/libs/helpers.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
+import {FederationMappings} from './federation-mappings.ts';
 
 export type UserId = Base64URLString;
 export type PasskeyUserId = Base64URLString;
@@ -168,20 +169,46 @@ export class Users {
     return user;
   }
 
+  /**
+   * Delete the specified user entry in the database, along with associated
+   * federation mappings and public key credential entries
+   * @param user_id
+   * @returns
+   */
   static async delete(user_id: Base64URLString): Promise<void> {
     const user = await Users.findById(user_id);
+    if (!user) {
+      throw new Error('User not found.');
+    }
+    console.log(`Federation mapping is being deleted for ${user.username}.`);
+    await FederationMappings.deleteByUserId(user.id);
+
     const passkey_user_id = user?.passkeyUserId;
     if (passkey_user_id) {
-      PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
-      console.log(`Passkeys for ${user.username} have been deleted.`);
-      const doc = await store
-        .collection(Users.collection)
-        .doc(user_id)
-        .delete();
-      console.log(`The user account "${user.username}" has been deleted.`);
-      return;
-    } else {
-      throw new Error('Invalid passkey_user_id.');
+      console.log(`Passkeys are being deleted for ${user.username}.`);
+      await PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
     }
+
+    console.log(`The user account "${user.username}" has been deleted.`);
+    await store.collection(Users.collection).doc(user_id).delete();
+    return;
+  }
+
+  /**
+   * Delete users who registered more than two days ago.
+   * @returns
+   */
+  static async deleteOldUsers(): Promise<void> {
+    console.log('All users eviction started...');
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const users = await store
+      .collection(Users.collection)
+      .where('registeredAt', '<', twoDaysAgo.getTime())
+      .get();
+    for (const user of users.docs) {
+      await Users.delete(user.id);
+    }
+    console.log('Eviction ended successfully.');
+    return;
   }
 }
