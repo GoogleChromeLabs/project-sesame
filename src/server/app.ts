@@ -181,8 +181,12 @@ app.get(
   '/identifier-first-form',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
+
     return res.render('identifier-first-form.html', {
       title: 'Identifier-first form',
+      nonce,
     });
   }
 );

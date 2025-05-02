@@ -27,6 +27,7 @@ import {
   capabilities,
   authenticate,
 } from '~project-sesame/client/helpers/publickey';
+import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
 postForm()
   .then(() => {
@@ -36,25 +37,53 @@ postForm()
     toast(error.message);
   });
 
-// Feature detection: check if WebAuthn and conditional UI are supported.
-if (capabilities?.conditionalGet) {
-  try {
-    // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-    const user = await authenticate('conditional');
-    if (user) {
-      // When the user is signed in, redirect to the home page.
-      $('#username').value = user.username;
-      loading.start();
-      redirect('/home');
-    } else {
-      throw new Error('User not found.');
-    }
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    // `NotAllowedError` indicates a user cancellation.
-    if (error.name !== 'NotAllowedError') {
-      toast(error.message);
+async function passkey() {
+  // Feature detection: check if WebAuthn and conditional UI are supported.
+  if (capabilities?.conditionalGet) {
+    try {
+      // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
+      const user = await authenticate('conditional');
+      if (user) {
+        // When the user is signed in, redirect to the home page.
+        $('#username').value = user.username;
+        loading.start();
+        redirect('/home');
+      } else {
+        throw new Error('User not found.');
+      }
+    } catch (error: any) {
+      loading.stop();
+      console.error(error);
+      // `NotAllowedError` indicates a user cancellation.
+      if (error.name !== 'NotAllowedError') {
+        toast(error.message);
+      }
     }
   }
 }
+
+async function fedcm() {
+  // Feature detection: check if WebAuthn and conditional UI are supported.
+  // @ts-ignore
+  if (window.IdentityCredential) {
+    try {
+      const idp = new IdentityProvider(['https://accounts.google.com']);
+      await idp.initialize();
+      await idp.signIn({
+        // @ts-ignore
+        mediation: 'conditional',
+      });
+      redirect('/home');
+    } catch (error: any) {
+      loading.stop();
+      console.error(error);
+      // `NotAllowedError` indicates a user cancellation.
+      if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+        toast(error.message);
+      }
+    }
+  }
+}
+
+passkey();
+fedcm();

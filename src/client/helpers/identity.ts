@@ -70,7 +70,7 @@ export class IdentityProvider {
     // @ts-ignore
   ): Promise<IdentityCredential | undefined> {
     let {
-      mode = 'passive',
+      mode,
       loginHint,
       context,
       nonce,
