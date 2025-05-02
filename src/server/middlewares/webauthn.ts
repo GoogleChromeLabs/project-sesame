@@ -299,7 +299,7 @@ router.post(
  */
 router.post(
   '/signinRequest',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     const allowCredentials: PublicKeyCredentialDescriptorJSON[] = [];
 
@@ -355,7 +355,7 @@ router.post(
  */
 router.post(
   '/signinResponse',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     // Set expected values.
     const response = <AuthenticationResponseJSON>req.body;
@@ -380,7 +380,7 @@ router.post(
       // If the user is already signed in and passkey user ID doesn't match,
       // return an error.
       if (
-        res.locals.signin_status >= UserSignInStatus.SignedIn &&
+        res.locals.user &&
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
         deleteChallenge(req, res);
