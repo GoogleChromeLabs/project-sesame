@@ -8,7 +8,7 @@ Passkey form autofill
 
 In this page, you can experience authentication through a form that can
 accommodate passkeys and passwords. We call it "passkey form autofill" flow. In
-addition, you can try WebAuthn Signal API and passkey automatic upgrades.
+addition, WebAuthn Signal API deletes a passkey when it's unusable.
 
 ## How to use
 
@@ -16,9 +16,9 @@ Put your cursor on the username field and form autofill suggestions should
 appear. The list contains passkeys and passwords that are stored to the password
 manager, so you can select one to proceed signing in.
 
-If you haven't created an account on this website yet, you can enter an
-arbitrary username and continue, then enter a random password in the next page
-to create an account. You'll be able to create a passkey for your account.
+If you haven't created a passkey on this website yet, you can enter an arbitrary
+username and continue. You can enter a random password in the next page to
+create an account. The password will be ignored.
 
 If you do have entries in the password manager:
 
@@ -34,6 +34,11 @@ further confusion. This is done by WebAuthn Signal API.
 ## How to develop
 
 ### Passkey form autofill
+
+You can enable passkey form autofill by appending `mediation: "conditional"` to
+the `navigator.credentials.get()` call to an ordinary passkey authentication
+invocation. Also, the `input` element must contain `webauthn` within its
+`autocomplete` attribute.
 
 You can learn passkey basic development through:
 

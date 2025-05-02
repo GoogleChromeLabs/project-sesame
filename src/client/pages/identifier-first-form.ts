@@ -67,7 +67,10 @@ async function fedcm() {
   // @ts-ignore
   if (window.IdentityCredential) {
     try {
-      const idp = new IdentityProvider(['https://accounts.google.com']);
+      const idp = new IdentityProvider([
+        'https://accounts.google.com',
+        'https://fedcm-idp-demo.glitch.me',
+      ]);
       await idp.initialize();
       await idp.signIn({
         // @ts-ignore

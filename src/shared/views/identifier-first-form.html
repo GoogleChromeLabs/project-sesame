@@ -1,24 +1,34 @@
 <div id="help-text">
   <!-- prettier-ignore -->
   <div class="help-headline">
-Passkey form autofill
+Conditional mediation with passwords, passkeys and FedCM
   </div>
   <!-- prettier-ignore -->
   <div class="help-description">
 
+In this page, you can experience authentication through a form that can
+accommodate passkeys, passwords and identity federation. In addition, WebAuthn
+Signal API deletes a passkey when it's unusable.
+
 ## How to use
 
-Use a passkey or a password through form autofill to sign in, or enter a
-username to continue.
+Requires Chrome 137 or later with `chrome://flags#fedcm-autofill` enabled.
 
-If you haven't created a passkey on this website yet, you can enter an
-arbitrary username and continue. No account creation is required.
+Use a password, a passkey or identity federation through form autofill to sign
+in, or manually enter a username to continue.
 
-At the next page, enter a random password and you will be signed in.
-Also, your account will be created.
+If you haven't signed in with identity federation yet, create an account from
+[FedCM active mode](/fedcm-active-mode) or [FedCM passive
+mode](/fedcm-passive-mode). Your IdP's identifier will be your username of your
+account.
 
-Once you are signed in, create a new passkey and sign out to come back
-here to try the passkey.
+Once you are signed in, create a new passkey from the "passkey management" page.
+
+To create a password, you can go "password change" form and create a new
+password. Make sure to save it to the password manager.
+
+Once you are all set, come back to this page and put your cursor on the input
+field.
 
 ### Sign in with a passkey
 
@@ -32,13 +42,31 @@ when prompted. Then you'll be signed in.
 
 ### Passkey form autofill
 
-You can learn how to build passkeys form autofill experience at [Sign in
-with a passkey through form
-autofill](https://web.dev/articles/passkey-form-autofill) and
-[Server-side passkey
-authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication).
+You can enable passkey form autofill by appending `mediation: "conditional"` to
+the `navigator.credentials.get()` call to an ordinary passkey authentication
+invocation. Also, the `input` element must contain `webauthn` within its
+`autocomplete` attribute.
 
-You can also learn through a codelab: [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
+You can learn passkey basic development through:
+
+* [Sign in with a passkey through form
+autofill](https://web.dev/articles/passkey-form-autofill)
+* [Server-side passkey
+authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication)
+* [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
+
+### FedCM form autofill
+
+FedCM form autofill is currently in developer trial and no documentation is
+available yet. But the trick is similar to what you do to passkey. Just append
+`mediation: "conditional"` to the `navigator.credentials.get()` call to an
+ordinary FedCM invocation. Also, the `input` element must contain `webidentity`
+within its `autocomplete` attribute.
+
+You can learn FedCM basic development through:
+
+* [Implement an identity solution with FedCM on the Relying Party
+side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
 
 ### Signal API
 
