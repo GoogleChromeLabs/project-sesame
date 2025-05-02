@@ -50,6 +50,9 @@ if (alternativeLink && rParam) {
 // but the authenticate() call doesn't seem to require it specifically here.
 // Sticking with the original check for consistency.
 if (capabilities?.userVerifyingPlatformAuthenticator) {
+  $('#hidden').classList.remove('hidden');
+  $('#unsupported').classList.add('hidden');
+
   $('#passkey-signin').addEventListener(
     'click',
     async (e: {target: HTMLButtonElement}) => {
@@ -76,14 +79,4 @@ if (capabilities?.userVerifyingPlatformAuthenticator) {
       }
     }
   );
-} else {
-  // Optional: Handle the case where passkeys are not supported
-  const passkeyButton = $('#passkey-signin');
-  if (passkeyButton) {
-    passkeyButton.style.display = 'none'; // Hide the passkey button
-    console.log(
-      'Passkey authentication button hidden as feature is not supported.'
-    );
-  }
-  // You might want to make the alternative link more prominent here
 }
