@@ -254,21 +254,6 @@ export function initializeSession() {
   });
 }
 
-export function getDeviceId(req: Request, res: Response): string {
-  let {device_id} = req.cookies;
-
-  if (!device_id) {
-    device_id = generateRandomString();
-    res.cookie('device_id', device_id, {
-      path: '/',
-      httpOnly: true,
-      secure: !config.is_localhost, // `false` on localhost
-      maxAge: config.forever_cookie_duration,
-    });
-  }
-  return device_id;
-}
-
 /**
  * Sets the challenge value for the session.
  * If the challenge is not provided, a random challenge value is generated.

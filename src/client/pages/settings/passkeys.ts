@@ -169,7 +169,7 @@ async function renderCredentials(): Promise<void> {
             <mdui-list-item nonclickable>
               <mdui-icon
                 slot="icon"
-                src="${cred.provider_icon}"
+                src="${cred.providerIcon}"
                 title="${cred.name}"
               ></mdui-icon>
               <span>${cred.name || 'Unnamed'}</span>

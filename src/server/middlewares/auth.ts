@@ -16,14 +16,10 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {
-  Users,
-  generatePasskeyUserId,
-} from '~project-sesame/server/libs/users.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
   setSignedIn,
-  setEphemeralPasskeyUserId,
   apiAclCheck,
   ApiType,
   setSigningUp,
@@ -61,11 +57,6 @@ router.post(
 
         // Set username in the session
         setSigningUp(username, req, res);
-
-        // // Generate a new passkey user id
-        // const passkey_user_id = generatePasskeyUserId();
-        // // TODO: This needs to be reset to avoid unexpected bug.
-        // setEphemeralPasskeyUserId(passkey_user_id, req, res);
 
         return res.json({});
       } else {

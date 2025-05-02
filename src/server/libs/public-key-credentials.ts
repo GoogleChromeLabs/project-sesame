@@ -27,14 +27,14 @@ import {PasskeyUserId} from './users.ts';
 export interface SesamePublicKeyCredential {
   id: Base64URLString;
   passkeyUserId: PasskeyUserId;
-  deviceId?: Base64URLString;
   name?: string;
   // User visible identifier.
   credentialPublicKey: Base64URLString; // public key,
   credentialType: string; // type of credential,
   counter?: number; // previous counter,
   aaguid: string; // AAGUID,
-  provider_icon?: string; // Provider icon
+  provider_icon?: string; // Provider icon (deprecated)
+  providerIcon?: string; // Provider icon
   userVerified: boolean; // user verifying authenticator,
   transports: AuthenticatorTransportFuture[]; // list of transports,
   browser?: string;

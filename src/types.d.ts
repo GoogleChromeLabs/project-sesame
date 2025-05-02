@@ -79,10 +79,8 @@ declare module 'express-session' {
     signin_username: string;
     // Claimed username. DB does not have a conflicting entry.
     signup_username: string;
-    // (deprecating) `true` if the user is signed in.
-    signed_in: boolean;
-    // (deprecating) Claimed username.
-    username: string;
+    // A new passkey user ID upon sign-up.
+    passkey_user_id?: string;
     // User information if the user is signed in.
     user?: User;
     // Last signed in time in epoch;
@@ -91,8 +89,6 @@ declare module 'express-session' {
     challenge?: string;
     // The path from which the user signed in.
     entrance?: string;
-    // A new passkey user ID upon sign-up.
-    passkey_user_id?: string;
   }
 }
 

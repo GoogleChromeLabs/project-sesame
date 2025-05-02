@@ -49,7 +49,6 @@ import {
   deleteChallenge,
   deleteEpehemeralPasskeyUserId,
   getChallenge,
-  getDeviceId,
   getEphemeralPasskeyUserId,
   setChallenge,
   setEphemeralPasskeyUserId,
@@ -85,6 +84,7 @@ router.post(
           credential.aaguid ?? '00000000-0000-0000-0000-000000000000';
         const entry = (aaguids as AAGUIDs)[aaguid];
         credential.provider_icon = entry.icon_light;
+        credential.providerIcon = entry.icon_light;
       }
     }
     return res.json({rpId, userId, credentials});
@@ -256,12 +256,9 @@ router.post(
           ? req.useragent?.platform
           : (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
 
-      const deviceId = getDeviceId(req, res);
-
       // Store the registration result.
       await PublicKeyCredentials.update({
         id: credential.id,
-        deviceId,
         passkeyUserId: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
@@ -314,16 +311,7 @@ router.post(
           .json({error: 'No credentials found to sign in with.'});
       }
 
-      // If the device ID is known, pick the credential by the device ID.
-      const device_id = getDeviceId(req, res);
-
       for (let cred of credentials) {
-        // TODO: Does filtering by device make sense? Doesn't filtering just by user ID suffice?
-        // If device ID is available but doesn't match, skip.
-        // if (device_id && cred.deviceId !== device_id) {
-        //   continue;
-        // }
-        // Fill `allowCredentials`
         allowCredentials.push({
           id: cred.id,
           type: 'public-key',
