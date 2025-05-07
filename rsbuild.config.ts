@@ -36,7 +36,7 @@ export default defineConfig({
       'fedcm-passive-mode': './src/client/pages/fedcm-passive-mode.ts',
       'fedcm-delegate': './src/client/pages/fedcm-delegate.ts',
       home: './src/client/pages/home.ts',
-      'identifier-first-form': './src/client/pages/identifier-first-form.ts',
+      'fedcm-form-autofill': './src/client/pages/fedcm-form-autofill.ts',
       'passkey-form-autofill': './src/client/pages/passkey-form-autofill.ts',
       'passkey-one-button': './src/client/pages/passkey-one-button.ts',
       'passkey-reauth': './src/client/pages/passkey-reauth.ts',

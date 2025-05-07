@@ -141,6 +141,36 @@ app.get(
 );
 
 app.get(
+  '/signin-form',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response) => {
+    return res.render('signin-form.html', {
+      title: 'Sign-In Form',
+    });
+  }
+);
+
+app.get(
+  '/new-password',
+  pageAclCheck(PageType.SigningUp),
+  (req: Request, res: Response) => {
+    res.render('new-password.html', {
+      title: 'Password',
+    });
+  }
+);
+
+app.get(
+  '/password',
+  pageAclCheck(PageType.Reauth),
+  (req: Request, res: Response) => {
+    res.render('password.html', {
+      title: 'Password',
+    });
+  }
+);
+
+app.get(
   '/fedcm-delegate',
   pageAclCheck(PageType.SignUp),
   (req: Request, res: Response) => {
@@ -158,33 +188,13 @@ app.get(
 );
 
 app.get(
-  '/new-password',
-  pageAclCheck(PageType.SigningUp),
-  (req: Request, res: Response) => {
-    res.render('new-password.html', {
-      title: 'Password',
-    });
-  }
-);
-
-app.get(
-  '/signin-form',
-  pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    return res.render('signin-form.html', {
-      title: 'Sign-In Form',
-    });
-  }
-);
-
-app.get(
-  '/identifier-first-form',
+  '/fedcm-form-autofill',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
     // Generate a new nonce.
     const nonce = setChallenge(req, res);
 
-    return res.render('identifier-first-form.html', {
+    return res.render('fedcm-form-autofill.html', {
       title: 'Identifier-first form',
       nonce,
     });
@@ -235,20 +245,6 @@ app.get(
 );
 
 app.get(
-  '/legacy-credman',
-  pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
-    return res.render('legacy-credman.html', {
-      title: 'Legacy Credential Management',
-      nonce,
-    });
-  }
-);
-
-app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
@@ -287,11 +283,15 @@ app.get(
 );
 
 app.get(
-  '/password',
-  pageAclCheck(PageType.Reauth),
+  '/legacy-credman',
+  pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    res.render('password.html', {
-      title: 'Password',
+    // Generate a new nonce.
+    const nonce = setChallenge(req, res);
+
+    return res.render('legacy-credman.html', {
+      title: 'Legacy Credential Management',
+      nonce,
     });
   }
 );
