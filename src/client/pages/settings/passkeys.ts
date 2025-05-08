@@ -143,11 +143,7 @@ async function renderCredentials(): Promise<void> {
               day: 'numeric',
               year: 'numeric',
             });
-            // const lastUsedTime = lastUsed.toLocaleTimeString(undefined, {
-            //   timeStyle: 'short',
-            //   hour12: false,
-            // });
-            timestampStr = `Last used: ${lastUsedDate}`;
+            timestampStr = `Last used ${lastUsedDate}`;
             // timestampStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
           } else {
             const created = new Date(cred.registeredAt);
@@ -156,12 +152,7 @@ async function renderCredentials(): Promise<void> {
               day: 'numeric',
               year: 'numeric',
             });
-            // const createdTime = created.toLocaleTimeString(undefined, {
-            //   timeStyle: 'short',
-            //   hour12: false,
-            // });
-            timestampStr = `Created: ${createdDate}`;
-            // timestampStr = `Created: ${createdDate}, ${createdTime}`;
+            timestampStr = `Created ${createdDate}`;
           }
           return html`${i > 0 && i < res.length
               ? html` <mdui-divider></mdui-divider> `
@@ -173,15 +164,10 @@ async function renderCredentials(): Promise<void> {
                 title="${cred.name}"
               ></mdui-icon>
               <span>${cred.name || 'Unnamed'}</span>
-              <span slot="description">${timestampStr}</span>
-              ${!cred.credentialBackedUp
-                ? html`
-                    <mdui-button-icon
-                      slot="end-icon"
-                      icon="sync_disabled--outlined"
-                    ></mdui-button-icon>
-                  `
-                : ''}
+              <span slot="description">
+                ${timestampStr}
+                ${!cred.credentialBackedUp ? html`・Device only` : ''}
+              </span>
               <mdui-button-icon
                 slot="end-icon"
                 data-cred-id="${cred.id}"
@@ -207,7 +193,7 @@ async function renderCredentials(): Promise<void> {
 async function register(): Promise<void> {
   try {
     loading.start();
-    await registerCredential();
+    await registerCredential(true);
     await renderCredentials();
     loading.stop();
   } catch (error: any) {
