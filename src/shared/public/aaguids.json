@@ -1,4 +1,12 @@
 {
+  "computer-device": {
+    "name": "Device bound",
+    "icon_light": "/images/laptop.svg"
+  },
+  "security-key": {
+    "name": "Security key",
+    "icon_light": "/images/security_key.svg"
+  },
   "00000000-0000-0000-0000-000000000000": {
     "name": "Unknown",
     "icon_light": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAwIDI0IDI0IiB3aWR0aD0iMjRweCIgZmlsbD0iIzAwMDAwMCI+PHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0xNyAxSDdjLTEuMSAwLTIgLjktMiAydjE4YzAgMS4xLjkgMiAyIDJoMTBjMS4xIDAgMi0uOSAyLTJWM2MwLTEuMS0uOS0yLTItMnptMCAxOEg3VjVoMTB2MTR6TTEyIDYuNzJjLTEuOTYgMC0zLjUgMS41Mi0zLjUgMy40N2gxLjc1YzAtLjkzLjgyLTEuNzUgMS43NS0xLjc1czEuNzUuODIgMS43NSAxLjc1YzAgMS43NS0yLjYzIDEuNTctMi42MyA0LjQ1aDEuNzZjMC0xLjk2IDIuNjItMi4xOSAyLjYyLTQuNDUgMC0xLjk2LTEuNTQtMy40Ny0zLjUtMy40N3ptLS44OCA4LjhoMS43NnYxLjc2aC0xLjc2eiIvPjwvc3ZnPg="

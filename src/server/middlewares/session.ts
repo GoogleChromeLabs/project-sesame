@@ -47,7 +47,7 @@ export enum PageType {
 // ACL requirement for an API
 export enum ApiType {
   NoAuth = 0, // No authentication is required
-  PasskeyRegistration = 1, // The user is either signing-up or signed-in
+  PasskeyRegistration = 1, // The user is either signing-up, signed-in or upgrading
   // Identifier = 2, // The user is about to sign-up
   SigningUp = 2, // The user is in the middle of signing up
   Authentication = 3, // The user is about to sign in with a username and a credential

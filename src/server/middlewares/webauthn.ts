@@ -139,6 +139,7 @@ router.post(
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let passkeyUserId, username, displayName;
+    const non_platform = req.query.hasOwnProperty('non_platform');
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
       displayName = username;
@@ -168,6 +169,12 @@ router.post(
         authenticatorAttachment: 'platform',
         requireResidentKey: true,
       } as AuthenticatorSelectionCriteria;
+
+      // If non-platform is specified, allow security keys
+      if (non_platform) {
+        delete authenticatorSelection.authenticatorAttachment;
+      }
+
       const attestationType = 'none';
 
       // Use SimpleWebAuthn's handy function to create registration options.
@@ -243,18 +250,49 @@ router.post(
       }
 
       const {credential} = registrationInfo;
+      const {
+        aaguid,
+        credentialType,
+        userVerified,
+        credentialDeviceType,
+        credentialBackedUp,
+      } = registrationInfo;
 
       // Base64URL encode ArrayBuffers.
       const base64PublicKey = <Base64URLString>(
         isoBase64URL.fromBuffer(credential.publicKey)
       );
 
-      const aaguid = registrationInfo?.aaguid;
-      const name =
+      const aaguid_item = (aaguids as AAGUIDs)[aaguid];
+      let _aaguid = aaguid;
+      let name = '';
+
+      if (!credentialBackedUp) {
+        // If the passkey is not synced
+        if (response.authenticatorAttachment === 'cross-platform') {
+          // And if the passkey is a roaming authenticator
+          _aaguid = 'security-key';
+          name = 'Security key';
+        } else {
+          // If the passkey is a platform authenticator
+          _aaguid = 'computer-device';
+          name = aaguid_item?.name || req.useragent?.platform || 'Unknown';
+        }
+      } else if (
         aaguid === undefined ||
         aaguid === '00000000-0000-0000-0000-000000000000'
-          ? req.useragent?.platform
-          : (aaguids as AAGUIDs)[registrationInfo.aaguid].name;
+      ) {
+        // If the passkey is synced, but AAGUID is unkonwn
+        _aaguid === '00000000-0000-0000-0000-000000000000';
+        name = req.useragent?.platform || 'Unknown';
+      } else if (!aaguid_item) {
+        // If the passkey is synced, but AAGUID isn't included in the list
+        _aaguid === '00000000-0000-0000-0000-000000000000';
+        name = req.useragent?.platform || 'Unknown';
+      } else {
+        // The passkey is synced and AAGUID is found in the list
+        name = aaguid_item.name;
+      }
 
       // Store the registration result.
       await PublicKeyCredentials.update({
@@ -262,12 +300,12 @@ router.post(
         passkeyUserId: passkeyUserId,
         name,
         credentialPublicKey: base64PublicKey,
-        credentialType: registrationInfo.credentialType,
-        aaguid: registrationInfo.aaguid,
+        credentialType,
+        aaguid: _aaguid,
         transports: response.response.transports || [],
-        userVerified: registrationInfo.userVerified,
-        credentialDeviceType: registrationInfo.credentialDeviceType,
-        credentialBackedUp: registrationInfo.credentialBackedUp,
+        userVerified,
+        credentialDeviceType,
+        credentialBackedUp,
         registeredAt: getTime(),
       } as SesamePublicKeyCredential);
 

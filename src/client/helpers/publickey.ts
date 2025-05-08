@@ -34,10 +34,14 @@ export const capabilities =
 
 let controller = new AbortController();
 
-export async function preparePublicKeyCreationOptions(): Promise<PublicKeyCredentialCreationOptions> {
+export async function preparePublicKeyCreationOptions(
+  non_platform = false
+): Promise<PublicKeyCredentialCreationOptions> {
   // Fetch passkey creation options from the server.
   const options: PublicKeyCredentialCreationOptionsJSON = await post(
-    '/webauthn/registerRequest'
+    non_platform
+      ? '/webauthn/registerRequest?non_platform'
+      : '/webauthn/registerRequest'
   );
 
   return PublicKeyCredential.parseCreationOptionsFromJSON(options);
@@ -131,13 +135,14 @@ export async function verifyPublicKeyRequestResult(
  * @returns A promise that resolves with a server response.
  */
 export async function registerCredential(
-  conditional: boolean = false
+  non_platform = false,
+  conditional = false
 ): Promise<any> {
   // Abort ongoing WebAuthn request
   controller.abort();
   controller = new AbortController();
 
-  const options = await preparePublicKeyCreationOptions();
+  const options = await preparePublicKeyCreationOptions(non_platform);
 
   // Invoke WebAuthn create
   const cred = (await navigator.credentials.create({
