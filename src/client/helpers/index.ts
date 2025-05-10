@@ -24,9 +24,90 @@ import {marked} from 'marked';
 
 export const $: any = document.querySelector.bind(document);
 
+/**
+ * Safely redirects the user to a new path within the same origin.
+ *
+ * If the provided path is an absolute URL to a different origin, or an
+ * invalid path, it logs a warning/error and redirects to the root path ('/')
+ * as a security measure to prevent open redirect vulnerabilities.
+ *
+ * @param path The destination path or URL. If relative, it's resolved against
+ *             the current origin. If absolute, its origin must match the
+ *             current location's origin. Defaults to an empty string, which
+ *             results in no action.
+ */
 export const redirect = (path: string = '') => {
-  if (path !== '') {
-    location.href = path;
+  if (path === '') {
+    return;
+  }
+
+  try {
+    // Resolve the path against the current location's origin.
+    // This handles:
+    // 1. Absolute URLs: new URL("https://example.com/path") -> origin is "https://example.com"
+    // 2. Relative paths: new URL("/path", "https://current.com") -> origin is "https://current.com"
+    // 3. Protocol-relative URLs: new URL("//other.com/path", "https://current.com") -> origin is "https://other.com" (will be caught)
+    const targetUrl = new URL(path, location.origin);
+
+    // Check if the origin of the target URL is the same as the current location's origin.
+    if (targetUrl.origin === location.origin) {
+      location.href = targetUrl.toString();
+    } else {
+      // The path is an external URL or a protocol-relative URL to a different domain.
+      console.warn(
+        `Attempted to redirect to an external URL: ${path}. Redirecting to '/' instead.`
+      );
+      location.href = '/'; // Default safe redirect
+    }
+  } catch (error) {
+    // This might happen if 'path' is not a valid URL or path segment.
+    console.error(
+      `Invalid path for redirect: ${path}. Error: ${error}. Redirecting to '/' instead.`
+    );
+    location.href = '/'; // Default safe redirect
+  }
+};
+
+/**
+ * Updates the href of a specified anchor element to include a redirect parameter ('r')
+ * from the current page's URL.
+ *
+ * This function is useful for ensuring that alternative sign-in or navigation links
+ * persist the original redirect destination if one was provided in the URL.
+ *
+ * It looks for an 'r' query parameter in the current `location.href`. If found,
+ * and if an element matching the provided CSS `query` selector exists (and has an `href`),
+ * the function will append or update the 'r' parameter on the element's `href`.
+ *
+ * Console messages are logged for debugging purposes, indicating success,
+ * failure to update the href, or if the target element was not found.
+ *
+ * @param domQuery A CSS selector string used to find the target anchor element
+ *              whose href needs to be updated.
+ */
+export const setRedirect = (domQuery: string): void => {
+  // Get redirect parameter 'r'
+  const currentUrl = new URL(location.href);
+  const r = currentUrl.searchParams.get('r');
+
+  // Update the alternative sign-in link
+  const alternativeLink = $(domQuery);
+
+  if (alternativeLink && r) {
+    try {
+      // Construct the target URL, preserving existing params if any
+      const targetUrl = new URL(alternativeLink.href, location.origin); // Use base URL for relative links
+      targetUrl.searchParams.set('r', r); // Add or update the 'r' parameter
+      alternativeLink.href = targetUrl.toString(); // Set the updated href
+      console.log(`Updated alternative link href to: ${alternativeLink.href}`);
+    } catch (error) {
+      console.error("Failed to update alternative sign-in link's href:", error);
+      // Avoid breaking the page if URL parsing fails
+    }
+  } else if (!alternativeLink) {
+    console.warn(
+      'Could not find the alternative sign-in link element to update its href.'
+    );
   }
 };
 
