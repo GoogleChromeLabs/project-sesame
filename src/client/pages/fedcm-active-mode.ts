@@ -16,7 +16,7 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, toast} from '~project-sesame/client/helpers/index';
+import {$, toast, redirect} from '~project-sesame/client/helpers/index';
 // @ts-ignore
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
@@ -28,7 +28,7 @@ google.initialize();
 const signIn = async (idp: IdentityProvider) => {
   try {
     await idp.signIn({mode: 'active'});
-    location.href = '/home';
+    redirect('/home');
   } catch (e: any) {
     console.error(e);
     toast(e.message);

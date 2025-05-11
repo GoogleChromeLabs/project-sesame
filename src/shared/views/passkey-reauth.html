@@ -20,18 +20,16 @@ TBD
   </div>
 </div>
 <main class="content center">
-  <h2>Verify your identity</h2>
+  <h2>Verify your identity with a passkey to continue</h2>
   <section class="center">
     <div id="hidden" class="hidden center">
-      <mdui-button id="passkey-signin" variant="filled">
-        Sign-in with passkey
-      </mdui-button>
+      <mdui-button id="passkey-signin" variant="filled"> Verify </mdui-button>
     </div>
     <p id="unsupported" class="instructions">
       This browser does not support passkeys.
     </p>
   </section>
-  <mdui-button id="password-signin" href="/password" variant="text">
-    Sign in with a password instead
+  <mdui-button id="password-signin" href="/password-reauth" variant="text">
+    Verify with a password instead
   </mdui-button>
 </main>

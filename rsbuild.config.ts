@@ -43,6 +43,7 @@ export default defineConfig({
       'passkey-signup': './src/client/pages/passkey-signup.ts',
       'legacy-credman': './src/client/pages/legacy-credman.ts',
       password: './src/client/pages/password.ts',
+      'password-reauth': './src/client/pages/password-reauth.ts',
       'password-passkey': './src/client/pages/password-passkey.ts',
       'signin-form': './src/client/pages/signin-form.ts',
       'signup-form': './src/client/pages/signup-form.ts',

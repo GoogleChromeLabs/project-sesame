@@ -21,30 +21,34 @@ import {
   redirect,
   postForm,
   toast,
+  setRedirect,
 } from '~project-sesame/client/helpers/index';
-import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {
+  capabilities,
+  registerCredential,
+} from '~project-sesame/client/helpers/publickey';
+
+setRedirect('#passkey-signin');
 
 postForm()
-  .then(() => {
+  .then(async () => {
+    if (capabilities?.conditionalCreate) {
+      try {
+        await registerCredential(false, true);
+      } catch (error: any) {
+        if (error.name === 'InvalidStateError') {
+          console.info('A passkey is already registered for the user.');
+        } else if (error.name === 'NotAllowedError') {
+          console.info(
+            "Passkey was not created because the password didn't match the one in the password manager."
+          );
+        } else if (error.name !== 'AbortError') {
+          console.error(error);
+        }
+      }
+    }
     redirect('/home');
   })
   .catch(error => {
-    // FIXME: `error.message` is not included.
     toast(error.message);
   });
-
-if ('IdentityCredential' in window) {
-  $('#unsupported').classList.add('hidden');
-  try {
-    const idp = new IdentityProvider([
-      'https://fedcm-idp-demo.glitch.me',
-      'https://accounts.google.com',
-    ]);
-    await idp.initialize();
-    await idp.signIn({mode: 'passive', mediation: 'required'});
-    redirect('/home');
-  } catch (e: any) {
-    console.error(e);
-    toast(e.message);
-  }
-}

@@ -80,7 +80,7 @@ router.get(
 
 router.post(
   '/verifyIdToken',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {token: raw_token, url} = req.body;
     // console.error(raw_token);
@@ -168,7 +168,7 @@ router.post(
 
 router.post(
   '/verifySdJwt',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     // Respond with static result for now.
     // TODO: Implement SD-JWT parser

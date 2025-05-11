@@ -162,10 +162,20 @@ app.get(
 
 app.get(
   '/password',
-  pageAclCheck(PageType.Reauth),
+  pageAclCheck(PageType.FirstCredential),
   (req: Request, res: Response) => {
     res.render('password.html', {
-      title: 'Password',
+      title: 'Password verification',
+    });
+  }
+);
+
+app.get(
+  '/password-reauth',
+  pageAclCheck(PageType.Reauth),
+  (req: Request, res: Response) => {
+    res.render('password-reauth.html', {
+      title: 'Password reauthentication',
     });
   }
 );
@@ -226,7 +236,7 @@ app.get(
   pageAclCheck(PageType.Reauth),
   (req: Request, res: Response) => {
     res.render('passkey-reauth.html', {
-      title: 'Passkey reauth',
+      title: 'Passkey reauthentication',
     });
   }
 );

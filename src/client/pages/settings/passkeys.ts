@@ -144,7 +144,6 @@ async function renderCredentials(): Promise<void> {
               year: 'numeric',
             });
             timestampStr = `Last used ${lastUsedDate}`;
-            // timestampStr = `Last Used: ${lastUsedDate}, ${lastUsedTime}`;
           } else {
             const created = new Date(cred.registeredAt);
             const createdDate = created.toLocaleDateString(undefined, {

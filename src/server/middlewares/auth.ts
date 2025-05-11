@@ -193,7 +193,7 @@ router.post(
 
 router.post(
   '/username-password',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {username, password} = req.body;
 

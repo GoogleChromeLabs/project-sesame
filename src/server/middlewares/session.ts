@@ -25,7 +25,6 @@ import {User} from '~project-sesame/server/libs/users.ts';
 import {generateRandomString} from '~project-sesame/server/libs/helpers.ts';
 
 export enum UserSignInStatus {
-  // Unregistered = 0,
   SignedOut = 1,
   SigningUp = 2,
   SigningIn = 3,
@@ -39,24 +38,39 @@ export enum PageType {
   SignUp = 1, // This is a sign-up page
   SigningUp = 2, // The user must be signing up
   SignIn = 3, // This is a sign-in page
-  Reauth = 4, // The user must be signed in and requires reauthentication
-  SignedIn = 5, // The user must be signed in
-  Sensitive = 6, // The user must be recently signed in
+  FirstCredential = 4, // The user has provided the username
+  Reauth = 5, // The user must be signed in and requires reauthentication
+  SignedIn = 6, // The user must be signed in
+  Sensitive = 7, // The user must be recently signed in
 }
 
 // ACL requirement for an API
 export enum ApiType {
   NoAuth = 0, // No authentication is required
   PasskeyRegistration = 1, // The user is either signing-up, signed-in or upgrading
-  // Identifier = 2, // The user is about to sign-up
   SigningUp = 2, // The user is in the middle of signing up
-  Authentication = 3, // The user is about to sign in with a username and a credential
+  SignIn = 3, // The user is about to sign in with a username and a credential
   FirstCredential = 4, // The user is about to sign in
   SecondCredential = 5, // The user is about to sign in
   SignedIn = 6, // The user must be signed in
   Sensitive = 7, // The user must be recently signed in
 }
 
+/**
+ * Determines the user's current sign-in status based on session data.
+ *
+ * This function inspects the `req.session` object for properties like
+ * `signup_username`, `signin_username`, `last_signedin_at`, and `user`
+ * to ascertain the user's state in the authentication lifecycle.
+ *
+ * It also populates `res.locals.username` and `res.locals.user` if the
+ * user is signing up, signing in, or signed in.
+ *
+ * @param req The Express Request object, containing session data.
+ * @param res The Express Response object, used to store user information in locals.
+ * @returns The `UserSignInStatus` enum value representing the user's current
+ *   authentication status.
+ */
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
   console.log(req.session);
   const {signup_username, signin_username, last_signedin_at, user} =
@@ -121,16 +135,22 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         const entrance = getEntrancePath(req, res);
         const url = new URL(config.origin);
         if (entrance === '/signin-form') {
-          // Redirect to `/password`.
-          url.pathname = '/password';
+          url.pathname = '/password-reauth';
         } else {
-          // Redirect to `/passkey-reauth`.
           url.pathname = '/passkey-reauth';
         }
         url.search = search.toString();
         return res.redirect(307, url.pathname + url.search);
       }
       setEntrancePath(req, res);
+    } else if (pageType === PageType.FirstCredential) {
+      if (signin_status < UserSignInStatus.SigningIn) {
+        // If the user is not signing in, redirect to the original entrance.
+        return res.redirect(307, getEntrancePath(req, res));
+      } else if (signin_status >= UserSignInStatus.SignedIn) {
+        // If the user is recently signed in, redirect to `/home`.
+        return res.redirect(307, '/home');
+      }
     } else if (pageType === PageType.Reauth) {
       if (signin_status < UserSignInStatus.SigningIn) {
         // If the user is not signing in, redirect to the original entrance.
@@ -195,7 +215,7 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
         return res.status(400).json({error: 'The user is already signed in.'});
       }
       // The user is authenticating or reauthenticating
-    } else if (apiType === ApiType.Authentication) {
+    } else if (apiType === ApiType.SignIn) {
       if (signin_status !== UserSignInStatus.SignedOut) {
         return res.status(400).json({error: 'Invalid request.'});
       }
