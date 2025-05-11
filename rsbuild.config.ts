@@ -17,44 +17,54 @@
 
 import {defineConfig} from '@rsbuild/core';
 import {pluginSass} from '@rsbuild/plugin-sass';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /** Configuration for [rsbuild](https://rsbuild.dev/), building
  * the frontend of Project Sesame and also copying shared files
  * to the dist folder to have them available for the backend.
  */
 
+/**
+ * Create `entry` object to pass to the `defineConfig` function below, that maps
+ * all the paths under `/src/client/pages` by traversing the file system so that
+ * they don't have to be manually added. The path should include `./` at the
+ * beginning.
+ */
+function createEntryPoints(dir: string): Record<string, string> {
+  const entryPoints: Record<string, string> = {};
+
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const stats = fs.statSync(fullPath);
+
+    console.log(`fullPath: ${fullPath}`);
+
+    if (stats.isDirectory()) {
+      const nestedEntries = createEntryPoints(fullPath);
+      for (const key in nestedEntries) {
+        entryPoints[path.join(path.basename(dir), key)] = nestedEntries[key];
+      }
+    } else if (stats.isFile() && path.extname(file) === '.ts') {
+      const name = path.basename(file, '.ts');
+      entryPoints[name] = './' + fullPath;
+    }
+  }
+
+  return entryPoints;
+}
+
+const entry = createEntryPoints('./src/client/pages');
+
+console.log(entry);
+
 export default defineConfig({
   plugins: [pluginSass()],
   source: {
     tsconfigPath: './src/client/tsconfig.json',
-    entry: {
-      index: './src/client/pages/index.ts',
-      // This contains all pages from src/client/pages
-      // this can be heavily cleaned up once the frontend code has
-      // some more structure
-      'fedcm-active-mode': './src/client/pages/fedcm-active-mode.ts',
-      'fedcm-passive-mode': './src/client/pages/fedcm-passive-mode.ts',
-      'fedcm-delegate': './src/client/pages/fedcm-delegate.ts',
-      home: './src/client/pages/home.ts',
-      'fedcm-form-autofill': './src/client/pages/fedcm-form-autofill.ts',
-      'passkey-form-autofill': './src/client/pages/passkey-form-autofill.ts',
-      'passkey-one-button': './src/client/pages/passkey-one-button.ts',
-      'passkey-reauth': './src/client/pages/passkey-reauth.ts',
-      'passkey-signup': './src/client/pages/passkey-signup.ts',
-      'legacy-credman': './src/client/pages/legacy-credman.ts',
-      password: './src/client/pages/password.ts',
-      'password-reauth': './src/client/pages/password-reauth.ts',
-      'password-passkey': './src/client/pages/password-passkey.ts',
-      'signin-form': './src/client/pages/signin-form.ts',
-      'signup-form': './src/client/pages/signup-form.ts',
-      'settings/passkeys': './src/client/pages/settings/passkeys.ts',
-      'settings/password-change':
-        './src/client/pages/settings/password-change.ts',
-      'settings/identity-providers':
-        './src/client/pages/settings/identity-providers.ts',
-      'settings/delete-account':
-        './src/client/pages/settings/delete-account.ts',
-    },
+    entry,
   },
   html: {
     template: './src/client/layout.html',

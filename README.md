@@ -55,12 +55,6 @@ To add a TypeScript file that runs on the HTML template, create a file under
 
 For example, `src/client/pages/sign-in.ts`.
 
-### Add the path entry to `rsbuild.config.ts`
-
-Don't forget to add the TypeScript path to `source/entry` in `rsbuild.config.ts`.
-
-For example, `'sign-in': './src/client/pages/sign-ints'`,
-
 ### Where to find layout templates
 
 The layout template is at `src/client/layout.html`. The partial templates are
@@ -88,13 +82,14 @@ Define the type of the page from the following list with `pageAclCheck`.
 
 ```ts
 export enum PageType {
-  NoAuth = 0,           // No authentication is required
-  SignUp = 1,           // This is a sign-up page
+  NoAuth = 0, // No authentication is required
+  SignUp = 1, // This is a sign-up page
   SigningUp = 2, // The user must be signing up
-  SignIn = 3,           // This is a sign-in page
-  SignedIn = 4,         // The user must be signed in
-  Sensitive = 5,        // The user must be recently signed in
-  Reauth = 6,           // The user must be signed in and requires reauthentication
+  SignIn = 3, // This is a sign-in page
+  FirstCredential = 4, // The user has provided the username
+  Reauth = 5, // The user must be signed in and requires reauthentication
+  SignedIn = 6, // The user must be signed in
+  Sensitive = 7, // The user must be recently signed in
 }
 ```
 
@@ -106,15 +101,14 @@ Define the type of the API from the following list with `apiAclCheck`.
 
 ```ts
 export enum ApiType {
-  NoAuth = 0,               // No authentication is required
-  PasskeyRegistration = 1,  // The user is either signing-up or signed-in
-  Identifier = 2,           // The user is about to sign-up
-  SigningUp = 3,     // The user is in the middle of signing up
-  Authentication = 4,       // The user is about to sign in with a username and a credential
-  FirstCredential = 5,      // The user is about to sign in
-  SecondCredential = 6,     // The user is about to sign in
-  SignedIn = 7,             // The user must be signed in
-  Sensitive = 8,            // The user must be recently signed in
+  NoAuth = 0, // No authentication is required
+  PasskeyRegistration = 1, // The user is either signing-up, signed-in or upgrading
+  SigningUp = 2, // The user is in the middle of signing up
+  SignIn = 3, // The user is about to sign in with a username and a credential
+  FirstCredential = 4, // The user is about to sign in
+  SecondCredential = 5, // The user is about to sign in
+  SignedIn = 6, // The user must be signed in
+  Sensitive = 7, // The user must be recently signed in
 }
 ```
 
