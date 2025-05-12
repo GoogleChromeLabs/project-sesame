@@ -15,10 +15,10 @@
  * limitations under the License
  */
 
-import {defineConfig} from '@rsbuild/core';
-import {pluginSass} from '@rsbuild/plugin-sass';
 import fs from 'node:fs';
 import path from 'node:path';
+import {defineConfig} from '@rsbuild/core';
+import {pluginSass} from '@rsbuild/plugin-sass';
 
 /** Configuration for [rsbuild](https://rsbuild.dev/), building
  * the frontend of Project Sesame and also copying shared files
@@ -40,25 +40,26 @@ function createEntryPoints(dir: string): Record<string, string> {
     const fullPath = path.join(dir, file);
     const stats = fs.statSync(fullPath);
 
-    console.log(`fullPath: ${fullPath}`);
-
     if (stats.isDirectory()) {
+      // Recursively get entries from the subdirectory
       const nestedEntries = createEntryPoints(fullPath);
-      for (const key in nestedEntries) {
-        entryPoints[path.join(path.basename(dir), key)] = nestedEntries[key];
+      const dirName = path.basename(file); // Get the name of the current directory, e.g., "settings"
+      for (const nestedKey in nestedEntries) {
+        // Construct the new key by prepending the current directory's name.
+        // Ensure forward slashes for cross-platform consistency in keys.
+        const newKey = (dirName + '/' + nestedKey).replace(/\\/g, '/');
+        entryPoints[newKey] = nestedEntries[nestedKey]; // Value is already correctly formatted from deeper call
       }
     } else if (stats.isFile() && path.extname(file) === '.ts') {
       const name = path.basename(file, '.ts');
-      entryPoints[name] = './' + fullPath;
+      // Ensure the path value is prefixed with './' and uses forward slashes.
+      entryPoints[name] = './' + fullPath.split(path.sep).join('/');
     }
   }
-
   return entryPoints;
 }
 
 const entry = createEntryPoints('./src/client/pages');
-
-console.log(entry);
 
 export default defineConfig({
   plugins: [pluginSass()],
