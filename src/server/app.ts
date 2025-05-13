@@ -287,7 +287,7 @@ app.get(
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
     return res.render('password-passkey.html', {
-      title: 'Password and passkey unified Credential Manager',
+      title: 'Credential Manager for the Web',
     });
   }
 );

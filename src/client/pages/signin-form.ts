@@ -33,7 +33,7 @@ postForm(
   async () => {
     if (capabilities?.conditionalCreate) {
       try {
-        await registerCredential(true);
+        await registerCredential(false, true);
       } catch (error: any) {
         if (error.name === 'InvalidStateError') {
           console.info('A passkey is already registered for the user.');
