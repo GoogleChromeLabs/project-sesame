@@ -122,8 +122,8 @@ export function toast(text: string): void {
  * @param payload The payload JSON object.
  * @returns
  */
-export async function get(path: string, payload: any = ''): Promise<any> {
-  const headers: any = {
+export async function get(path: string, payload: object = {}): Promise<any> {
+  const headers: {[key: string]: string} = {
     'X-Requested-With': 'XMLHttpRequest',
   };
 
@@ -160,8 +160,11 @@ export async function get(path: string, payload: any = ''): Promise<any> {
  * @param payload The payload JSON object.
  * @returns
  */
-export async function post(path: string, payload: any = ''): Promise<any> {
-  const headers: any = {
+export async function post(
+  path: string,
+  payload: string | object | FormData = ''
+): Promise<any> {
+  const headers: {[key: string]: string} = {
     'X-Requested-With': 'XMLHttpRequest',
   };
 
@@ -198,7 +201,7 @@ class SesameDialog {
     this.dialog = $('#dialog');
   }
 
-  set(headline: string, description: string = ''): void {
+  set(headline: string, description = ''): void {
     const headlineElement = $('#dialog span[slot="headline"]');
     if (headlineElement) headlineElement.innerText = headline;
 
@@ -246,43 +249,40 @@ class Loading {
 
 export const loading = new Loading();
 
-export function postForm(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const form = $('#form');
-    // When the form is submitted, proceed to the password form.
-    form.addEventListener('submit', async (s: any) => {
-      s.preventDefault();
-      const form = new FormData(s.target);
+export function postForm(callback: Function, errorCallback: Function): void {
+  const form = $('#form');
+  // When the form is submitted, proceed to the password form.
+  form.addEventListener('submit', async (s: SubmitEvent) => {
+    s.preventDefault();
+    const form = new FormData(<HTMLFormElement>s.target);
 
-      // If `PasswordCredential` is supported, store it to the password manager.
+    // If `PasswordCredential` is supported, store it to the password manager.
+    // @ts-ignore
+    if (window.PasswordCredential) {
       // @ts-ignore
-      if (window.PasswordCredential) {
-        // @ts-ignore
-        const id = form.get('username');
-        const password = form.get('password');
-        // Save only if `id` and `password` combination is being submitted.
-        if (id && password) {
-          await navigator.credentials.create({
-            // @ts-ignore
-            password: {id, password},
-          });
-          console.log('PasswordCredential stored');
-        }
-      }
-
-      const cred = {} as any;
-      form.forEach((v, k) => (cred[k] = v));
-      loading.start();
-      post(s.target.action, cred)
-        .then(results => {
-          resolve(results);
-        })
-        .catch(e => {
-          loading.stop();
-          console.error(e.message);
-          reject(new Error(e.error));
+      const id = form.get('username');
+      const password = form.get('password');
+      // Save only if `id` and `password` combination is being submitted.
+      if (id && password) {
+        await navigator.credentials.create({
+          // @ts-ignore
+          password: {id, password},
         });
-    });
+        console.log('PasswordCredential stored');
+      }
+    }
+
+    const cred = {} as {[key: string]: FormDataEntryValue};
+    form.forEach((v, k) => (cred[k] = v));
+    loading.start();
+    try {
+      const results = await post((<HTMLFormElement>s.target).action, cred);
+      callback(results);
+    } catch (e: any) {
+      loading.stop();
+      console.error(e.error);
+      errorCallback(new Error(e.error));
+    }
   });
 }
 

@@ -29,13 +29,14 @@ import {
 } from '~project-sesame/client/helpers/publickey';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     redirect('/password');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     toast(error.message);
-  });
+  }
+);
 
 async function passkey() {
   // Feature detection: check if WebAuthn and conditional UI are supported.

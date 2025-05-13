@@ -23,14 +23,15 @@ import {
   toast,
 } from '~project-sesame/client/helpers/index';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     $('#form').style = 'display:none';
     toast('You password has been changed. Redirecting to the home page.');
     setTimeout(() => {
       redirect('/home');
     }, 3000);
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     toast(error.message);
-  });
+  }
+);

@@ -24,16 +24,17 @@ import {
 } from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     loading.stop();
     redirect('/home');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     loading.stop();
     toast(error.message);
     console.error(error);
-  });
+  }
+);
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 // @ts-ignore

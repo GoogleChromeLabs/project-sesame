@@ -30,8 +30,8 @@ import {
 
 setRedirect('#passkey-signin');
 
-postForm()
-  .then(async () => {
+postForm(
+  async () => {
     if (capabilities?.conditionalCreate) {
       try {
         await registerCredential(false, true);
@@ -48,7 +48,8 @@ postForm()
       }
     }
     redirect('/home');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     toast(error.message);
-  });
+  }
+);

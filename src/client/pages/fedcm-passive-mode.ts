@@ -24,14 +24,15 @@ import {
 } from '~project-sesame/client/helpers/index';
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     redirect('/home');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     // FIXME: `error.message` is not included.
     toast(error.message);
-  });
+  }
+);
 
 if ('IdentityCredential' in window) {
   $('#unsupported').classList.add('hidden');

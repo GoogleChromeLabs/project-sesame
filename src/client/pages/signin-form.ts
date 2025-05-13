@@ -29,29 +29,29 @@ import {
   registerCredential,
 } from '~project-sesame/client/helpers/publickey';
 
-postForm()
-  .then(async () => {
-    // if (capabilities?.conditionalCreate) {
-    //   try {
-    //     await registerCredential(true);
-    //   } catch (error: any) {
-    //     if (error.name === 'InvalidStateError') {
-    //       console.info('A passkey is already registered for the user.');
-    //     } else if (error.name === 'NotAllowedError') {
-    //       console.info(
-    //         "Passkey was not created because the password didn't match the one in the password manager."
-    //       );
-    //     } else if (error.name !== 'AbortError') {
-    //       console.error(error);
-    //     }
-    //   }
-    // }
+postForm(
+  async () => {
+    if (capabilities?.conditionalCreate) {
+      try {
+        await registerCredential(true);
+      } catch (error: any) {
+        if (error.name === 'InvalidStateError') {
+          console.info('A passkey is already registered for the user.');
+        } else if (error.name === 'NotAllowedError') {
+          console.info(
+            "Passkey was not created because the password didn't match the one in the password manager."
+          );
+        } else if (error.name !== 'AbortError') {
+          console.error(error);
+        }
+      }
+    }
     redirect('/home');
-  })
-  .catch(error => {
-    // FIXME: `error.message` is not included.
+  },
+  (error: Error) => {
     toast(error.message);
-  });
+  }
+);
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 if (capabilities?.conditionalGet) {

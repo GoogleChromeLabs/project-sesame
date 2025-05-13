@@ -28,13 +28,15 @@ import {
   authenticate,
 } from '~project-sesame/client/helpers/publickey';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     redirect('/password');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
+    console.log(error);
     toast(error.message);
-  });
+  }
+);
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
 if (capabilities?.conditionalGet) {

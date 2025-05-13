@@ -27,8 +27,8 @@ import {
   registerCredential,
 } from '~project-sesame/client/helpers/publickey';
 
-postForm()
-  .then(async () => {
+postForm(
+  async () => {
     // Are UVPAA and conditional UI available on this browser?
     if (
       capabilities?.userVerifyingPlatformAuthenticator &&
@@ -56,9 +56,10 @@ postForm()
       loading.stop();
       redirect('/new-password');
     }
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     loading.stop();
     toast(error.message);
     console.error(error);
-  });
+  }
+);

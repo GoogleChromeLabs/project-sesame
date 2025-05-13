@@ -23,13 +23,14 @@ import {
   toast,
 } from '~project-sesame/client/helpers/index';
 
-postForm()
-  .then(() => {
+postForm(
+  () => {
     loading.stop();
     redirect('/home');
-  })
-  .catch(error => {
+  },
+  (error: Error) => {
     loading.stop();
     toast(error.message);
     console.error(error);
-  });
+  }
+);
