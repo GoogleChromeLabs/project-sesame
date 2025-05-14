@@ -35,7 +35,7 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
         relation: ['delegate_permission/common.get_login_creds'],
         target: {
           namespace: 'web',
-          site: config.domain,
+          site: config.origin,
         },
       });
     }
