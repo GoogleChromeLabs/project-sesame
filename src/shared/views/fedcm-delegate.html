@@ -6,15 +6,40 @@ FedCM delegation flow
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn FedCM and its "delegation flow".
+In this page, you can experience and learn FedCM and its "delegation flow". With
+FedCM delegation flow, you can sign up to the website with a verified email
+address.
+
+*The SD JWT is not verified at the moment. The resulting account is static to be
+`me@sgo.to` with name 'Sam Goto'.*
+
+## Prerequisites
+
+* Chrome desktop 137 or later with the following flags:
+  * "FedCM with delegation support" flag: `chrome://flags/#fedcm-delegation`  
+  * "FedCmWithoutWellKnownEnforcement" flag: `chrome://flags/#fedcm-without-well-known-enforcement`  
+  * "FedCmMultiIdP" flag: `chrome://flags/#fedcm-multi-idp`  
+  * "FedCM with IdP Registration support" flag: `chrome://flags/#fedcm-idp-registration`  
+  * "FedCMAutofill" flag: `chrome://flags/#fedcm-autofill`
+
+Last updated: 2025/05/18
 
 ## How to use
 
-TBD
+Just put your cursor on the input field. You should see `me@sgo.to` acount in
+the autofill suggestion. It may take a few seconds for the account to show up.
+
+By clicking on it, you can sign up to the website using SD JWT that contains a
+verified email address. This means the website doesn't have to send an email to
+the registered email address, the user doesn't have to open it and click a link
+in the email, to verify the email address.
 
 ## How to develop
 
-TBD
+This feature is still under development and details are to be determined, but it
+will be built upon the foundation of FedCM.
+
+* [FedCM overview](https://privacysandbox.google.com/cookies/fedcm)
 
   </div>
 </div>

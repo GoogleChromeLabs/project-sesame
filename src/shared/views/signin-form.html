@@ -1,21 +1,49 @@
 <div id="help-text">
   <!-- prettier-ignore -->
   <div class="help-headline">
-Sign-in form
+Sign-in form and automatic passkey upgrades
   </div>
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn a sign-in flow using a
-username and a password.
+In this page, you can experience a form based sign-in flow and passkey automatic
+upgrades. **Automatic passkey upgrades** help your users adopt passkeys.
+
+## Prerequisites
+
+* Automatic passkey upgrades require Chrome or Safari.
+
+Last updated: 2025/05/18
 
 ## How to use
 
-TBD
+This is an ordinary username and password based sign-in form experience. Simply
+enter a username and a password to proceed.
+
+After a successful password verification, the password manager creates a new
+passkey automatically.
+
+*Use the password saved to your password manager to perform automatic passkey
+upgrades (Save a password to the password manager in advance).*
 
 ## How to develop
 
-TBD
+To perform **automatic passkey upgrades**, use **WebAuthn Conditional Create**.
+Simply invoke `navigator.credentials.create()` with `mediation: "conditional"`
+as soon as the user successfully authenticate with a password. There are a few
+conditions to meet:
+
+* A password is saved to the password manager.
+* The password the user entered matches the one in the password manager.
+* There is no passkey stored to the password manager yet.
+* `navigator.credentials.create()` is invoked shortly after the user entered the
+password.
+
+### Learning resources
+
+* [Sign-in form best practices](https://web.dev/articles/sign-in-form-best-practices)
+* [Automatically create passkeys for your users using Conditional
+Create](https://web.dev/articles/webauthn-conditional-create)
 
   </div>
 </div>

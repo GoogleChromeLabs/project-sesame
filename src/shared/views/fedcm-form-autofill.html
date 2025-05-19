@@ -1,86 +1,42 @@
 <div id="help-text">
   <!-- prettier-ignore -->
   <div class="help-headline">
-Conditional mediation with passwords, passkeys and FedCM
+FedCM form autofill
   </div>
   <!-- prettier-ignore -->
   <div class="help-description">
 
 In this page, you can experience authentication through a form that can
-accommodate passkeys, passwords and identity federation. In addition, WebAuthn
-Signal API deletes a passkey when it's unusable.
+accommodate passkeys, passwords and identity federation.
+
+## Prerequisites
+
+* Chrome desktop 137 or later with `chrome://flags#fedcm-autofill` enabled.
 
 ## How to use
 
-Requires Chrome 137 or later with `chrome://flags#fedcm-autofill` enabled.
+Put your cursor on the input field (it may take a few seconds to get the
+identity federation option to appear).
 
-Use a password, a passkey or identity federation through form autofill to sign
-in, or manually enter a username to continue.
+Select a password, a passkey or identity federation suggested in the form
+autofill to sign in, or manually enter a username to continue.
 
-If you haven't signed in with identity federation yet, create an account from
-[FedCM active mode](/fedcm-active-mode) or [FedCM passive
-mode](/fedcm-passive-mode). Your IdP's identifier will be your username of your
-account.
-
-Once you are signed in, create a new passkey from the "passkey management" page.
-
-To create a password, you can go "password change" form and create a new
-password. Make sure to save it to the password manager.
-
-Once you are all set, come back to this page and put your cursor on the input
-field.
-
-### Sign in with a passkey
-
-To sign in with a passkey, place your cursor on the username field.
-You'll notice the autofill dialog contains your passkeys as well as
-passwords. Select the passkey you want to sign in with, and perform
-[user verification](https://web.dev/articles/webauthn-user-verification)
-when prompted. Then you'll be signed in.
+If you haven't created an account on this website with identity federation in
+the past, go to [FedCM active mode](/fedcm-active-mode) or [FedCM passive
+mode](/fedcm-passive-mode) to create one and come back here.
 
 ## How to develop
 
-### Passkey form autofill
-
-You can enable passkey form autofill by appending `mediation: "conditional"` to
-the `navigator.credentials.get()` call to an ordinary passkey authentication
-invocation. Also, the `input` element must contain `webauthn` within its
+You can enable **FedCM form autofill** by appending `mediation: "conditional"`
+to the `navigator.credentials.get()` call to an ordinary FedCM authentication
+invocation. Also, the `input` element must contain `webidentity` within its
 `autocomplete` attribute.
 
-You can learn passkey basic development through:
-
-* [Sign in with a passkey through form
-autofill](https://web.dev/articles/passkey-form-autofill)
-* [Server-side passkey
-authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication)
-* [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
-
-### FedCM form autofill
-
-FedCM form autofill is currently in developer trial and no documentation is
-available yet. But the trick is similar to what you do to passkey. Just append
-`mediation: "conditional"` to the `navigator.credentials.get()` call to an
-ordinary FedCM invocation. Also, the `input` element must contain `webidentity`
-within its `autocomplete` attribute.
-
-You can learn FedCM basic development through:
+### Learning resources
 
 * [Implement an identity solution with FedCM on the Relying Party
 side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
 
-### Signal API
-
-If your sign-in attempt with a passkey fails on the server after a
-successful user verification, it's most likely due to the signature not
-being verified on the server, because the public key is not found. In
-such a circumstance, keeping the passkey in the passkey provider is
-nothing but confusing.
-
-By using Signal API, the RP can let the passkey provider know a specific
-passkey is not known to the RP, so that it can delete the matching
-passkey from the passkey provider, if it supports the feature.
-
-[Learn more about Signal API](https://developer.chrome.com/blog/passkeys-signal-api).
   </div>
 </div>
 <main class="content center">

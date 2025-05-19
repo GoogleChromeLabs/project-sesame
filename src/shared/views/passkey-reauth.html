@@ -6,16 +6,36 @@ Passkey reauthentication
   <!-- prettier-ignore -->
   <div class="help-description">
 
-In this page, you can experience and learn reauthentication flow using
-passkeys.
+In this page, you can experience and learn passkey-based reauthentication.
 
 ## How to use
 
-TBD
+You are redirected here because you tried to access a sensitive page that
+requires reauthentication. Simply use a passkey to proceed.
+
+After a passkey verification, you'll be signed in.
 
 ## How to develop
 
-TBD
+Require reauthentication after a certain duration has passed since the last
+credential verification.
+
+Use [WebAuthn](https://www.w3.org/TR/webauthn/) to build a passkey
+reauthentication. It's very similar to [passkey one button](/passkey-one-button)
+experience, except that it limits the passkey the user can use, to prevent
+signing in with a passkey that doesn't match the one the user currently signs
+in with.
+
+To do so, simply pass the known credential IDs that this account has registered
+to `allowCredentials`.
+
+It's also important to verify that the owner of the passkey matches the one who
+is already signed in.
+
+Pass the original destination to the server. After successful reauthentication,
+redirect the user back to the original destination. In this demo, the URL is
+passed as a query parameter, but the redirect logic should only accept same
+origin, to prevent open redirects.
 
   </div>
 </div>
