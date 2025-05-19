@@ -71,6 +71,7 @@ async function fedcm() {
       const idp = new IdentityProvider([
         'https://accounts.google.com',
         'https://fedcm-idp-demo.glitch.me',
+        'https://issuer.sgo.to',
       ]);
       await idp.initialize();
       await idp.signIn({

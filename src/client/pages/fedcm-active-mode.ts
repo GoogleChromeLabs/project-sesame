@@ -24,6 +24,8 @@ const fedcm = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
 fedcm.initialize();
 const google = new IdentityProvider(['https://accounts.google.com']);
 google.initialize();
+const sgo = new IdentityProvider(['https://issuer.sgo.to']);
+sgo.initialize();
 
 const signIn = async (idp: IdentityProvider) => {
   try {
@@ -47,5 +49,10 @@ if ('IdentityCredential' in window) {
   $('#fedcm').addEventListener('click', (event: any) => {
     event.preventDefault();
     signIn(fedcm);
+  });
+
+  $('#sgo').addEventListener('click', (event: any) => {
+    event.preventDefault();
+    signIn(sgo);
   });
 }

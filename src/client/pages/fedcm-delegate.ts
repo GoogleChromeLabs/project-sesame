@@ -27,7 +27,7 @@ import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 postForm(
   () => {
     loading.stop();
-    redirect('/home');
+    redirect('/new-password');
   },
   (error: Error) => {
     loading.stop();
@@ -40,7 +40,10 @@ postForm(
 // @ts-ignore
 if (window.IdentityCredential) {
   try {
-    const idp = new IdentityProvider(['https://accounts.sandbox.google.com']);
+    const idp = new IdentityProvider([
+      'https://accounts.sandbox.google.com',
+      'https://issuer.sgo.to',
+    ]);
     await idp.initialize();
     await idp.delegate({
       fields: ['name', 'email', 'picture'],
