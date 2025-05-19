@@ -20,10 +20,13 @@ const router = express.Router();
 
 router.get('/assetlinks.json', (req: Request, res: Response) => {
   const assetlinks = [];
-  for (let domain of config.associated_domains) {
-    if (domain?.sha256_cert_fingerprints) {
+  for (const domain of config.associated_domains) {
+    if (domain.sha256_cert_fingerprints) {
       assetlinks.push({
-        relation: ['delegate_permission/common.get_login_creds'],
+        relation: [
+          'delegate_permission/common.handle_all_urls',
+          'delegate_permission/common.get_login_creds',
+        ],
         target: {
           namespace: 'android_app',
           package_name: domain.package_name,
@@ -32,10 +35,13 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
       });
     } else {
       assetlinks.push({
-        relation: ['delegate_permission/common.get_login_creds'],
+        relation: [
+          'delegate_permission/common.handle_all_urls',
+          'delegate_permission/common.get_login_creds',
+        ],
         target: {
           namespace: 'web',
-          site: config.origin,
+          site: domain.site,
         },
       });
     }

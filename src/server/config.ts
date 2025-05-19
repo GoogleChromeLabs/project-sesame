@@ -132,12 +132,18 @@ process.env.GOOGLE_CLOUD_PROJECT = project_name;
 const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
 const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
-const associated_origins = associated_domains.map((_domain: any) => {
-  return generateApkKeyHash(_domain.sha256_cert_fingerprints);
+associated_domains.push({
+  namespace: 'web',
+  site: origin,
 });
 
-associated_domains.push(origin);
-associated_origins.push(origin);
+const associated_origins = associated_domains.map((_domain: any) => {
+  if (_domain.namespace === 'web') {
+    return _domain.site;
+  } else {
+    return generateApkKeyHash(_domain.sha256_cert_fingerprints);
+  }
+});
 
 export const store = initializeFirestore();
 
