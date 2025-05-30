@@ -28,7 +28,7 @@ import {
   registerCredential,
 } from '~project-sesame/client/helpers/publickey';
 
-setRedirect('#passkey-signin');
+const r = setRedirect('#passkey-signin');
 
 postForm(
   async () => {
@@ -47,7 +47,7 @@ postForm(
         }
       }
     }
-    redirect('/home');
+    redirect(r || '/home');
   },
   (error: Error) => {
     toast(error.message);

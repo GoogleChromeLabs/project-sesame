@@ -85,7 +85,7 @@ export const redirect = (path: string = '') => {
  * @param domQuery A CSS selector string used to find the target anchor element
  *              whose href needs to be updated.
  */
-export const setRedirect = (domQuery: string): void => {
+export const setRedirect = (domQuery: string): string => {
   // Get redirect parameter 'r'
   const currentUrl = new URL(location.href);
   const r = currentUrl.searchParams.get('r');
@@ -100,6 +100,8 @@ export const setRedirect = (domQuery: string): void => {
       targetUrl.searchParams.set('r', r); // Add or update the 'r' parameter
       alternativeLink.href = targetUrl.toString(); // Set the updated href
       console.log(`Updated alternative link href to: ${alternativeLink.href}`);
+
+      return new URL(r, location.origin).pathname;
     } catch (error) {
       console.error("Failed to update alternative sign-in link's href:", error);
       // Avoid breaking the page if URL parsing fails
@@ -109,6 +111,7 @@ export const setRedirect = (domQuery: string): void => {
       'Could not find the alternative sign-in link element to update its href.'
     );
   }
+  return '';
 };
 
 export function toast(text: string): void {

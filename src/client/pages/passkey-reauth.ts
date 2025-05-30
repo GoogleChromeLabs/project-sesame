@@ -19,7 +19,7 @@ import '../layout';
 import {$, loading, redirect, toast, setRedirect} from '../helpers/index';
 import {capabilities, authenticate} from '../helpers/publickey';
 
-setRedirect('#password-signin');
+const r = setRedirect('#password-signin');
 
 // Feature detection: check if WebAuthn is supported.
 // Note: The original code checked for userVerifyingPlatformAuthenticator,
