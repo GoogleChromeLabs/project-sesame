@@ -40,7 +40,6 @@ if ('IdentityCredential' in window) {
     const idp = new IdentityProvider([
       'https://fedcm-idp-demo.glitch.me',
       'https://accounts.google.com',
-      'https://issuer.sgo.to',
     ]);
     await idp.initialize();
     await idp.signIn({mode: 'passive', mediation: 'required'});
