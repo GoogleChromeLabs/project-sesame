@@ -50,14 +50,18 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
 });
 
 router.get('/webidentity', (req: Request, res: Response) => {
-  const fedcm_config_url = `${config.origin}/fedcm/config.json`;
+  const url = new URL(config.origin);
+  url.pathname = '/fedcm/config.json';
+  const web_endpoint = url.toString();
   return res.json({
-    provider_urls: [fedcm_config_url],
+    provider_urls: [web_endpoint],
   });
 });
 
 router.get('/passkey-endpoints', (req: Request, res: Response) => {
-  const web_endpoint = `${config.origin}/home`;
+  const url = new URL(config.origin);
+  url.pathname = '/settings/passkeys';
+  const web_endpoint = url.toString();
   return res.json({enroll: web_endpoint, manage: web_endpoint});
 });
 
