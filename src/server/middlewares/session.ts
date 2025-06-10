@@ -261,6 +261,7 @@ export function initializeSession() {
     resave: true,
     saveUninitialized: false,
     proxy: true,
+    name: config.session_cookie_name,
     store: new FirestoreStore({
       dataset: store,
       kind: 'sessions',
