@@ -21,6 +21,8 @@ import {
   generateRandomString,
   getGravatarUrl,
 } from '~project-sesame/server/libs/helpers.ts';
+import {config} from '~project-sesame/server/config.ts';
+import {getTime, FOREVER} from '~project-sesame/server/middlewares/common.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 import {FederationMappings} from './federation-mappings.ts';
@@ -36,6 +38,8 @@ export interface User {
   picture?: string;
   password?: string;
   passkeyUserId?: PasskeyUserId;
+  registeredAt: number;
+  expiresAt: number;
 }
 
 /**
@@ -70,13 +74,20 @@ export class Users {
     } = {}
   ): Promise<User> {
     const {password} = options;
-    // TODO: Examine why gravatar is not registered.
-    let {
+    const {
       picture = getGravatarUrl(username),
       displayName = username,
       email = username,
       passkeyUserId: passkey_user_id = generatePasskeyUserId(),
     } = options;
+
+    const registeredAt = getTime();
+    let expiresAt: number;
+    if (config.allowlisted_accounts.includes(username)) {
+      expiresAt = getTime(FOREVER);
+    } else {
+      expiresAt = getTime(config.account_retention_duration);
+    }
 
     // TODO: Check duplicates
     const user = {
@@ -86,10 +97,12 @@ export class Users {
       displayName,
       email,
       passkeyUserId: passkey_user_id,
+      registeredAt,
+      expiresAt,
     };
     await Users.update(user);
     if (password) {
-      Users.setPassword(username, password);
+      await Users.setPassword(username, password);
     }
     return user;
   }

@@ -18,7 +18,7 @@
 import {Request, Response, NextFunction} from 'express';
 import {RequestHandlerParams} from 'express-serve-static-core';
 import session from 'express-session';
-import {FirestoreStore} from '@google-cloud/connect-firestore';
+import {CustomFirestoreStore} from '../libs/custom-firestore-session.ts';
 import {getTime} from '~project-sesame/server/middlewares/common.ts';
 import {store, config} from '~project-sesame/server/config.ts';
 import {User} from '~project-sesame/server/libs/users.ts';
@@ -54,6 +54,47 @@ export enum ApiType {
   SecondCredential = 5, // The user is about to sign in
   SignedIn = 6, // The user must be signed in
   Sensitive = 7, // The user must be recently signed in
+}
+
+/**
+ * Initializes and configures the Express session middleware.
+ *
+ * This function sets up session management for the application using the
+ * `express-session` library. It configures sessions to be stored in
+ * Firestore via `@google-cloud/connect-firestore`.
+ *
+ * Key configurations include:
+ * - Session secret for signing the session ID cookie.
+ * - Cookie name, path, security (HTTPS only in non-localhost environments),
+ *   and maximum age.
+ * - Firestore as the session store.
+ * - `resave` is set to `true`, forcing the session to be saved back to the
+ *   session store, even if the session was never modified during the request.
+ * - `saveUninitialized` is set to `false`, preventing empty sessions from
+ *   being saved.
+ * - `proxy` is set to `true`, which is important if the application is behind
+ *   a reverse proxy (like a load balancer) to correctly set secure cookies.
+ *
+ * @returns {RequestHandler} The configured Express session middleware.
+ */
+export function initializeSession() {
+  return session({
+    secret: config.secret,
+    resave: true,
+    saveUninitialized: false,
+    proxy: true,
+    name: config.session_cookie_name,
+    store: new CustomFirestoreStore({
+      dataset: store,
+      kind: 'sessions',
+    }),
+    cookie: {
+      path: '/',
+      httpOnly: true,
+      secure: !config.is_localhost, // `false` on localhost
+      maxAge: config.long_session_duration,
+    },
+  });
 }
 
 /**
@@ -255,26 +296,6 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
   };
 }
 
-export function initializeSession() {
-  return session({
-    secret: config.secret,
-    resave: true,
-    saveUninitialized: false,
-    proxy: true,
-    name: config.session_cookie_name,
-    store: new FirestoreStore({
-      dataset: store,
-      kind: 'sessions',
-    }),
-    cookie: {
-      path: '/',
-      httpOnly: true,
-      secure: !config.is_localhost, // `false` on localhost
-      maxAge: config.long_session_duration,
-    },
-  });
-}
-
 /**
  * Sets the challenge value for the session.
  * If the challenge is not provided, a random challenge value is generated.
@@ -295,17 +316,39 @@ export function setChallenge(
   return challenge;
 }
 
+/**
+ * Retrieves the challenge value from the session.
+ *
+ * @param req - The request object
+ * @param res - The response object
+ * @returns The challenge value stored in the session, or undefined if not found
+ */
 export function getChallenge(req: Request, res: Response): string | undefined {
   console.log('get challenge:', req.session.challenge);
   return req.session.challenge;
 }
 
+/**
+ * Deletes the challenge value from the session.
+ *
+ * @param req - The request object
+ * @param res - The response object
+ */
 export function deleteChallenge(req: Request, res: Response): void {
   console.log('delete challenge:', req.session.challenge);
   delete req.session.challenge;
   return;
 }
 
+/**
+ * Sets the ephemeral passkey user ID in the session.
+ * This is used during the sign-up process before the user is fully created.
+ *
+ * @param passkey_user_id - The passkey user ID to set.
+ * @param req - The request object.
+ * @param res - The response object.
+ * @throws Error if `passkey_user_id` is invalid.
+ */
 export function setEphemeralPasskeyUserId(
   passkey_user_id: string,
   req: Request,
@@ -318,6 +361,14 @@ export function setEphemeralPasskeyUserId(
   return;
 }
 
+/**
+ * Retrieves the ephemeral passkey user ID from the session.
+ * This is used during the sign-up process before the user is fully created.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns The ephemeral passkey user ID, or undefined if not set.
+ */
 export function getEphemeralPasskeyUserId(
   req: Request,
   res: Response
@@ -331,6 +382,13 @@ export function getEphemeralPasskeyUserId(
   }
 }
 
+/**
+ * Deletes the ephemeral passkey user ID from the session.
+ * This is used after the user is fully created during the sign-up process.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ */
 export function deleteEpehemeralPasskeyUserId(
   req: Request,
   res: Response
@@ -349,6 +407,14 @@ export function deleteEpehemeralPasskeyUserId(
 //   return;
 // }
 
+/**
+ * Sets the username in the session during the sign-up process.
+ *
+ * @param username - The username to set.
+ * @param req - The request object.
+ * @param res - The response object.
+ * @throws Error if `username` is invalid.
+ */
 export function setSigningUp(
   username: string,
   req: Request,
@@ -361,11 +427,25 @@ export function setSigningUp(
   return;
 }
 
+/**
+ * Resets the sign-up state by deleting the `signup_username` from the session.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ */
 export function resetSigningUp(req: Request, res: Response): void {
   delete req.session.signup_username;
   return;
 }
 
+/**
+ * Sets the username in the session during the sign-in process.
+ *
+ * @param username - The username to set.
+ * @param req - The request object.
+ * @param res - The response object.
+ * @throws Error if `username` is invalid.
+ */
 export function setSigningIn(
   username: string,
   req: Request,
@@ -378,11 +458,28 @@ export function setSigningIn(
   return;
 }
 
+/**
+ * Resets the sign-in state by deleting the `signin_username` from the session.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ */
 export function resetSigningIn(req: Request, res: Response): void {
   delete req.session.signin_username;
   return;
 }
 
+/**
+ * Sets the user as signed in in the session.
+ * This function updates the session to reflect that the user has successfully
+ * signed in. It clears any pending sign-up or sign-in states, sets the
+ * `last_signedin_at` timestamp, stores the user object, and sets the
+ * 'Set-Login' header for the Login Status API.
+ *
+ * @param user - The user object to store in the session.
+ * @param req - The request object.
+ * @param res - The response object.
+ */
 export function setSignedIn(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
   deleteEpehemeralPasskeyUserId(req, res);
@@ -397,6 +494,15 @@ export function setSignedIn(user: User, req: Request, res: Response): void {
   return;
 }
 
+/**
+ * Sets the user as signed out in the session.
+ * This function destroys the current session, effectively logging the user out.
+ * It also sets the 'Set-Login' header for the Login Status API to indicate
+ * that the user is logged out.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ */
 export function setSignedOut(req: Request, res: Response) {
   // Destroy the session
   req.session.destroy(() => {});

@@ -95,9 +95,15 @@ const {
   // Set the port number 8081 for AppEngine
   port = is_localhost ? 8080 : 8081,
   associated_domains = [],
-  id_token_lifetime = 1 * 24 * 60 * 60 * 1000,
+  // ID token: 24 hours
+  id_token_lifetime = 1000 * 60 * 60 * 24 * 1,
+  // Short-lived session: 3 minutes
   short_session_duration = 3 * 60 * 1000,
-  long_session_duration = 1000 * 60 * 60 * 24 * 90,
+  // Long-lived session: 48 hours
+  long_session_duration = 1000 * 60 * 60 * 24 * 2,
+  // Account retention: 48 hours
+  account_retention_duration = 1000 * 60 * 60 * 24 * 2,
+  allowlisted_accounts = [],
   secret = 'set your own secret in the config file',
   session_cookie_name = 'SESAME_SESSION_COOKIE',
   rp_name,
@@ -166,6 +172,8 @@ export const config = {
   id_token_lifetime,
   short_session_duration,
   long_session_duration,
+  account_retention_duration,
+  allowlisted_accounts,
   origin_trials,
   csp: {
     connect_src,

@@ -25,7 +25,7 @@ export function csrfCheck(
   res: Response,
   next: NextFunction
 ): any {
-  if (req.header('X-Requested-With') != 'XMLHttpRequest') {
+  if (req.header('X-Requested-With') !== 'XMLHttpRequest') {
     return res.status(400).json({error: 'invalid access.'});
   }
   // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
@@ -35,3 +35,5 @@ export function csrfCheck(
 export function getTime(offset = 0): number {
   return new Date().getTime() + offset;
 }
+
+export const FOREVER: number = 1000 * 60 * 60 * 24 * 400;
