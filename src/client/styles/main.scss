@@ -105,14 +105,8 @@ main section {
   }
 }
 
-#uvpa_available div {
-  margin: 30px 0;
-  display:flex;
-  justify-content: center;
-}
-
-#uvpa_unavailable {
-  color: var(--mdui-theme-on-error);
+mdui-text-field {
+  width: 400px;
 }
 
 .sidebar {
