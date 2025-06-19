@@ -23,7 +23,7 @@
   ],
   "rp_name": "Project Sesame",
   "project_name": "project-sesame-426206",
-  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com"],
+  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
       "https://fedcm-idp-demo.glitch.me",

@@ -78,6 +78,34 @@ router.get(
   }
 );
 
+/**
+ * Verifies the ID token received from an identity provider.
+ * This endpoint is used during the sign-in process when a user chooses to
+ * sign in with a federated identity. It expects an ID token and the URL
+ * of the identity provider.
+ *
+ * The function performs the following steps:
+ * 1. Retrieves the expected nonce from the session for CSRF protection.
+ * 2. Finds the registered identity provider based on the provided URL.
+ * 3. Verifies the ID token using the appropriate verification method
+ *    (e.g., Google's `verifyIdToken` or a generic JWT verification).
+ * 4. Extracts the payload from the verified ID token.
+ * 5. Checks if the payload contains an email address.
+ * 6. Attempts to find an existing user in the database using the email.
+ * 7. If a user is found, it checks for existing federation mappings for the
+ *    issuer. If none exist, it creates a new mapping to associate the
+ *    federated identity with the existing user.
+ * 8. If no user is found, a new user is created using information from the
+ *    ID token payload, and a federation mapping is created.
+ * 9. Sets the user as signed in in the session.
+ * 10. Responds with the user object upon successful verification and sign-in.
+ * 11. Catches any errors during the process and responds with a 401 status
+ *     and an error message.
+ * @param req The Express Request object. The body is expected to contain `token` (the raw ID token string)
+ *            and `url` (the URL string of the Identity Provider).
+ * @param res The Express Response object, used to send the user object or an error.
+ * @returns A Promise that resolves to the Express Response object.
+ */
 router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
