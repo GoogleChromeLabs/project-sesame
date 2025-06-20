@@ -79,10 +79,6 @@ export default defineConfig({
     },
     copy: [
       {
-        from: './.env',
-        to: '../',
-      },
-      {
         from: './src/shared',
         to: '../shared',
       },
