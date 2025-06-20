@@ -9,8 +9,6 @@ on:
 
 # This section defines the jobs that will be run as part of the workflow.
 jobs:
-    build:
-      runs-on: ubuntu-latest
   deploy:
     # Specifies the runner environment for the job.
     runs-on: ubuntu-latest
