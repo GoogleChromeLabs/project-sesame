@@ -26,8 +26,7 @@ import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
 const is_localhost =
-  process.env.NODE_ENV !== 'development' &&
-  process.env.NODE_ENV !== 'production';
+  process.env.NODE_ENV !== 'dev' && process.env.NODE_ENV !== 'prod';
 
 /**
  * During development, the server application only receives requests proxied

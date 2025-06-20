@@ -1,0 +1,40 @@
+# This workflow name will be displayed in the GitHub Actions UI.
+name: Deploy to Google App Engine
+
+# This section defines when the workflow will be triggered.
+on:
+  push:
+    branches:
+      # Trigger the workflow on pushes to the 'dev' branch.
+      - dev
+
+# This section defines the jobs that will be run as part of the workflow.
+jobs:
+    build:
+      runs-on: ubuntu-latest
+  deploy:
+    # Specifies the runner environment for the job.
+    runs-on: ubuntu-latest
+    # Defines the permissions granted to the GITHUB_TOKEN for this job.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Authenticates to Google Cloud using Workload Identity Federation.
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # The JSON-formatted service account key for authentication.
+          credentials_json: ${{ secrets.DEV_SA_KEY }}
+      # Sets up the Google Cloud SDK in the runner environment.
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          # The Google Cloud project ID to use.
+          project_id: ${{ secrets.DEV_PROJECT_ID }}
+      # Deploys the application to Google App Engine.
+      - name: Deploy to App Engine
+        run: gcloud app deploy dev.yaml --quiet

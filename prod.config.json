@@ -1,0 +1,53 @@
+{
+  "hostname": "project-sesame-426206.appspot.com",
+  "associated_domains": [
+    {
+      "package_name": "com.google.credentialmanager.sample",
+      "sha256_cert_fingerprints": "4F:20:47:1F:D9:9A:BA:96:47:8D:59:27:C2:C8:A6:EA:8E:D2:8D:14:C0:B6:A2:39:99:9F:A3:4D:47:3D:FA:11"
+    },
+    {
+      "package_name": "com.authentication.shrine",
+      "sha256_cert_fingerprints": "4F:20:47:1F:D9:9A:BA:96:47:8D:59:27:C2:C8:A6:EA:8E:D2:8D:14:C0:B6:A2:39:99:9F:A3:4D:47:3D:FA:11"
+    },
+    {
+      "package_name": "com.authentication.shrinewear",
+      "sha256_cert_fingerprints": "7D:52:13:E5:17:95:6C:22:D5:33:F4:1E:18:EB:0A:D8:97:C8:04:C8:73:60:37:01:10:D3:FD:69:18:9A:CD:A8"
+    },
+    {
+      "package_name": "com.google.credentialmanager.webviewsample",
+      "sha256_cert_fingerprints": "ED:A5:A9:D9:44:A5:B0:62:28:BA:81:F0:0E:EC:7A:B6:40:10:AF:0F:61:3B:92:30:9E:2F:11:7D:4F:35:26:F1"
+    }
+  ],
+  "origin_trials": [
+    "AmyfBi0QCglmPufrFSQDf7Lvcq2ar6/8KkhpWxu2SBepJLDVpMmUjWnDoPQtxGzsiM1VxWFB0WG0NjyajsmM4AsAAABqeyJvcmlnaW4iOiJodHRwczovL3Byb2plY3Qtc2VzYW1lLTQyNjIwNi5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiRmVkQ21CdXR0b25Nb2RlIiwiZXhwaXJ5IjoxNzI3ODI3MTk5fQ=="
+  ],
+  "rp_name": "Project Sesame",
+  "project_name": "project-sesame-426206",
+  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
+  "csp": {
+    "connect_src": [
+      "https://fedcm-idp-demo.glitch.me",
+      "https://issuer.sgo.to",
+      "https://accounts.google.com/gsi/",
+      "https://accounts.sandbox.google.com"
+    ],
+    "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+    "frame_src": ["https://accounts.google.com/gsi/"],
+    "img_src": [
+      "https://www.gravatar.com",
+      "https://gravatar.com",
+      "https://accounts.google.com/gsi-static",
+      "https://cdn.glitch.global",
+      "https://lh3.googleusercontent.com"
+    ],
+    "script_src": [
+      "https://fedcm-idp-demo.glitch.me",
+      "https://accounts.google.com/gsi/client"
+    ],
+    "style_src": [
+      "https://accounts.google.com/gsi/style",
+      "https://fonts.googleapis.com/icon"
+    ],
+    "style_src_elem": ["https://fonts.googleapis.com/icon"]
+  }
+}

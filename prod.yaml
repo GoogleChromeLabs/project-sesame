@@ -13,7 +13,7 @@
 # limitations under the License.
 runtime: nodejs22
 env_variables:
-  NODE_ENV: production
+  NODE_ENV: prod
 handlers:
 - url: /.*
   secure: always
