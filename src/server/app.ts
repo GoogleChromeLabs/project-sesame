@@ -78,7 +78,7 @@ app.use(
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
         frameSrc: ["'self'", ...config.csp.frame_src],
-        styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
+        styleSrc: ["'self'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
       },
       // CSP is report-only if the app is running in debug mode.
