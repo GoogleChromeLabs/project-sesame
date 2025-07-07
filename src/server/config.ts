@@ -25,8 +25,7 @@ import {getFirestore} from 'firebase-admin/firestore';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost =
-  process.env.NODE_ENV !== 'dev' && process.env.NODE_ENV !== 'prod';
+const is_localhost = process.env.NODE_ENV === 'localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -124,9 +123,6 @@ const {
   style_src = [],
   style_src_elem = [],
 } = csp;
-
-if (is_localhost) {
-}
 
 if (!project_name || !rp_name || !hostname) {
   throw new Error('Missing configuration.');

@@ -52,7 +52,7 @@ export async function authenticate(
       password: true,
       // temporary experiment for unified auth
       // federated: {
-      //   providers: [ 'https://fedcm-idp-demo.glitch.me' ],
+      //   providers: [ 'https://sesame-identity-provider.appspot.com' ],
       // },
       // temporary experiment for unified auth
       publicKey: options,
@@ -69,7 +69,9 @@ export async function authenticate(
       );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+        const idp = new IdentityProvider([
+          'https://sesame-identity-provider.appspot.com',
+        ]);
         await idp.initialize();
         await idp.signIn({
           mode: 'active',
@@ -116,7 +118,7 @@ export async function legacyAuthenticate(
       password: true,
       // temporary experiment for unified auth
       federated: {
-        providers: ['https://fedcm-idp-demo.glitch.me'],
+        providers: ['https://sesame-identity-provider.appspot.com'],
       },
       // temporary experiment for unified auth
       // publicKey: options,
@@ -133,7 +135,9 @@ export async function legacyAuthenticate(
       // );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+        const idp = new IdentityProvider([
+          'https://sesame-identity-provider.appspot.com',
+        ]);
         await idp.initialize();
         await idp.signIn({
           mode: 'active',

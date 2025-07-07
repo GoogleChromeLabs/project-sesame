@@ -70,7 +70,7 @@ async function fedcm() {
     try {
       const idp = new IdentityProvider([
         'https://accounts.google.com',
-        'https://fedcm-idp-demo.glitch.me',
+        'https://sesame-identity-provider.appspot.com',
         'https://issuer.sgo.to',
       ]);
       await idp.initialize();

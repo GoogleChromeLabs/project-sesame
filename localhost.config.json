@@ -21,11 +21,10 @@
   ],
   "rp_name": "Project Sesame",
   "project_name": "project-sesame-426206",
-  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com"],
   "csp": {
     "connect_src": [
       "ws://localhost:3000",
-      "https://fedcm-idp-demo.glitch.me",
+      "https://sesame-identity-provider.appspot.com",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com"
@@ -34,7 +33,7 @@
     "frame_src": ["https://accounts.google.com/gsi/"],
     "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
     "script_src": [
-      "https://fedcm-idp-demo.glitch.me",
+      "https://sesame-identity-provider.appspot.com",
       "https://accounts.google.com/gsi/client"
     ],
     "style_src": [

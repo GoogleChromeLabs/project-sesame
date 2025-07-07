@@ -38,7 +38,7 @@ if ('IdentityCredential' in window) {
   $('#unsupported').classList.add('hidden');
   try {
     const idp = new IdentityProvider([
-      'https://fedcm-idp-demo.glitch.me',
+      'https://sesame-identity-provider.appspot.com',
       'https://accounts.google.com',
     ]);
     await idp.initialize();

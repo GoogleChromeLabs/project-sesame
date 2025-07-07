@@ -29,7 +29,7 @@ interface FedCmOptions {
   params?: object;
 }
 
-// This is almost identical to the IdentityProvider class at https://fedcm-idp-demo.glitch.me/fedcm.js.
+// This is almost identical to the IdentityProvider class at https://sesame-identity-provider.appspot.com/fedcm.js.
 // Copied here since some integration needs custom implementation on the RP side.
 // ex: unified auth with password, multiple IdPs, etc.
 export class IdentityProvider {

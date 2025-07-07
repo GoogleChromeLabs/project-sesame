@@ -26,7 +26,7 @@
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "https://fedcm-idp-demo.glitch.me",
+      "https://sesame-identity-provider.appspot.com",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com"
@@ -41,7 +41,7 @@
       "https://lh3.googleusercontent.com"
     ],
     "script_src": [
-      "https://fedcm-idp-demo.glitch.me",
+      "https://sesame-identity-provider.appspot.com",
       "https://accounts.google.com/gsi/client"
     ],
     "style_src": [

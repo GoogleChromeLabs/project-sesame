@@ -20,7 +20,9 @@ import {$, toast, redirect} from '~project-sesame/client/helpers/index';
 // @ts-ignore
 import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 
-const fedcm = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+const fedcm = new IdentityProvider([
+  'https://sesame-identity-provider.appspot.com',
+]);
 fedcm.initialize();
 const google = new IdentityProvider(['https://accounts.google.com']);
 google.initialize();

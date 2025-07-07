@@ -31,9 +31,9 @@ export class IdentityProviders {
     {
       name: 'FedCM Demo IdP',
       iconURL:
-        'https://cdn.glitch.global/4673feef-8c3a-4ea6-91b5-aad78b1d7251/idp-logo-512.png?v=1713514252268',
-      origin: 'https://fedcm-idp-demo.glitch.me',
-      configURL: 'https://fedcm-idp-demo.glitch.me/fedcm.json',
+        'https://sesame-identity-provider.appspot.com/images/idp-logo-512.png',
+      origin: 'https://sesame-identity-provider.appspot.com',
+      configURL: 'https://sesame-identity-provider.appspot.com/fedcm.js',
       clientId: config.origin,
       secret: 'xxxxx',
     },

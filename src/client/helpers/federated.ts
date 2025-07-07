@@ -26,7 +26,9 @@ export async function authenticate(): Promise<
   PasswordCredential | string | undefined
 > {
   try {
-    const idp = new IdentityProvider(['https://fedcm-idp-demo.glitch.me']);
+    const idp = new IdentityProvider([
+      'https://sesame-identity-provider.appspot.com',
+    ]);
     await idp.initialize();
     const cred = await navigator.credentials.get({
       // temporary experiment for unified auth

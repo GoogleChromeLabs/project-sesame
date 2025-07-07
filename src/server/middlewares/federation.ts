@@ -142,7 +142,7 @@ router.post(
         /*
           Example JWT:
           {
-            "iss": "https://fedcm-idp-demo.glitch.me",
+            "iss": "https://sesame-identity-provider.appspot.com",
             "sub": "9KfiqUb2N0fhlffvzhO3DoZl2WipjVDhjgefWDzR1Rw",
             "aud": "https://identity-demos.dev",
             "nonce": "81805668362",
