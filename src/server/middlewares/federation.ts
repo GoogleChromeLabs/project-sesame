@@ -28,6 +28,7 @@ import {csrfCheck} from '../middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
+  setChallenge,
   getChallenge,
   setSignedIn,
 } from '../middlewares/session.ts';
@@ -37,6 +38,50 @@ const googleClient = new OAuth2Client();
 
 router.use(csrfCheck);
 
+/**
+ */
+router.post(
+  '/options',
+  apiAclCheck(ApiType.NoAuth),
+  async (req: Request, res: Response) => {
+    const options = {
+      idps: [] as IdentityProviders[],
+      nonce: '' as string | undefined,
+    };
+    const idps = [];
+    const {urls} = req.body;
+    try {
+      for (const _url of urls) {
+        const url = new URL(_url);
+        const idp = await IdentityProviders.findByOrigin(url.toString());
+        if (!idp) {
+          return res
+            .status(404)
+            .json({error: 'No matching identity provider found.'});
+        }
+        idp.secret = '';
+        idps.push(idp);
+      }
+      options.idps = idps;
+      options.nonce = setChallenge(req, res);
+      return res.json(options);
+    } catch (e: any) {
+      console.error(e);
+      return res.status(400).json({error: e.message});
+    }
+  }
+);
+
+/**
+ * Fetches the list of registered identity providers.
+ * This endpoint is used to retrieve the list of identity providers that are
+ * available for federated sign-in. It returns an array of identity provider
+ * objects, each containing the name, icon URL, origin, configuration URL,
+ * client ID, and secret.
+ * @param req The Express Request object.
+ * @param res The Express Response object, used to send the list of identity providers.
+ * @returns A Promise that resolves to the Express Response object containing the list of identity providers.
+ */
 router.post(
   '/idp',
   apiAclCheck(ApiType.NoAuth),
@@ -63,6 +108,16 @@ router.post(
   }
 );
 
+/**
+ * Fetches the list of federation mappings for the signed-in user.
+ * This endpoint is used to retrieve the federation mappings associated with
+ * the currently signed-in user. It returns an array of federation mapping
+ * objects, each containing details about the federated identity and its
+ * association with the user.
+ * @param req The Express Request object.
+ * @param res The Express Response object, used to send the list of federation mappings.
+ * @returns A Promise that resolves to the Express Response object containing the list of federation mappings.
+ */
 router.get(
   '/mappings',
   apiAclCheck(ApiType.SignedIn),

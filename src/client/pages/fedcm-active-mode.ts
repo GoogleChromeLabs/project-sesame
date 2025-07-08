@@ -23,13 +23,13 @@ import {IdentityProvider} from '~project-sesame/client/helpers/identity';
 const fedcm = new IdentityProvider([
   'https://sesame-identity-provider.appspot.com',
 ]);
-fedcm.initialize();
+const nonce = await fedcm.initialize();
 const google = new IdentityProvider(['https://accounts.google.com']);
 google.initialize();
 
 const signIn = async (idp: IdentityProvider) => {
   try {
-    await idp.signIn({mode: 'active'});
+    await idp.signIn({mode: 'active', nonce});
     redirect('/home');
   } catch (e: any) {
     console.error(e);

@@ -72,10 +72,11 @@ export async function authenticate(
         const idp = new IdentityProvider([
           'https://sesame-identity-provider.appspot.com',
         ]);
-        await idp.initialize();
+        const nonce = await idp.initialize();
         await idp.signIn({
           mode: 'active',
           // loginHint: cred.id,
+          nonce,
         });
         return true;
       } catch (e) {

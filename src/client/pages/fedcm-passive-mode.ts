@@ -41,8 +41,8 @@ if ('IdentityCredential' in window) {
       'https://sesame-identity-provider.appspot.com',
       'https://accounts.google.com',
     ]);
-    await idp.initialize();
-    await idp.signIn({mode: 'passive', mediation: 'required'});
+    const nonce = await idp.initialize();
+    await idp.signIn({mode: 'passive', mediation: 'required', nonce});
     redirect('/home');
   } catch (e: any) {
     console.error(e);

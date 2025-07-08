@@ -47,11 +47,11 @@ export class IdentityProvider {
   }
 
   async initialize() {
-    const options = await post('/federation/idp', {
+    const options = await post('/federation/options', {
       urls: this.urls,
     });
 
-    for (let option of options) {
+    for (const option of options.idps) {
       if (!option.configURL || !option.clientId) {
         throw new Error('configURL or client ID is not declared.');
       }
@@ -63,6 +63,7 @@ export class IdentityProvider {
       };
       this.idps.push(idp);
     }
+    return options.nonce;
   }
 
   async signIn(
