@@ -33,7 +33,8 @@ export class IdentityProviders {
       iconURL:
         'https://sesame-identity-provider.appspot.com/images/idp-logo-512.png',
       origin: 'https://sesame-identity-provider.appspot.com',
-      configURL: 'https://sesame-identity-provider.appspot.com/fedcm.js',
+      configURL:
+        'https://sesame-identity-provider.appspot.com/fedcm/config.json',
       clientId: config.origin,
       secret: 'xxxxx',
     },

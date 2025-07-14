@@ -38,7 +38,11 @@ if (capabilities?.userVerifyingPlatformAuthenticator) {
         if (user) {
           // If `r` was specified in the original URL, redirect the user there.
           // Use the `r` variable captured at the start.
-          // TODO: This is an open redirect. Prevent it. (Validate r against allowed paths)
+          // @ts-ignore
+          if (window.IdentityProvider) {
+            // @ts-ignore
+            IdentityProvider.close();
+          }
           redirect(r || '/home');
         } else {
           // This case might not be reachable if authenticate throws on failure,

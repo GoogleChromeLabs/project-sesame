@@ -20,8 +20,7 @@ import '../../layout';
 import {$, loading, post} from '../../helpers/index';
 import {getAllIdentityProviders} from '~project-sesame/client/helpers/federated';
 
-// TODO: Fetch list of IdPs.
-const idps = await post('/federation/idp', {
+const {idps} = await post('/federation/options', {
   urls: [
     'https://sesame-identity-provider.appspot.com',
     'https://accounts.google.com',

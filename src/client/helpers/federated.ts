@@ -18,7 +18,7 @@
 import '~project-sesame/client/layout';
 import {html, render} from 'lit';
 import {toast, get} from '~project-sesame/client/helpers/index';
-import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {SesameIdP} from '~project-sesame/client/helpers/identity';
 import {User} from '~project-sesame/server/libs/users';
 
 export async function authenticate(): Promise<
@@ -26,9 +26,7 @@ export async function authenticate(): Promise<
   PasswordCredential | string | undefined
 > {
   try {
-    const idp = new IdentityProvider([
-      'https://sesame-identity-provider.appspot.com',
-    ]);
+    const idp = new SesameIdP(['https://sesame-identity-provider.appspot.com']);
     await idp.initialize();
     const cred = await navigator.credentials.get({
       // temporary experiment for unified auth

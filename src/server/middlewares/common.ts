@@ -25,10 +25,25 @@ export function csrfCheck(
   res: Response,
   next: NextFunction
 ): any {
-  if (req.header('X-Requested-With') !== 'XMLHttpRequest') {
-    return res.status(400).json({error: 'invalid access.'});
+  const xhr = req.header('X-Requested-With');
+  if (!xhr || xhr !== 'XMLHttpRequest') {
+    return res.status(400).json({error: 'Invalid XHR request.'});
   }
-  // TODO: If the path starts with `fedcm` also check `Sec-Fetch-Dest: webidentity`.
+  return next();
+}
+
+/**
+ * Checks CSRF protection using custom header `Sec-Fetch-Dest`
+ **/
+export function fedcmCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): any {
+  const dest = req.header('Sec-Fetch-Dest');
+  if (!dest || dest !== 'webidentity') {
+    return res.status(400).json({error: 'Invalid FedCM request.'});
+  }
   return next();
 }
 

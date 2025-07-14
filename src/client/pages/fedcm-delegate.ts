@@ -22,7 +22,7 @@ import {
   postForm,
   toast,
 } from '~project-sesame/client/helpers/index';
-import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 postForm(
   () => {
@@ -40,7 +40,7 @@ postForm(
 // @ts-ignore
 if (window.IdentityCredential) {
   try {
-    const idp = new IdentityProvider([
+    const idp = new SesameIdP([
       'https://accounts.sandbox.google.com',
       'https://issuer.sgo.to',
     ]);

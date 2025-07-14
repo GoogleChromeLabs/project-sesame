@@ -26,9 +26,9 @@ export interface RelyingParty {
 export class RelyingParties {
   static rps = [
     {
-      origin: 'https://fedcm-rp-demo.glitch.me',
-      client_id: 'fedcm-rp-demo',
-      name: 'FedCM RP Demo',
+      origin: 'https://project-sesame-426206.appspot.com',
+      client_id: 'https://project-sesame-426206.appspot.com',
+      name: 'Project Sesame',
     } as RelyingParty,
   ];
 

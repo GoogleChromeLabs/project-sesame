@@ -91,6 +91,7 @@ export function initializeSession() {
     cookie: {
       path: '/',
       httpOnly: true,
+      sameSite: 'none',
       secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },

@@ -22,8 +22,6 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
 import {config} from '~project-sesame/server/config.ts';
-import {auth} from '~project-sesame/server/middlewares/auth.ts';
-import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {
   PageType,
   UserSignInStatus,
@@ -35,10 +33,13 @@ import {
   getEntrancePath,
   setSignedOut,
 } from '~project-sesame/server/middlewares/session.ts';
-import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {settings} from '~project-sesame/server/middlewares/settings.ts';
-import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 import {admin} from '~project-sesame/server/middlewares/admin.ts';
+import {auth} from '~project-sesame/server/middlewares/auth.ts';
+import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
+import {federation} from '~project-sesame/server/middlewares/federation.ts';
+import {settings} from '~project-sesame/server/middlewares/settings.ts';
+import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
+import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 
 const app = express();
 
@@ -78,7 +79,7 @@ app.use(
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
         frameSrc: ["'self'", ...config.csp.frame_src],
-        styleSrc: ["'self'", ...config.csp.style_src],
+        styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
       },
       // CSP is report-only if the app is running in debug mode.
@@ -91,6 +92,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 app.use(useragent.express());
 
 app.use(initializeSession());
@@ -187,12 +189,8 @@ app.get(
     // Manually set the entrance path as this is a sign-up page
     setEntrancePath(req, res, '/passkey-form-autofill');
 
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
     return res.render('fedcm-delegate.html', {
       title: 'FedCM delegation flow',
-      nonce,
     });
   }
 );
@@ -201,12 +199,8 @@ app.get(
   '/fedcm-form-autofill',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
     return res.render('fedcm-form-autofill.html', {
       title: 'Identifier-first form',
-      nonce,
     });
   }
 );
@@ -258,12 +252,8 @@ app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
     return res.render('fedcm-active-mode.html', {
       title: 'FedCM active mode',
-      nonce,
     });
   }
 );
@@ -272,12 +262,8 @@ app.get(
   '/fedcm-passive-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
     return res.render('fedcm-passive-mode.html', {
       title: 'FedCM passive mode',
-      nonce,
     });
   }
 );
@@ -296,12 +282,8 @@ app.get(
   '/legacy-credman',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    // Generate a new nonce.
-    const nonce = setChallenge(req, res);
-
     return res.render('legacy-credman.html', {
       title: 'Legacy Credential Management',
-      nonce,
     });
   }
 );
@@ -328,18 +310,24 @@ app.get(
   }
 );
 
+app.use('/admin', admin);
 app.use('/auth', auth);
-app.use('/webauthn', webauthn);
+app.use('/fedcm', fedcm);
 app.use('/federation', federation);
 app.use('/settings', settings);
-app.use('/admin', admin);
+app.use('/webauthn', webauthn);
 app.use('/.well-known', wellKnown);
 
 app.use(
   '/static',
   express.static(path.join(config.dist_root_file_path, 'client/static'))
 );
-app.use(express.static(path.join(config.dist_root_file_path, 'shared/public')));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {policy: 'cross-origin'},
+  }),
+  express.static(path.join(config.dist_root_file_path, 'shared/public'))
+);
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.

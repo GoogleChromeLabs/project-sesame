@@ -21,10 +21,11 @@ import {
   FederationMap,
   FederationMappings,
 } from '../libs/federation-mappings.ts';
+import {config} from '../config.ts';
 import {IdentityProviders} from '../libs/identity-providers.ts';
 import {OAuth2Client} from 'google-auth-library';
 import {Users} from '../libs/users.ts';
-import {csrfCheck} from '../middlewares/common.ts';
+import {csrfCheck, getTime} from '../middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
@@ -32,6 +33,7 @@ import {
   getChallenge,
   setSignedIn,
 } from '../middlewares/session.ts';
+import {RelyingParties} from '../libs/relying-parties.ts';
 
 const router = Router();
 const googleClient = new OAuth2Client();
@@ -73,42 +75,6 @@ router.post(
 );
 
 /**
- * Fetches the list of registered identity providers.
- * This endpoint is used to retrieve the list of identity providers that are
- * available for federated sign-in. It returns an array of identity provider
- * objects, each containing the name, icon URL, origin, configuration URL,
- * client ID, and secret.
- * @param req The Express Request object.
- * @param res The Express Response object, used to send the list of identity providers.
- * @returns A Promise that resolves to the Express Response object containing the list of identity providers.
- */
-router.post(
-  '/idp',
-  apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
-    const idps = [];
-    const {urls} = req.body;
-    try {
-      for (let _url of urls) {
-        const url = new URL(_url);
-        const idp = await IdentityProviders.findByOrigin(url.toString());
-        if (!idp) {
-          return res
-            .status(404)
-            .json({error: 'No matching identity provider found.'});
-        }
-        idp.secret = '';
-        idps.push(idp);
-      }
-      return res.json(idps);
-    } catch (e: any) {
-      console.error(e);
-      return res.status(400).json({error: e.message});
-    }
-  }
-);
-
-/**
  * Fetches the list of federation mappings for the signed-in user.
  * This endpoint is used to retrieve the federation mappings associated with
  * the currently signed-in user. It returns an array of federation mapping
@@ -132,6 +98,40 @@ router.get(
     }
   }
 );
+
+// router.post(
+//   '/issueIdToken',
+//   apiAclCheck(ApiType.SignedIn),
+//   async (req: Request, res: Response) => {
+//     const {client_id, nonce} = req.body;
+//     const {user} = res.locals;
+
+//     const rp = await RelyingParties.findByClientID(client_id);
+//     if (!rp) {
+//       return res.status(400).json({error: 'Invalid client_id.'});
+//     }
+
+//     const token = jwt.sign(
+//       {
+//         iss: process.env.ORIGIN,
+//         sub: user.id,
+//         aud: client_id,
+//         nonce,
+//         exp: getTime(config.id_token_lifetime),
+//         iat: getTime(),
+//         name: `${user.given_name} ${user.family_name}`,
+//         email: user.username,
+//         given_name: user.given_name,
+//         family_name: user.family_name,
+//         picture: user.picture,
+//       },
+//       'xxxxx'
+//     );
+
+//     console.log(`/token returns "token": "${token}"`);
+//     return res.json({token});
+//   }
+// );
 
 /**
  * Verifies the ID token received from an identity provider.
@@ -189,6 +189,14 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
+        console.log(
+          'verify',
+          raw_token,
+          idp.secret,
+          idp.origin,
+          expected_nonce,
+          idp.clientId
+        );
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
@@ -223,7 +231,7 @@ router.post(
         const maps = await FederationMappings.findByIssuer(payload.iss);
         if (maps.length === 0) {
           // If the email address matches, merge the user.
-          FederationMappings.create(user.id, payload);
+          await FederationMappings.create(user.id, payload);
         } else {
           // TODO: Think about how each IdP provided properties match against RP's.
           console.log('More than 1 federation mappings found:', maps);
@@ -235,7 +243,7 @@ router.post(
           displayName: payload.name,
           picture: payload.picture,
         });
-        FederationMappings.create(user.id, payload);
+        await FederationMappings.create(user.id, payload);
       }
 
       // Set the user as a signed in status

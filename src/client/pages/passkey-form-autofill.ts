@@ -47,6 +47,11 @@ if (capabilities?.conditionalGet) {
       // When the user is signed in, redirect to the home page.
       $('#username').value = user.username;
       loading.start();
+      // @ts-ignore
+      if (window.IdentityProvider) {
+        // @ts-ignore
+        IdentityProvider.close();
+      }
       redirect('/home');
     } else {
       throw new Error('User not found.');

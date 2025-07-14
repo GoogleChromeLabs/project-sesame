@@ -20,7 +20,7 @@ import {
   preparePublicKeyRequestOptions,
   verifyPublicKeyRequestResult,
 } from './publickey';
-import {IdentityProvider} from './identity';
+import {SesameIdP} from './identity';
 import {verifyPassword} from './password';
 
 let controller = new AbortController();
@@ -69,7 +69,7 @@ export async function authenticate(
       );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new IdentityProvider([
+        const idp = new SesameIdP([
           'https://sesame-identity-provider.appspot.com',
         ]);
         const nonce = await idp.initialize();
@@ -136,7 +136,7 @@ export async function legacyAuthenticate(
       // );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new IdentityProvider([
+        const idp = new SesameIdP([
           'https://sesame-identity-provider.appspot.com',
         ]);
         await idp.initialize();

@@ -16,7 +16,14 @@
  */
 import express, {Request, Response} from 'express';
 import {config} from '~project-sesame/server/config.ts';
+import helmet from 'helmet';
 const router = express.Router();
+
+router.use(
+  helmet({
+    crossOriginResourcePolicy: {policy: 'cross-origin'},
+  })
+);
 
 router.get('/assetlinks.json', (req: Request, res: Response) => {
   const assetlinks = [];
@@ -49,7 +56,7 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
   return res.json(assetlinks);
 });
 
-router.get('/webidentity', (req: Request, res: Response) => {
+router.get('/web-identity', (req: Request, res: Response) => {
   const url = new URL(config.origin);
   url.pathname = '/fedcm/config.json';
   const web_endpoint = url.toString();

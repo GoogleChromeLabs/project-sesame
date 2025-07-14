@@ -32,7 +32,7 @@ interface FedCmOptions {
 // This is almost identical to the IdentityProvider class at https://sesame-identity-provider.appspot.com/fedcm.js.
 // Copied here since some integration needs custom implementation on the RP side.
 // ex: unified auth with password, multiple IdPs, etc.
-export class IdentityProvider {
+export class SesameIdP {
   urls: string[] = [];
   idps: {
     origin: string;
@@ -41,7 +41,7 @@ export class IdentityProvider {
   }[] = [];
 
   constructor(urls: string[] = []) {
-    for (let url of urls) {
+    for (const url of urls) {
       this.urls.push(new URL(url).toString());
     }
   }
@@ -87,7 +87,7 @@ export class IdentityProvider {
     }
 
     const providers = [];
-    for (let idp of this.idps) {
+    for (const idp of this.idps) {
       providers.push({
         configURL: idp.configURL,
         clientId: idp.clientId,
@@ -98,22 +98,27 @@ export class IdentityProvider {
       });
     }
 
-    const cred = await navigator.credentials.get({
-      // @ts-ignore
-      identity: {providers, mode, context},
-      mediation,
-    });
+    try {
+      const cred = await navigator.credentials.get({
+        // @ts-ignore
+        identity: {providers, mode, context},
+        mediation,
+      });
 
-    /**
-     * IdentityCredential {
-     *   configURL: string,
-     *   id: string,
-     *   isAutoSelected: boolean,
-     *   token: string,
-     *   type: 'identity'
-     * }
-     */
-    return await this.verifyIdToken(cred);
+      /**
+       * IdentityCredential {
+       *   configURL: string,
+       *   id: string,
+       *   isAutoSelected: boolean,
+       *   token: string,
+       *   type: 'identity'
+       * }
+       */
+      return this.verifyIdToken(cred);
+    } catch (e: any) {
+      console.error(e);
+      throw new Error(e.error);
+    }
   }
 
   async delegate(options: FedCmOptions = {}): Promise<string | undefined> {

@@ -17,18 +17,34 @@
 
 import {Base64URLString} from '@simplewebauthn/server';
 import {Router, Request, Response} from 'express';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 import {config} from '../config.ts';
 import {compareUrls} from '../libs/helpers.ts';
+import {IdentityProviders} from '../libs/identity-providers.ts';
 import {RelyingParties} from '../libs/relying-parties.ts';
 import {Users} from '../libs/users.ts';
-import {csrfCheck, getTime} from '../middlewares/common.ts';
+import cors from 'cors';
+import helmet from 'helmet';
+import {fedcmCheck, getTime} from '../middlewares/common.ts';
 import {ApiType, apiAclCheck} from '../middlewares/session.ts';
 
 const router = Router();
 
-router.use(csrfCheck);
+const idp_info = await IdentityProviders.findByOrigin(config.origin);
+
+router.use(
+  helmet({
+    crossOriginResourcePolicy: {policy: 'cross-origin'},
+  })
+);
+
+router.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 router.get(
   '/config.json',
@@ -39,14 +55,14 @@ router.get(
       client_metadata_endpoint: '/fedcm/metadata',
       id_assertion_endpoint: '/fedcm/idtokens',
       disconnect_endpoint: '/fedcm/disconnect',
-      login_url: '/identifier-first-form',
+      login_url: '/passkey-form-autofill',
       branding: {
         background_color: '#6200ee',
         color: '#ffffff',
         icons: [
           {
-            url: `${config.origin}/images/favicon.svg`,
-            size: 256,
+            url: `${config.origin}/images/idp-logo-512.png`,
+            size: 512,
           },
         ],
       },
@@ -56,9 +72,13 @@ router.get(
 
 router.get(
   '/accounts',
+  fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response): Response => {
     const {user} = res.locals;
+
+    //TODO: Read the database and determine whether the user has registered with
+    //the RP before.
 
     // Only one signed-in account at a time is supported on Project Sesame.
     return res.json({
@@ -68,7 +88,9 @@ router.get(
           name: user.displayName,
           email: user.username,
           picture: user.picture,
-          approved_clients: [],
+          approved_clients: [
+            // TODO: The list of client IDs that the user has approved.
+          ],
         },
       ],
     });
@@ -88,6 +110,7 @@ router.get(
 
 router.post(
   '/idtokens',
+  fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<Response> => {
     const {
@@ -99,20 +122,28 @@ router.post(
     } = req.body;
     const {user} = res.locals;
 
+    if (!idp_info) {
+      return res.status(400).json({error: 'I am not a registrable IdP.'});
+    }
     const rp = await RelyingParties.findByClientID(client_id);
 
-    // Error when:
-    // * the RP is not registered.
-    // * The RP URL matches the requesting origin.
-    // * the account does not match who is currently signed in.
-    // TODO: Apply the Error API https://developers.google.com/privacy-sandbox/3pcd/fedcm-developer-guide#error-response
-    if (
-      !rp ||
-      !compareUrls(rp.origin, req.headers.origin) ||
-      account_id !== user.id
-    ) {
-      console.error('Invalid request.', req.body);
-      return res.status(400).json({error: 'Invalid request.'});
+    // Error when: the RP is not registered.
+    if (!rp) {
+      const message = `RP not registered. Client ID: ${client_id}`;
+      console.error(message);
+      return res.status(400).json({error: message});
+    }
+    // Error when: The RP URL matches the requesting origin.
+    if (!compareUrls(rp.origin, req.headers.origin)) {
+      const message = `RP origin doesn't match: ${rp.origin}`;
+      console.error(message);
+      return res.status(400).json({error: message});
+    }
+    // Error when: the account does not match who is currently signed in.
+    if (account_id !== user.id) {
+      const message = `Account ID doesn't match: ${account_id}`;
+      console.error(message);
+      return res.status(400).json({error: message});
     }
 
     // TODO: Should it reject if consent is not acquired?
@@ -122,53 +153,54 @@ router.post(
       !user.approved_clients.includes(rp.client_id)
     ) {
       console.log('The user is registering to the RP.');
-      user.approved_clients.push(rp.client_id);
-      Users.update(user);
+      // user.approved_clients.push(rp.client_id);
+      await Users.update(user);
     } else {
       console.log('The user is signing in to the RP.');
     }
 
-    if (user.status === '') {
-      const token = jwt.sign(
-        {
-          iss: config.origin,
-          sub: user.id,
-          aud: client_id,
-          nonce,
-          exp: getTime(config.id_token_lifetime),
-          iat: getTime(),
-          name: `${user.displayName}`,
-          email: user.username,
-          picture: user.picture,
-        },
-        config.secret
-      );
+    // if (user.status === '') {
+    const token = jwt.sign(
+      {
+        iss: config.origin,
+        sub: user.id,
+        aud: client_id,
+        nonce,
+        exp: getTime(config.id_token_lifetime),
+        iat: getTime(),
+        name: `${user.displayName}`,
+        email: user.username,
+        picture: user.picture,
+      },
+      idp_info.secret
+    );
 
-      return res.json({token});
-    } else {
-      let error_code = 401;
-      switch (user.status) {
-        case 'server_error':
-          error_code = 500;
-          break;
-        case 'temporarily_unavailable':
-          error_code = 503;
-          break;
-        default:
-          error_code = 401;
-      }
-      return res.status(error_code).json({
-        error: {
-          code: user.status,
-          url: `${config.origin}/error.html&type=${user.status}`,
-        },
-      });
-    }
+    return res.json({token});
+    // } else {
+    //   let error_code = 401;
+    //   switch (user.status) {
+    //     case 'server_error':
+    //       error_code = 500;
+    //       break;
+    //     case 'temporarily_unavailable':
+    //       error_code = 503;
+    //       break;
+    //     default:
+    //       error_code = 401;
+    //   }
+    //   return res.status(error_code).json({
+    //     error: {
+    //       code: user.status,
+    //       url: `${config.origin}/error.html&type=${user.status}`,
+    //     },
+    //   });
+    // }
   }
 );
 
 router.post(
   '/disconnect',
+  fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response): Response => {
     const {account_hint, client_id} = req.body;

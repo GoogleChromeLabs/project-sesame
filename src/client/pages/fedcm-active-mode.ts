@@ -17,17 +17,17 @@
 
 import '~project-sesame/client/layout';
 import {$, toast, redirect} from '~project-sesame/client/helpers/index';
-// @ts-ignore
-import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
-const fedcm = new IdentityProvider([
-  'https://sesame-identity-provider.appspot.com',
-]);
-const nonce = await fedcm.initialize();
-const google = new IdentityProvider(['https://accounts.google.com']);
-google.initialize();
+const fedcm = new SesameIdP(['https://sesame-identity-provider.appspot.com']);
+await fedcm.initialize();
+const google = new SesameIdP(['https://accounts.google.com']);
+// `.initialize()` function returns a `nonce`. Since there are multiple
+// `.initialize()` functions called in this page, only the last one will be
+// recorded in the session. Use the last `nonce` for all `.signIn()` functions.
+const nonce = await google.initialize();
 
-const signIn = async (idp: IdentityProvider) => {
+const signIn = async (idp: SesameIdP) => {
   try {
     await idp.signIn({mode: 'active', nonce});
     redirect('/home');
@@ -41,13 +41,13 @@ if ('IdentityCredential' in window) {
   $('#hidden').classList.remove('hidden');
   $('#unsupported').classList.add('hidden');
 
-  $('#google').addEventListener('click', (event: any) => {
+  $('#google').addEventListener('click', async (event: MouseEvent) => {
     event.preventDefault();
-    signIn(google);
+    await signIn(google);
   });
 
-  $('#fedcm').addEventListener('click', (event: any) => {
+  $('#fedcm').addEventListener('click', async (event: MouseEvent) => {
     event.preventDefault();
-    signIn(fedcm);
+    await signIn(fedcm);
   });
 }

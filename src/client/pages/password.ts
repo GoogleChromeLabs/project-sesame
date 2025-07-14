@@ -38,6 +38,11 @@ postForm(
           console.error(error);
         }
       }
+      // @ts-ignore
+      if (window.IdentityProvider) {
+        // @ts-ignore
+        IdentityProvider.close();
+      }
     }
     redirect('/home');
   },

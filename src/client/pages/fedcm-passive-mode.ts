@@ -22,7 +22,7 @@ import {
   postForm,
   toast,
 } from '~project-sesame/client/helpers/index';
-import {IdentityProvider} from '~project-sesame/client/helpers/identity';
+import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 postForm(
   () => {
@@ -37,7 +37,7 @@ postForm(
 if ('IdentityCredential' in window) {
   $('#unsupported').classList.add('hidden');
   try {
-    const idp = new IdentityProvider([
+    const idp = new SesameIdP([
       'https://sesame-identity-provider.appspot.com',
       'https://accounts.google.com',
     ]);

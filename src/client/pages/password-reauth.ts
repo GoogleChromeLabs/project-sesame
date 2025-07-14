@@ -47,6 +47,11 @@ postForm(
         }
       }
     }
+    // @ts-ignore
+    if (window.IdentityProvider) {
+      // @ts-ignore
+      IdentityProvider.close();
+    }
     redirect(r || '/home');
   },
   (error: Error) => {
