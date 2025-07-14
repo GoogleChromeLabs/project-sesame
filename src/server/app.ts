@@ -15,6 +15,11 @@
  * limitations under the License
  */
 
+/**
+ * @file The main Express application file for Project Sesame.
+ * @module app
+ */
+
 import express, {Request, Response} from 'express';
 import {create} from 'express-handlebars';
 import useragent from 'express-useragent';
@@ -98,7 +103,12 @@ app.use(useragent.express());
 app.use(initializeSession());
 app.use(cookieParser());
 
-// Set page defaults
+/**
+ * Middleware to set default local variables for view templates.
+ * This middleware runs for every request and populates `res.locals` with
+ * information like the user's sign-in status, helper functions for templates,
+ * and the name of the current page for script loading.
+ */
 app.use((req: Request, res: Response, next) => {
   const width = req.headers['sec-ch-viewport-width'];
   if (typeof width === 'string') {
@@ -123,12 +133,20 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
+/**
+ * Serves the main landing page of the application.
+ * @route GET /
+ */
 app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
   return res.render('index.html', {
     title: 'Welcome!',
   });
 });
 
+/**
+ * Serves the user registration page with a username/password form.
+ * @route GET /signup-form
+ */
 app.get(
   '/signup-form',
   pageAclCheck(PageType.SignUp),
@@ -142,6 +160,10 @@ app.get(
   }
 );
 
+/**
+ * Serves the user sign-in page with a username/password form.
+ * @route GET /signin-form
+ */
 app.get(
   '/signin-form',
   pageAclCheck(PageType.SignIn),
@@ -152,6 +174,11 @@ app.get(
   }
 );
 
+/**
+ * Serves the page for creating a new password during the sign-up flow.
+ * Requires the user to be in the 'signing up' state.
+ * @route GET /new-password
+ */
 app.get(
   '/new-password',
   pageAclCheck(PageType.SigningUp),
@@ -162,6 +189,11 @@ app.get(
   }
 );
 
+/**
+ * Serves the password entry page during a sign-in flow.
+ * Requires the user to have already provided a username.
+ * @route GET /password
+ */
 app.get(
   '/password',
   pageAclCheck(PageType.FirstCredential),
@@ -172,6 +204,11 @@ app.get(
   }
 );
 
+/**
+ * Serves the password re-authentication page for sensitive operations.
+ * Requires the user to be signed in but not recently authenticated.
+ * @route GET /password-reauth
+ */
 app.get(
   '/password-reauth',
   pageAclCheck(PageType.Reauth),
@@ -182,6 +219,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating the FedCM delegation flow for sign-up.
+ * This allows a third-party identity provider to delegate credential creation.
+ * @route GET /fedcm-delegate
+ */
 app.get(
   '/fedcm-delegate',
   pageAclCheck(PageType.SignUp),
@@ -195,6 +237,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating an identifier-first sign-in flow using FedCM
+ * with form autofill.
+ * @route GET /fedcm-form-autofill
+ */
 app.get(
   '/fedcm-form-autofill',
   pageAclCheck(PageType.SignIn),
@@ -205,6 +252,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating passkey sign-in via form autofill.
+ * This is also known as conditional UI.
+ * @route GET /passkey-form-autofill
+ */
 app.get(
   '/passkey-form-autofill',
   pageAclCheck(PageType.SignIn),
@@ -215,6 +267,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating a "one-button" passkey sign-in flow.
+ * This uses a dedicated button to trigger the WebAuthn API.
+ * @route GET /passkey-one-button
+ */
 app.get(
   '/passkey-one-button',
   pageAclCheck(PageType.SignIn),
@@ -225,6 +282,11 @@ app.get(
   }
 );
 
+/**
+ * Serves the passkey re-authentication page for sensitive operations.
+ * Requires the user to be signed in but not recently authenticated.
+ * @route GET /passkey-reauth
+ */
 app.get(
   '/passkey-reauth',
   pageAclCheck(PageType.Reauth),
@@ -235,6 +297,10 @@ app.get(
   }
 );
 
+/**
+ * Serves the passkey sign-up page.
+ * @route GET /passkey-signup
+ */
 app.get(
   '/passkey-signup',
   pageAclCheck(PageType.SignUp),
@@ -248,6 +314,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating FedCM in "active" or "button" mode,
+ * where the user explicitly clicks a button to initiate sign-in.
+ * @route GET /fedcm-active-mode
+ */
 app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),
@@ -258,6 +329,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating FedCM in "passive" or "widget" mode,
+ * which attempts to sign the user in automatically on page load.
+ * @route GET /fedcm-passive-mode
+ */
 app.get(
   '/fedcm-passive-mode',
   pageAclCheck(PageType.SignIn),
@@ -268,6 +344,11 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating the unified Credential Manager API (`navigator.credentials.get()`)
+ * that can handle both passwords and passkeys.
+ * @route GET /password-passkey
+ */
 app.get(
   '/password-passkey',
   pageAclCheck(PageType.SignIn),
@@ -278,6 +359,10 @@ app.get(
   }
 );
 
+/**
+ * Serves a page demonstrating the legacy Credential Management API.
+ * @route GET /legacy-credman
+ */
 app.get(
   '/legacy-credman',
   pageAclCheck(PageType.SignIn),
@@ -288,6 +373,10 @@ app.get(
   }
 );
 
+/**
+ * Serves the user's home/dashboard page after they have signed in.
+ * @route GET /home
+ */
 app.get(
   '/home',
   pageAclCheck(PageType.SignedIn),
@@ -298,6 +387,11 @@ app.get(
   }
 );
 
+/**
+ * Handles user sign-out. It destroys the session and redirects the user
+ * to their original entry point.
+ * @route GET /signout
+ */
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),

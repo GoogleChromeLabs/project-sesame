@@ -1,0 +1,10 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/server", "src/client", "src/shared"],
+  "entryPointStrategy": "expand",
+  "out": "docs",
+  "name": "Project Sesame Documentation",
+  "exclude": ["**/*.spec.ts", "**/node_modules/**"],
+  "tsconfig": "src/server/tsconfig.json",
+  "readme": "README.md"
+}

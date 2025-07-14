@@ -6,6 +6,7 @@ node_modules/
 .env.production
 .cache
 dist/
+docs/
 .data/
 service-account.json
 firebase-export-*

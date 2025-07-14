@@ -49,7 +49,8 @@
     "nodemon": "3.1.10",
     "rimraf": "6.0.1",
     "ua-parser-js": "^1.0.40",
-    "webauthn-polyfills": "^0.1.7"
+    "webauthn-polyfills": "^0.1.7",
+    "typedoc": "^0.26.5"
   },
   "optionalDependencies": {
     "@types/express": "5.0.1",
@@ -67,6 +68,7 @@
     "dev:client": "npx rsbuild dev",
     "dev": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
     "start": "node --enable-source-maps dist/server/app.js",
+    "docs": "typedoc",
     "indexes": "firebase deploy --only firestore:indexes",
     "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy dev.yaml",
     "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
