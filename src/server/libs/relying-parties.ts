@@ -35,8 +35,16 @@ export class RelyingParties {
   static async findByClientID(
     client_id: Base64URLString
   ): Promise<RelyingParty | undefined> {
-    const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
-    const clone = structuredClone(rp);
-    return Promise.resolve(clone);
+    // const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
+    // const clone = structuredClone(rp);
+    // return Promise.resolve(clone);
+
+    // Allow any RPs to register themselves temporarily.
+    const rp = {
+      origin: client_id,
+      client_id,
+      name: 'Relying Party',
+    } as RelyingParty;
+    return Promise.resolve(rp);
   }
 }
