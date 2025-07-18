@@ -44,7 +44,7 @@ postForm(
         IdentityProvider.close();
       }
     }
-    redirect('/home');
+    await redirect('/home');
   },
   (error: Error) => {
     toast(error.message);

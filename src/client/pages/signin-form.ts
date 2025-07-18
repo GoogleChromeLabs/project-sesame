@@ -46,7 +46,7 @@ postForm(
         }
       }
     }
-    redirect('/home');
+    await redirect('/home');
   },
   (error: Error) => {
     toast(error.message);
@@ -62,7 +62,7 @@ if (capabilities?.conditionalGet) {
       // When the user is signed in, redirect to the home page.
       $('#username').value = user.username;
       loading.start();
-      redirect('/home');
+      await redirect('/home');
     } else {
       throw new Error('User not found.');
     }

@@ -24,12 +24,10 @@ import {
 } from '~project-sesame/client/helpers/index';
 
 postForm(
-  () => {
+  async () => {
     $('#form').style = 'display:none';
     toast('You password has been changed. Redirecting to the home page.');
-    setTimeout(() => {
-      redirect('/home');
-    }, 3000);
+    await redirect('/home', 3000);
   },
   (error: Error) => {
     toast(error.message);

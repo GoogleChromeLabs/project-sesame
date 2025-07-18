@@ -30,8 +30,8 @@ import {
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 postForm(
-  () => {
-    redirect('/password');
+  async () => {
+    await redirect('/password');
   },
   (error: Error) => {
     toast(error.message);
@@ -48,7 +48,7 @@ async function passkey() {
         // When the user is signed in, redirect to the home page.
         $('#username').value = user.username;
         loading.start();
-        redirect('/home');
+        await redirect('/home');
       } else {
         throw new Error('User not found.');
       }
@@ -79,7 +79,7 @@ async function fedcm() {
         mediation: 'conditional',
         nonce,
       });
-      redirect('/home');
+      await redirect('/home');
     } catch (error: any) {
       loading.stop();
       console.error(error);

@@ -30,7 +30,7 @@ const nonce = await google.initialize();
 const signIn = async (idp: SesameIdP) => {
   try {
     await idp.signIn({mode: 'active', nonce});
-    redirect('/home');
+    await redirect('/home');
   } catch (e: any) {
     console.error(e);
     toast(e.message);

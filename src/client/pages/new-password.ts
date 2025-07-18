@@ -19,8 +19,8 @@ import '~project-sesame/client/layout';
 import {redirect, postForm, toast} from '~project-sesame/client/helpers/index';
 
 postForm(
-  () => {
-    redirect('/home');
+  async () => {
+    await redirect('/home');
   },
   (error: Error) => {
     toast(error.message);

@@ -28,7 +28,7 @@ if (window.PasswordCredential) {
         loading.start();
         const user = await legacyAuthenticate();
         if (user) {
-          redirect('/home');
+          await redirect('/home');
         } else {
           throw new Error('User is not found.');
         }
@@ -45,7 +45,5 @@ if (window.PasswordCredential) {
   toast(
     "`PasswordCredential` and `FederatedCredential` aren't supported on this browser. Redirecting to a form."
   );
-  setTimeout(() => {
-    redirect('/passkey-form-autofill');
-  }, 3000);
+  await redirect('/passkey-form-autofill', 3000);
 }

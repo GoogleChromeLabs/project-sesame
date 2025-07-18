@@ -25,8 +25,8 @@ import {
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 postForm(
-  () => {
-    redirect('/home');
+  async () => {
+    await redirect('/home');
   },
   (error: Error) => {
     // FIXME: `error.message` is not included.
@@ -43,7 +43,7 @@ if ('IdentityCredential' in window) {
     ]);
     const nonce = await idp.initialize();
     await idp.signIn({mode: 'passive', mediation: 'required', nonce});
-    redirect('/home');
+    await redirect('/home');
   } catch (e: any) {
     console.error(e);
     toast(e.message);

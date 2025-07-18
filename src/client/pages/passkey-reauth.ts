@@ -43,7 +43,7 @@ if (capabilities?.userVerifyingPlatformAuthenticator) {
             // @ts-ignore
             IdentityProvider.close();
           }
-          redirect(r || '/home');
+          await redirect(r || '/home');
         } else {
           // This case might not be reachable if authenticate throws on failure,
           // but kept for robustness.
