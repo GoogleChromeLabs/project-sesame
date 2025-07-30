@@ -25,7 +25,9 @@ import {getFirestore} from 'firebase-admin/firestore';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost = 
+process.env.NODE_ENV === 'localhost' 
+|| process.env.NODE_ENV === 'idp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -108,6 +110,7 @@ const {
   project_name,
   origin_trials = [],
   csp,
+  theme = {},
 } = (
   await import(path.join(project_root_file_path, `${env}.config.json`), {
     with: {type: 'json'},
@@ -170,6 +173,7 @@ export const config = {
   account_retention_duration,
   allowlisted_accounts,
   origin_trials,
+  theme,
   csp: {
     connect_src,
     font_src,
