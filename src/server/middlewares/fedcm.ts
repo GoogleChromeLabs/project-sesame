@@ -88,9 +88,7 @@ router.get(
           name: user.displayName,
           email: user.username,
           picture: user.picture,
-          approved_clients: [
-            // TODO: The list of client IDs that the user has approved.
-          ],
+          approved_clients: user.approved_clients ?? [],
         },
       ],
     });
@@ -123,7 +121,8 @@ router.post(
     const {user} = res.locals;
 
     if (!idp_info) {
-      return res.status(400).json({error: 'I am not a registrable IdP.'});
+      console.log("I am not a registrable IdP: ", config.origin)
+      return res.status(400).json({error: 'I am not a registrable IdP: '});
     }
     const rp = await RelyingParties.findByClientID(client_id);
 
@@ -148,13 +147,18 @@ router.post(
 
     // TODO: Should it reject if consent is not acquired?
     if (
-      consent_acquired === 'true' ||
-      disclosure_text_shown === 'true' ||
-      !user.approved_clients.includes(rp.client_id)
+      (consent_acquired === 'true' || disclosure_text_shown === 'true') &&
+      (!user.approved_clients || !user.approved_clients.includes(rp.client_id))
     ) {
       console.log('The user is registering to the RP.');
-      // user.approved_clients.push(rp.client_id);
-      await Users.update(user);
+      // Add the current RP as an approved client to sign in with this account
+      if (!user.approved_clients) {
+        user.approved_clients = [];
+      }
+      if (!user.approved_clients.includes(rp.client_id)) {
+        user.approved_clients.push(rp.client_id);
+        await Users.update(user);
+      }
     } else {
       console.log('The user is signing in to the RP.');
     }
@@ -213,7 +217,13 @@ router.post(
       return res.status(401).json({error: "Account hint doesn't match."});
     }
 
-    if (!user.approved_clients.has(client_id)) {
+    // Ensure approved_clients is an array to prevent runtime errors.
+    if (!user.approved_clients) {
+      user.approved_clients = [];
+    }
+
+    // Use .includes() for arrays, not .has()
+    if (!user.approved_clients.includes(client_id)) {
       console.error('The client is not connected.');
       return res.status(400).json({error: 'The client is not connected.'});
     }

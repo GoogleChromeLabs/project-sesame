@@ -1,0 +1,61 @@
+#  Copyright 2025 Google Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+#  NOTE: This is not an officially supported Google product
+{
+	# Global option: Auto-generate and trust local HTTPS certificates.
+	local_certs
+}
+
+# Identity Provider (IdP) Demo
+sesame-identity-provider.local {
+	# Reverse proxy to the IdP app running on localhost:5000.
+	reverse_proxy http://localhost:5000 {
+		# Preserve original Host header.
+		header_up Host {host}
+		# Pass client IP.
+		header_up X-Real-IP {remote_host}
+		# Append client IP to X-Forwarded-For.
+		header_up X-Forwarded-For {remote_host}
+		# Indicate original protocol was HTTPS.
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Log requests to stdout in JSON format.
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Relying Party (RP) Demo
+project-sesame.local {
+	# Reverse proxy to the RP app running on localhost:8080.
+	reverse_proxy http://localhost:8080 {
+		# Preserve original Host header.
+		header_up Host {host}
+		# Pass client IP.
+		header_up X-Real-IP {remote_host}
+		# Append client IP to X-Forwarded-For.
+		header_up X-Forwarded-For {proxy_add_x_forwarded_for}
+		# Indicate original protocol was HTTPS.
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Log requests to stdout in JSON format.
+	log {
+		output stdout
+		format json
+	}
+}

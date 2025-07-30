@@ -166,7 +166,6 @@ router.post(
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {token: raw_token, url} = req.body;
-    // console.error(raw_token);
 
     try {
       const expected_nonce = getChallenge(req, res);
@@ -189,14 +188,6 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
-        console.log(
-          'verify',
-          raw_token,
-          idp.secret,
-          idp.origin,
-          expected_nonce,
-          idp.clientId
-        );
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
@@ -296,6 +287,27 @@ router.post(
     // Set the user as a signed in status
     setSignedIn(user, req, res);
     return res.json({});
+  }
+);
+
+/**
+ * Returns a list of IdP URLs based on the environment.
+ */
+router.get(
+  '/idp-list',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response) => {
+    const idpUrls = [
+      'https://sesame-identity-provider.appspot.com',
+      'https://accounts.google.com',
+    ];
+
+    if (config.is_localhost) {
+      // TODO: Ideally, let's wrap it in one place to reuse elsewhere
+      idpUrls.push("https://sesame-identity-provider.local");
+    }
+
+    return res.json(idpUrls);
   }
 );
 

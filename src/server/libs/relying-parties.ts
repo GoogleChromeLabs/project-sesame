@@ -30,6 +30,11 @@ export class RelyingParties {
       client_id: 'https://project-sesame-426206.appspot.com',
       name: 'Project Sesame',
     } as RelyingParty,
+    {
+      origin: 'https://project-sesame.local',
+      client_id: 'https://project-sesame.local',
+      name: 'Project Sesame (Local)',
+    } as RelyingParty,
   ];
 
   static async findByClientID(
