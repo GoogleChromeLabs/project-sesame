@@ -1,5 +1,5 @@
 {
-  "hostname": "localhost",
+  "hostname": "project-sesame.local",
   "port": 8080,
   "associated_domains": [
     {
@@ -24,7 +24,8 @@
   "project_name": "project-sesame-426206",
   "csp": {
     "connect_src": [
-      "ws://localhost:3000",
+      "wss://localhost:3000",
+      "wss://localhost:3001",
       "https://sesame-identity-provider.appspot.com",
       "wss://project-sesame.local",
       "https://project-sesame.local",

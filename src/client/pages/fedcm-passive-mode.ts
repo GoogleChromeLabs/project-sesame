@@ -40,6 +40,7 @@ if ('IdentityCredential' in window) {
     const idp = new SesameIdP([
       'https://sesame-identity-provider.appspot.com',
       'https://accounts.google.com',
+      'https://sesame-identity-provider.local'
     ]);
     const nonce = await idp.initialize();
     await idp.signIn({mode: 'passive', mediation: 'required', nonce});
