@@ -23,6 +23,7 @@ import {
   toast,
 } from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
+import { getIdpUrls } from '../helpers/federated';
 
 postForm(
   () => {
@@ -37,11 +38,8 @@ postForm(
 if ('IdentityCredential' in window) {
   $('#unsupported').classList.add('hidden');
   try {
-    const idp = new SesameIdP([
-      'https://sesame-identity-provider.appspot.com',
-      'https://accounts.google.com',
-      'https://sesame-identity-provider.local'
-    ]);
+    const idpURLs = await getIdpUrls();
+    const idp = new SesameIdP(idpURLs);
     const nonce = await idp.initialize();
     await idp.signIn({mode: 'passive', mediation: 'required', nonce});
     redirect('/home');
