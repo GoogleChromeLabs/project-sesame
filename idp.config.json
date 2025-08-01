@@ -5,6 +5,7 @@
     "ArnAatvOjJzy3vmMz6ntQRRWQovLuwyf8qLn6mlFwWjSH0pH8eKQJvVfBPcZMF5TiIcmfY8EVh0pNeCcIvnDZAsAAAB7eyJvcmlnaW4iOiJodHRwczovL3Nlc2FtZS1pZGVudGl0eS1wcm92aWRlci5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQXV0aGVudGljYXRpb25JbW1lZGlhdGVHZXQiLCJleHBpcnkiOjE3NjU4NDMyMDB9"
   ],
   "rp_name": "Sesame Identity Provider",
+  "theme": { "primaryColor": "#a199f7" },
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {

@@ -25,7 +25,9 @@ import {getFirestore} from 'firebase-admin/firestore';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost = 
+process.env.NODE_ENV === 'localhost' 
+|| process.env.NODE_ENV === 'idp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -42,9 +44,6 @@ const project_root_file_path = path.join(
   '..'
 );
 const dist_root_file_path = path.join(project_root_file_path, 'dist');
-
-// console.log('Reading config from', path.join(project_root_file_path, '/.env'));
-// dotenv.config({path: path.join(project_root_file_path, '/.env')});
 
 function generateApkKeyHash(sha256hash: string): string {
   const hexString = sha256hash.replace(/:/g, '');
@@ -108,6 +107,7 @@ const {
   project_name,
   origin_trials = [],
   csp,
+  theme = {},
 } = (
   await import(path.join(project_root_file_path, `${env}.config.json`), {
     with: {type: 'json'},
@@ -129,9 +129,7 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-
-const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
-const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
+const origin = `https://${hostname}`;
 
 associated_domains.push({
   namespace: 'web',
@@ -170,6 +168,7 @@ export const config = {
   account_retention_duration,
   allowlisted_accounts,
   origin_trials,
+  theme,
   csp: {
     connect_src,
     font_src,

@@ -27,11 +27,70 @@ npm run build
 
 ### Run
 
+For all the features to work as expected (incl. federated identity with FedCM), you need to run the RP and IdP separately.
+
+First, run the firebase emulator:
 ```shell
-npm run emulator & npm run dev
+npm run emulator
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Run RP in a separate terminal:
+```shell
+npm run dev:rp
+```
+
+Run the IdP in a separate terminal:
+```shell
+npm run dev:idp
+```
+
+#### Setting up a mock cross-site environment 
+
+For the FedCM flow to work correctly and to accurately simulate a real-world scenario, your browser needs to perceive the Identity Provider (IdP) and Relying Party (RP) as **separate, secure domains**. 
+
+This section explains how to use **Caddy** to set up a local reverse proxy that serves your demos on mock domains with HTTPS. This ensures your browser treats them as cross-site, allowing you to test FedCM in an appropriate context.
+
+##### 1. Install Caddy
+Make sure Caddy is [installed](https://caddyserver.com/docs/install) on your computer.
+
+##### 2. Update Your Hosts File
+
+This step requires **administrator/root privileges**.
+
+Add the following entries to your system's hosts file. This maps the mock domains to your local machine (`127.0.0.1`), allowing your browser to find them.
+
+* **macOS/Linux:** `/etc/hosts`
+
+```
+127.0.0.1       project-sesame.local
+127.0.0.1       sesame-identity-provider.local
+```
+##### 3. Start the Caddy proxy
+
+This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `sesame-identity-provider.local` and `project-sesame.local`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
+
+```shell
+caddy run
+```
+
+##### 3. Run the services 
+For Caddy to proxy correctly, make sure your apps run on the right ports:
+
+* RP: localhost:8080
+* IDP: localhost:5000
+
+
+You can also modify these ports in the corresponding config files (`localhost.config.json` and `idp-localhost.config.json`) and in the `Caddyfile`.
+
+Now Caddy should proxy fro [https://project-sesame.local](https://project-sesame.local) to `localhost:8080` and [https://sesame-identity-provider.local](https://sesame-identity-provider.local) to `localhost:5000`.
+
+##### Troubleshooting Local Caddy SSL/TLS Errors
+If you are running this project locally with Caddy and encounter a browser error like "This site can’t provide a secure connection" or "ERR_SSL_PROTOCOL_ERROR", it's often caused by conflicting Caddy processes. The solution is to ensure only one instance of Caddy is running and listening on port `443`:
+
+```
+sudo killall caddy
+sudo caddy run
+```
 
 ## Adding a new sign-in flow
 

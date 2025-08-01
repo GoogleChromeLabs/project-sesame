@@ -1,0 +1,33 @@
+{
+  "hostname": "sesame-identity-provider.local",
+  "port": 5000,
+  "rp_name": "Sesame Identity Provider (local)",
+  "project_name": "sesame-identity-provider",
+  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
+  "theme": { "primaryColor": "#a199f7" },
+  "csp": {
+    "connect_src": [
+      "wss://sesame-identity-provider.local",
+      "https://sesame-identity-provider.local",
+      "https://project-sesame.local",
+      "https://issuer.sgo.to",
+      "https://accounts.google.com/gsi/",
+      "https://accounts.sandbox.google.com",
+      "wss://localhost:3000",
+      "wss://localhost:3001"
+    ],
+    "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+    "frame_src": ["https://accounts.google.com/gsi/"],
+    "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
+    "script_src": [
+      "https://sesame-identity-provider.local",
+      "https://project-sesame.local",
+      "https://accounts.google.com/gsi/client"
+    ],
+    "style_src": [
+      "https://accounts.google.com/gsi/style",
+      "https://fonts.googleapis.com"
+    ],
+    "style_src_elem": ["https://fonts.googleapis.com/icon"]
+  }
+}
