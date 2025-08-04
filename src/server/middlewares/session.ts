@@ -118,10 +118,6 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
   const {signup_username, signin_username, last_signedin_at, user} =
     req.session;
 
-  if (config.theme) {
-    res.locals.theme = config.theme;
-  }
-
   if (!user) {
     if (signup_username) {
       res.locals.username = req.session.signup_username;

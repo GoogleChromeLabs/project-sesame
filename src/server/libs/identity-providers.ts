@@ -39,16 +39,6 @@ export class IdentityProviders {
       secret: 'xxxxx',
     },
     {
-      name: 'FedCM Local IdP',
-      iconURL:
-        'https://sesame-identity-provider.local/images/idp-logo-512.png',
-      origin: 'https://sesame-identity-provider.local',
-      configURL:
-        'https://sesame-identity-provider.local/fedcm/config.json',
-      clientId: config.origin,
-      secret: 'xxxxx',
-    },
-    {
       name: 'SGO',
       origin: 'https://issuer.sgo.to',
       configURL: 'https://issuer.sgo.to/fedcm.json',
