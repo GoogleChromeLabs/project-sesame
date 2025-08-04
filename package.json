@@ -70,7 +70,7 @@
     "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
     "start": "node --enable-source-maps dist/server/app.js",
     "indexes": "firebase deploy --only firestore:indexes",
-    "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",
+    "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy dev.yaml",
     "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
     "deploy:prod": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy prod.yaml",
     "logs": "gcloud app logs tail --project=project-sesame-426206",

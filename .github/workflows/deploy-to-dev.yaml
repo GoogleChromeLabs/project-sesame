@@ -5,7 +5,7 @@ on:
   push:
     branches:
       # Trigger the workflow on pushes to the 'dev' branch.
-      - staging
+      - dev
   workflow_dispatch:
 
 # This section defines the jobs that will be run as part of the workflow.
@@ -35,4 +35,4 @@ jobs:
           project_id: ${{ secrets.DEV_PROJECT_ID }}
       # Deploys the application to Google App Engine.
       - name: Deploy to App Engine
-        run: gcloud app deploy staging.yaml --quiet
+        run: gcloud app deploy dev.yaml --quiet
