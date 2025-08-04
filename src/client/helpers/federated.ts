@@ -87,10 +87,3 @@ export async function saveFederation(
 export async function getAllIdentityProviders(): Promise<any> {
   return get('/federation/mappings');
 }
-
-/**
- * Returns a list of IdP URLs based on the environment.
- */
-export async function getIdpUrls(): Promise<string[]> {
-  return get('/federation/idp-list');
-}

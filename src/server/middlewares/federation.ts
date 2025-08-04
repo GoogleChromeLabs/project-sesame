@@ -290,25 +290,4 @@ router.post(
   }
 );
 
-/**
- * Returns a list of IdP URLs based on the environment.
- */
-router.get(
-  '/idp-list',
-  apiAclCheck(ApiType.NoAuth),
-  (req: Request, res: Response) => {
-    const idpUrls = [
-      'https://sesame-identity-provider.appspot.com',
-      'https://accounts.google.com',
-    ];
-
-    if (config.is_localhost) {
-      // TODO: Ideally, let's wrap it in one place to reuse elsewhere
-      idpUrls.push("https://sesame-identity-provider.local");
-    }
-
-    return res.json(idpUrls);
-  }
-);
-
 export {router as federation};
