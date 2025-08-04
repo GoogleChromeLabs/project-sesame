@@ -26,13 +26,13 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           # The JSON-formatted service account key for authentication.
-          credentials_json: ${{ secrets.DEV_SA_KEY }}
+          credentials_json: ${{ secrets.MAIN_SA_KEY }}
       # Sets up the Google Cloud SDK in the runner environment.
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           # The Google Cloud project ID to use.
-          project_id: ${{ secrets.DEV_PROJECT_ID }}
+          project_id: ${{ secrets.MAIN_PROJECT_ID }}
       # Deploys the application to Google App Engine.
       - name: Deploy to App Engine
         run: gcloud app deploy prod.yaml --quiet
