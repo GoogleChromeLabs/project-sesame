@@ -40,7 +40,6 @@ export interface User {
   passkeyUserId?: PasskeyUserId;
   registeredAt: number;
   expiresAt: number;
-  approved_clients: string[];
 }
 
 /**
@@ -100,7 +99,6 @@ export class Users {
       passkeyUserId: passkey_user_id,
       registeredAt,
       expiresAt,
-      approved_clients: [],
     };
     await Users.update(user);
     if (password) {

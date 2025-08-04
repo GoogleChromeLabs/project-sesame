@@ -45,6 +45,9 @@ const project_root_file_path = path.join(
 );
 const dist_root_file_path = path.join(project_root_file_path, 'dist');
 
+// console.log('Reading config from', path.join(project_root_file_path, '/.env'));
+// dotenv.config({path: path.join(project_root_file_path, '/.env')});
+
 function generateApkKeyHash(sha256hash: string): string {
   const hexString = sha256hash.replace(/:/g, '');
 
@@ -129,7 +132,9 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-const origin = `https://${hostname}`;
+
+const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
+const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
 associated_domains.push({
   namespace: 'web',

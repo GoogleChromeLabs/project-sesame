@@ -166,6 +166,7 @@ router.post(
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {token: raw_token, url} = req.body;
+    // console.error(raw_token);
 
     try {
       const expected_nonce = getChallenge(req, res);
@@ -188,6 +189,14 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
+        console.log(
+          'verify',
+          raw_token,
+          idp.secret,
+          idp.origin,
+          expected_nonce,
+          idp.clientId
+        );
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,

@@ -92,7 +92,7 @@ export function initializeSession() {
       path: '/',
       httpOnly: true,
       sameSite: 'none',
-      secure: true,
+      secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },
   });
@@ -114,6 +114,7 @@ export function initializeSession() {
  *   authentication status.
  */
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
+  console.log(req.session);
   const {signup_username, signin_username, last_signedin_at, user} =
     req.session;
 
