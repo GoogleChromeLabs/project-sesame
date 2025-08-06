@@ -16,14 +16,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  {{> head this}}
-   {{#if theme.primaryColor}}
-    <style>
-      * {
-        --mdui-theme-primary: {{theme.primaryColor}} !important;
-      }
-    </style>
-    {{/if}}
+    {{> head this}}
   </head>
   <body>
     <mdui-top-app-bar scroll-behavior="elevate" scroll-target="main">

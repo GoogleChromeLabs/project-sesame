@@ -4,7 +4,6 @@
   "rp_name": "Sesame Identity Provider (local)",
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
-  "theme": { "primaryColor": "#a199f7" },
   "csp": {
     "connect_src": [
       "wss://sesame-identity-provider.local",

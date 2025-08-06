@@ -3,7 +3,6 @@
   "associated_domains": [],
   "origin_trials": [],
   "rp_name": "Sesame Identity Provider",
-  "theme": { "primaryColor": "#a199f7" },
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
