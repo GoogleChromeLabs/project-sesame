@@ -19,7 +19,7 @@
 }
 
 # Identity Provider (IdP) Demo
-sesame-identity-provider.local {
+idp.localhost {
 	# Reverse proxy to the IdP app running on localhost:5000.
 	reverse_proxy http://localhost:5000 {
 		# Preserve original Host header.
@@ -40,7 +40,7 @@ sesame-identity-provider.local {
 }
 
 # Relying Party (RP) Demo
-project-sesame.local {
+rp.localhost {
 	# Reverse proxy to the RP app running on localhost:8080.
 	reverse_proxy http://localhost:8080 {
 		# Preserve original Host header.

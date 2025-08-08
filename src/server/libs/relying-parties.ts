@@ -31,8 +31,8 @@ export class RelyingParties {
       name: 'Project Sesame',
     } as RelyingParty,
     {
-      origin: 'https://project-sesame.local',
-      client_id: 'https://project-sesame.local',
+      origin: 'https://rp.localhost',
+      client_id: 'https://rp.localhost',
       name: 'Project Sesame (Local)',
     } as RelyingParty,
   ];

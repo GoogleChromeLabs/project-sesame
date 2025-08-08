@@ -1,14 +1,14 @@
 {
-  "hostname": "sesame-identity-provider.local",
+  "hostname": "idp.localhost",
   "port": 5000,
   "rp_name": "Sesame Identity Provider (local)",
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "wss://sesame-identity-provider.local",
-      "https://sesame-identity-provider.local",
-      "https://project-sesame.local",
+      "wss://idp.localhost",
+      "https://idp.localhost",
+      "https://rp.localhost",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com",
@@ -19,8 +19,8 @@
     "frame_src": ["https://accounts.google.com/gsi/"],
     "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
     "script_src": [
-      "https://sesame-identity-provider.local",
-      "https://project-sesame.local",
+      "https://idp.localhost",
+      "https://rp.localhost",
       "https://accounts.google.com/gsi/client"
     ],
     "style_src": [

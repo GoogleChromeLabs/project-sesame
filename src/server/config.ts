@@ -27,7 +27,10 @@ import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
 const is_localhost = 
 process.env.NODE_ENV === 'localhost' 
-|| process.env.NODE_ENV === 'idp-localhost';
+
+const is_mock_cross_site = 
+process.env.NODE_ENV === 'idp-localhost' 
+|| process.env.NODE_ENV === 'rp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -69,7 +72,7 @@ function generateApkKeyHash(sha256hash: string): string {
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (is_localhost) {
+  if (is_localhost || is_mock_cross_site) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -128,7 +131,9 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-const origin = `https://${hostname}`;
+const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
+const origin = is_mock_cross_site ? `https://${hostname}` : is_localhost ? `http://${domain}` : `https://${domain}`;
+// const origin = `https://${hostname}`;
 
 associated_domains.push({
   namespace: 'web',
@@ -147,7 +152,7 @@ export const store = initializeFirestore();
 
 export const config = {
   project_name,
-  debug: is_localhost,
+  debug: is_localhost || is_mock_cross_site,
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),

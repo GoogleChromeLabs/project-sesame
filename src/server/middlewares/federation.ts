@@ -188,6 +188,14 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
+        console.log(
+          'verify',
+          raw_token,
+            idp.secret,
+            idp.origin,
+            expected_nonce,
+            idp.clientId
+        );
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
@@ -302,9 +310,9 @@ router.get(
       'https://accounts.google.com',
     ];
 
-    if (config.is_localhost) {
+    if (config.is) {
       // TODO: Ideally, let's wrap it in one place to reuse elsewhere
-      idpUrls.push("https://sesame-identity-provider.local");
+      idpUrls.push("https://idp.localhost");
     }
 
     return res.json(idpUrls);

@@ -66,7 +66,7 @@
     "dev:server": "nodemon --watch 'src/server/*' -e ts,html --exec 'node esbuild.config.mjs && PROXY=true node --enable-source-maps dist/server/app.js'",
     "dev:client": "npx rsbuild dev",
     "dev": "npm run dev:rp && npm run dev:idp",
-    "dev:rp": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
+    "dev:rp": "npm run dev:client & NODE_ENV=rp-localhost npm run dev:server",
     "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
     "start": "node --enable-source-maps dist/server/app.js",
     "indexes": "firebase deploy --only firestore:indexes",

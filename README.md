@@ -53,21 +53,9 @@ This section explains how to use **Caddy** to set up a local reverse proxy that 
 ##### 1. Install Caddy
 Make sure Caddy is [installed](https://caddyserver.com/docs/install) on your computer.
 
-##### 2. Update Your Hosts File
+##### 2. Start the Caddy proxy
 
-This step requires **administrator/root privileges**.
-
-Add the following entries to your system's hosts file. This maps the mock domains to your local machine (`127.0.0.1`), allowing your browser to find them.
-
-* **macOS/Linux:** `/etc/hosts`
-
-```
-127.0.0.1       project-sesame.local
-127.0.0.1       sesame-identity-provider.local
-```
-##### 3. Start the Caddy proxy
-
-This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `sesame-identity-provider.local` and `project-sesame.local`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
+This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `idp.localhost` and `rp.localhost`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
 
 ```shell
 caddy run
@@ -82,7 +70,7 @@ For Caddy to proxy correctly, make sure your apps run on the right ports:
 
 You can also modify these ports in the corresponding config files (`localhost.config.json` and `idp-localhost.config.json`) and in the `Caddyfile`.
 
-Now Caddy should proxy fro [https://project-sesame.local](https://project-sesame.local) to `localhost:8080` and [https://sesame-identity-provider.local](https://sesame-identity-provider.local) to `localhost:5000`.
+Now Caddy should proxy fro [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:5000`.
 
 ##### Troubleshooting Local Caddy SSL/TLS Errors
 If you are running this project locally with Caddy and encounter a browser error like "This site can’t provide a secure connection" or "ERR_SSL_PROTOCOL_ERROR", it's often caused by conflicting Caddy processes. The solution is to ensure only one instance of Caddy is running and listening on port `443`:
