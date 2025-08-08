@@ -52,7 +52,7 @@ postForm(
       // @ts-ignore
       IdentityProvider.close();
     }
-    redirect(r || '/home');
+    await redirect(r || '/home');
   },
   (error: Error) => {
     toast(error.message);

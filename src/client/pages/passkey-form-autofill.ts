@@ -29,8 +29,8 @@ import {
 } from '~project-sesame/client/helpers/publickey';
 
 postForm(
-  () => {
-    redirect('/password');
+  async () => {
+    await redirect('/password');
   },
   (error: Error) => {
     console.log(error);
@@ -52,7 +52,7 @@ if (capabilities?.conditionalGet) {
         // @ts-ignore
         IdentityProvider.close();
       }
-      redirect('/home');
+      await redirect('/home');
     } else {
       throw new Error('User not found.');
     }

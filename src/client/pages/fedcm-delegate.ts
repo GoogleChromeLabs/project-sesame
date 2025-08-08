@@ -25,9 +25,9 @@ import {
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 postForm(
-  () => {
+  async () => {
     loading.stop();
-    redirect('/new-password');
+    await redirect('/new-password');
   },
   (error: Error) => {
     loading.stop();
@@ -51,7 +51,7 @@ if (window.IdentityCredential) {
       mediation: 'conditional',
       nonce,
     });
-    redirect('/home');
+    await redirect('/home');
   } catch (error: any) {
     loading.stop();
     console.error(error);

@@ -24,9 +24,9 @@ import {
 } from '~project-sesame/client/helpers/index';
 
 postForm(
-  () => {
+  async () => {
     loading.stop();
-    redirect('/home');
+    await redirect('/home');
   },
   (error: Error) => {
     loading.stop();

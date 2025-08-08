@@ -35,8 +35,8 @@ postForm(
       capabilities?.conditionalGet
     ) {
       return registerCredential()
-        .then(() => {
-          redirect('/home');
+        .then(async () => {
+          await redirect('/home');
         })
         .catch(error => {
           // 'InvalidStateError' indicates a passkey already exists on the device.
@@ -54,7 +54,7 @@ postForm(
         });
     } else {
       loading.stop();
-      redirect('/new-password');
+      await redirect('/new-password');
     }
   },
   (error: Error) => {

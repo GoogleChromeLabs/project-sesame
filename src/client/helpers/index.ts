@@ -36,36 +36,52 @@ export const $: any = document.querySelector.bind(document);
  *             current location's origin. Defaults to an empty string, which
  *             results in no action.
  */
-export const redirect = (path: string = '') => {
-  if (path === '') {
-    return;
-  }
+export const redirect = async (
+  path: string,
+  timeout?: number
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (path === '') {
+      // By returning here, you prevent the rest of the function from running.
+      return reject(new Error('Redirect path cannot be empty.'));
+    }
 
-  try {
-    // Resolve the path against the current location's origin.
-    // This handles:
-    // 1. Absolute URLs: new URL("https://example.com/path") -> origin is "https://example.com"
-    // 2. Relative paths: new URL("/path", "https://current.com") -> origin is "https://current.com"
-    // 3. Protocol-relative URLs: new URL("//other.com/path", "https://current.com") -> origin is "https://other.com" (will be caught)
-    const targetUrl = new URL(path, location.origin);
+    try {
+      // Resolve the path against the current location's origin.
+      // This handles:
+      // 1. Absolute URLs: new URL("https://example.com/path") -> origin is "https://example.com"
+      // 2. Relative paths: new URL("/path", "https://current.com") -> origin is "https://current.com"
+      // 3. Protocol-relative URLs: new URL("//other.com/path", "https://current.com") -> origin is "https://other.com" (will be caught)
+      const targetUrl = new URL(path, location.origin);
 
-    // Check if the origin of the target URL is the same as the current location's origin.
-    if (targetUrl.origin === location.origin) {
-      location.href = targetUrl.toString();
-    } else {
-      // The path is an external URL or a protocol-relative URL to a different domain.
-      console.warn(
-        `Attempted to redirect to an external URL: ${path}. Redirecting to '/' instead.`
+      // Check if the origin of the target URL is the same as the current location's origin.
+      if (targetUrl.origin === location.origin) {
+        if (timeout && timeout > 0) {
+          setTimeout(() => {
+            location.href = targetUrl.toString();
+            return resolve();
+          }, timeout);
+        } else {
+          location.href = targetUrl.toString();
+          return resolve();
+        }
+      } else {
+        // The path is an external URL or a protocol-relative URL to a different domain.
+        console.warn(
+          `Attempted to redirect to an external URL: ${path}. Redirecting to '/' instead.`
+        );
+        location.href = '/'; // Default safe redirect
+        return resolve();
+      }
+    } catch (error) {
+      // This might happen if 'path' is not a valid URL or path segment.
+      console.error(
+        `Invalid path for redirect: ${path}. Error: ${error}. Redirecting to '/' instead.`
       );
       location.href = '/'; // Default safe redirect
+      return reject();
     }
-  } catch (error) {
-    // This might happen if 'path' is not a valid URL or path segment.
-    console.error(
-      `Invalid path for redirect: ${path}. Error: ${error}. Redirecting to '/' instead.`
-    );
-    location.href = '/'; // Default safe redirect
-  }
+  });
 };
 
 /**
@@ -307,7 +323,7 @@ async function signOut(e: MouseEvent) {
   await navigator.credentials.preventSilentAccess();
 
   // Sign out.
-  redirect('/signout');
+  await redirect('/signout');
 }
 
 function changeLayout(e: MediaQueryListEvent | MediaQueryList) {

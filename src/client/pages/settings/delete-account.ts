@@ -29,10 +29,8 @@ async function deleteAccount(e: MouseEvent): Promise<void> {
       toast(
         'You account and passkeys have been deleted. Redirecting to the top page.'
       );
-      setTimeout(() => {
-        // By redirecting to /home, the user should be redirected to the login page.
-        redirect('/signout');
-      }, 3000);
+      // By redirecting to /home, the user should be redirected to the login page.
+      await redirect('/signout', 3000);
     } catch (error: any) {
       toast(error.message);
     }

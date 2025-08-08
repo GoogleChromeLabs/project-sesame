@@ -33,7 +33,6 @@ export interface SesamePublicKeyCredential {
   credentialType: string; // type of credential,
   counter?: number; // previous counter,
   aaguid: string; // AAGUID,
-  provider_icon?: string; // Provider icon (deprecated)
   providerIcon?: string; // Provider icon
   userVerified: boolean; // user verifying authenticator,
   transports: AuthenticatorTransportFuture[]; // list of transports,

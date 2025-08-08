@@ -41,7 +41,7 @@ if (capabilities) {
         // const user = await authenticate('immediate');
         const user = await authenticate();
         if (user) {
-          redirect('/home');
+          await redirect('/home');
         } else {
           throw new Error('User not found.');
         }
@@ -52,9 +52,7 @@ if (capabilities) {
           toast(
             'No passkeys are found. Sign in with a password instead. Redirecting...'
           );
-          setTimeout(() => {
-            redirect('/signin-form');
-          }, 3000);
+          await redirect('/signin-form', 3000);
         } else {
           toast(error.message);
         }

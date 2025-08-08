@@ -17,14 +17,15 @@
 
 import '../layout';
 import {$, loading, redirect, toast} from '../helpers/index';
-import {authenticate} from '../helpers/unified';
+import {capabilities, authenticate} from '../helpers/unified';
 
 if (
   //@ts-ignore
   window.PasswordCredential &&
   window.PublicKeyCredential &&
-  //@ts-ignore
-  window.IdentityCredential
+  // @ts-ignore
+  // window.IdentityCredential &&
+  capabilities.immediateGet
 ) {
   $('#signin').addEventListener(
     'click',
@@ -33,7 +34,7 @@ if (
         loading.start();
         const user = await authenticate('immediate');
         if (user) {
-          redirect('/home');
+          await redirect('/home');
         } else {
           throw new Error('User is not found.');
         }
@@ -47,8 +48,10 @@ if (
     }
   );
 } else {
-  toast("WebAuthn isn't supported on this browser. Redirecting to a form.");
-  redirect('/');
+  toast(
+    "WebAuthn isn't supported on this browser. Redirecting to a passkey autofill form."
+  );
+  await redirect('/passkey-form-autofill', 3000);
 }
 
 // // Feature detection: check if WebAuthn and conditional UI are supported.
@@ -60,7 +63,7 @@ if (
 //       // When the user is signed in, redirect to the home page.
 //       $('#username').value = user.username;
 //       loading.start();
-//       redirect('/home');
+//       await redirect('/home');
 //     } else {
 //       throw new Error('User not found.');
 //     }

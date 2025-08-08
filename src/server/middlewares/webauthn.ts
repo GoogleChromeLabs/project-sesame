@@ -79,11 +79,10 @@ router.post(
     const rpId = config.hostname;
     const userId = user.passkeyUserId;
     if (credentials && credentials.length > 0) {
-      for (let credential of credentials) {
+      for (const credential of credentials) {
         const aaguid =
           credential.aaguid ?? '00000000-0000-0000-0000-000000000000';
         const entry = (aaguids as AAGUIDs)[aaguid];
-        credential.provider_icon = entry.icon_light;
         credential.providerIcon = entry.icon_light;
       }
     }
@@ -204,13 +203,14 @@ router.post(
 );
 
 /**
- * Register a new passkey to the server.
+ *
  */
 router.post(
   '/registerResponse',
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let user, passkeyUserId;
+    const {type} = req.query;
     const username = res.locals.username;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       passkeyUserId = getEphemeralPasskeyUserId(req, res);
@@ -267,15 +267,16 @@ router.post(
       let _aaguid = aaguid;
       let name = '';
 
-      if (!credentialBackedUp) {
+      if (type === 'rc') {
+        _aaguid = 'restore-credential';
+        name = 'Restore Credential';
+      } else if (!credentialBackedUp) {
         // If the passkey is not synced
         if (response.authenticatorAttachment === 'cross-platform') {
           // And if the passkey is a roaming authenticator
-          _aaguid = 'security-key';
           name = 'Security key';
         } else {
           // If the passkey is a platform authenticator
-          _aaguid = 'computer-device';
           name = aaguid_item?.name || req.useragent?.platform || 'Unknown';
         }
       } else if (
@@ -283,11 +284,11 @@ router.post(
         aaguid === '00000000-0000-0000-0000-000000000000'
       ) {
         // If the passkey is synced, but AAGUID is unkonwn
-        _aaguid === '00000000-0000-0000-0000-000000000000';
+        _aaguid = '00000000-0000-0000-0000-000000000000';
         name = req.useragent?.platform || 'Unknown';
       } else if (!aaguid_item) {
         // If the passkey is synced, but AAGUID isn't included in the list
-        _aaguid === '00000000-0000-0000-0000-000000000000';
+        _aaguid = '00000000-0000-0000-0000-000000000000';
         name = req.useragent?.platform || 'Unknown';
       } else {
         // The passkey is synced and AAGUID is found in the list
