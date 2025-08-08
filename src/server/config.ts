@@ -134,7 +134,6 @@ if (!project_name || !rp_name || !hostname) {
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
 const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
 const origin = is_mock_cross_site ? `https://${hostname}` : is_localhost ? `http://${domain}` : `https://${domain}`;
-// const origin = `https://${hostname}`;
 
 associated_domains.push({
   namespace: 'web',
