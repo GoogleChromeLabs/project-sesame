@@ -1,40 +1,36 @@
 {
-  "hostname": "sesame-identity-provider.appspot.com",
-  "associated_domains": [],
-  "origin_trials": [
-    "ArnAatvOjJzy3vmMz6ntQRRWQovLuwyf8qLn6mlFwWjSH0pH8eKQJvVfBPcZMF5TiIcmfY8EVh0pNeCcIvnDZAsAAAB7eyJvcmlnaW4iOiJodHRwczovL3Nlc2FtZS1pZGVudGl0eS1wcm92aWRlci5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQXV0aGVudGljYXRpb25JbW1lZGlhdGVHZXQiLCJleHBpcnkiOjE3NjU4NDMyMDB9"
-  ],
-  "rp_name": "Sesame Identity Provider",
+  "hostname": "idp.localhost",
+  "port": 8000,
+  "rp_name": "Sesame Identity Provider (local)",
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "https://sesame-identity-provider.appspot.com",
+      "wss://idp.localhost",
+      "https://idp.localhost",
+      "https://rp.localhost",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
-      "https://accounts.sandbox.google.com"
+      "https://accounts.sandbox.google.com",
+      "wss://localhost:3000",
+      "wss://localhost:3001"
     ],
     "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
     "frame_src": ["https://accounts.google.com/gsi/"],
-    "img_src": [
-      "https://www.gravatar.com",
-      "https://gravatar.com",
-      "https://accounts.google.com/gsi-static",
-      "https://cdn.glitch.global",
-      "https://lh3.googleusercontent.com"
-    ],
+    "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
     "script_src": [
-      "https://sesame-identity-provider.appspot.com",
+      "https://idp.localhost",
+      "https://rp.localhost",
       "https://accounts.google.com/gsi/client"
     ],
     "style_src": [
       "https://accounts.google.com/gsi/style",
-      "https://fonts.googleapis.com/icon"
+      "https://fonts.googleapis.com"
     ],
     "style_src_elem": ["https://fonts.googleapis.com/icon"]
   },
   "supported_idps": [
-      {
+    {
       "name": "FedCM Demo IdP",
       "iconURL":
         "https://sesame-identity-provider.appspot.com/images/idp-logo-512.png",
@@ -44,10 +40,12 @@
       "secret": "xxxxx"
     },
     {
-      "name": "SGO",
-      "origin": "https://issuer.sgo.to",
-      "configURL": "https://issuer.sgo.to/fedcm.json",
-      "clientId": "1234",
+      "name": "FedCM Local IdP",
+      "iconURL":
+        "https://idp.localhost/images/idp-logo-512.png",
+      "origin": "https://idp.localhost",
+      "configURL":
+        "https://idp.localhost/fedcm/config.json",
       "secret": "xxxxx"
     },
     {
