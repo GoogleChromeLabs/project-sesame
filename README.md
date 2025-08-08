@@ -50,35 +50,31 @@ For the FedCM flow to work correctly and to accurately simulate a real-world sce
 
 This section explains how to use **Caddy** to set up a local reverse proxy that serves your demos on mock domains with HTTPS. This ensures your browser treats them as cross-site, allowing you to test FedCM in an appropriate context.
 
-##### 1. Install Caddy
-Make sure Caddy is [installed](https://caddyserver.com/docs/install) on your computer.
-
-##### 2. Start the Caddy proxy
-
-This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `idp.localhost` and `rp.localhost`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
-
-```shell
-caddy run
-```
-
-##### 3. Run the services 
+##### 1. Run the services 
 For Caddy to proxy correctly, make sure your apps run on the right ports:
 
 * RP: localhost:8080
 * IDP: localhost:5000
 
 
-You can also modify these ports in the corresponding config files (`localhost.config.json` and `idp-localhost.config.json`) and in the `Caddyfile`.
+You can also modify these ports in the corresponding config files (`rp-localhost.config.json` and `idp-localhost.config.json`) and in the `Caddyfile`.
 
-Now Caddy should proxy fro [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:5000`.
+##### 2. Start the Caddy proxy
 
-##### Troubleshooting Local Caddy SSL/TLS Errors
-If you are running this project locally with Caddy and encounter a browser error like "This site can’t provide a secure connection" or "ERR_SSL_PROTOCOL_ERROR", it's often caused by conflicting Caddy processes. The solution is to ensure only one instance of Caddy is running and listening on port `443`:
+Make sure Caddy is [installed](https://caddyserver.com/docs/install) on your computer.
 
+Before running the proxy script for the first time, you need to make it executable:
+```shell
+chmod +x caddy.sh
 ```
-sudo killall caddy
-sudo caddy run
+
+This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `idp.localhost` and `rp.localhost`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
+
+```shell
+sh caddy.sh
 ```
+
+Now Caddy should proxy from [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:8000`, or other ports that you specify in the config files.
 
 ## Adding a new sign-in flow
 

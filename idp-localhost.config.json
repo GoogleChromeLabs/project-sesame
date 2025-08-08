@@ -1,6 +1,6 @@
 {
   "hostname": "idp.localhost",
-  "port": 5000,
+  "port": 8000,
   "rp_name": "Sesame Identity Provider (local)",
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],

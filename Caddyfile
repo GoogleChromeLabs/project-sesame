@@ -20,8 +20,8 @@
 
 # Identity Provider (IdP) Demo
 idp.localhost {
-	# Reverse proxy to the IdP app running on localhost:5000.
-	reverse_proxy http://localhost:5000 {
+	# Reverse proxy to the IdP app running on localhost:8000.
+	reverse_proxy http://localhost:8000 {
 		# Preserve original Host header.
 		header_up Host {host}
 		# Pass client IP.
