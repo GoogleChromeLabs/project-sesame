@@ -110,6 +110,7 @@ const {
   project_name,
   origin_trials = [],
   csp,
+  supported_idps = [],
 } = (
   await import(path.join(project_root_file_path, `${env}.config.json`), {
     with: {type: 'json'},
@@ -181,5 +182,6 @@ export const config = {
     style_src,
     style_src_elem,
   },
+  supported_idps,
 };
 console.log(config);
