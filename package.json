@@ -22,7 +22,9 @@
   ],
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
+    "@radically-straightforward/caddy": "^2.0.6",
     "@simplewebauthn/server": "13.1.1",
+    "concurrently": "^9.2.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "16.5.0",
@@ -34,7 +36,8 @@
     "google-auth-library": "^9.15.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "9.0.2",
-    "marked": "^15.0.11"
+    "marked": "^15.0.11",
+    "wait-on": "^8.0.4"
   },
   "devDependencies": {
     "@rsbuild/core": "1.3.14",
@@ -68,6 +71,7 @@
     "dev": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
     "dev:rp": "npm run dev:client & NODE_ENV=rp-localhost npm run dev:server",
     "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
+    "dev:local": "concurrently -k -n \"EMU,RP,IDP,CADDY\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:rp\" \"wait-on tcp:4000 && npm run dev:idp\" \"wait-on tcp:8080 tcp:8000 && ./caddy.sh\"",
     "start": "node --enable-source-maps dist/server/app.js",
     "indexes": "firebase deploy --only firestore:indexes",
     "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",

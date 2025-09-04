@@ -21,7 +21,7 @@
 # Identity Provider (IdP) Demo
 idp.localhost {
 	# Reverse proxy to the IdP app running on localhost:8000.
-	reverse_proxy http://localhost:8000 {
+	reverse_proxy http://localhost:{$IDP_PORT} {
 		# Preserve original Host header.
 		header_up Host {host}
 		# Pass client IP.
@@ -42,7 +42,7 @@ idp.localhost {
 # Relying Party (RP) Demo
 rp.localhost {
 	# Reverse proxy to the RP app running on localhost:8080.
-	reverse_proxy http://localhost:8080 {
+	reverse_proxy http://localhost:{$RP_PORT} {
 		# Preserve original Host header.
 		header_up Host {host}
 		# Pass client IP.

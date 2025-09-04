@@ -27,54 +27,14 @@ npm run build
 
 ### Run
 
-For all the features to work as expected (incl. federated identity with FedCM), you need to run the RP and IdP separately.
-
-First, run the firebase emulator:
-```shell
-npm run emulator
-```
-
-Run RP in a separate terminal:
-```shell
-npm run dev:rp
-```
-
-Run the IdP in a separate terminal:
-```shell
-npm run dev:idp
-```
-
-#### Setting up a mock cross-site environment 
-
-For the FedCM flow to work correctly and to accurately simulate a real-world scenario, your browser needs to perceive the Identity Provider (IdP) and Relying Party (RP) as **separate, secure domains**. 
-
-This section explains how to use **Caddy** to set up a local reverse proxy that serves your demos on mock domains with HTTPS. This ensures your browser treats them as cross-site, allowing you to test FedCM in an appropriate context.
-
-##### 1. Run the services 
-For Caddy to proxy correctly, make sure your apps run on the right ports:
-
-* RP: localhost:8080
-* IDP: localhost:5000
-
-
-You can also modify these ports in the corresponding config files (`rp-localhost.config.json` and `idp-localhost.config.json`) and in the `Caddyfile`.
-
-##### 2. Start the Caddy proxy
-
-Make sure Caddy is [installed](https://caddyserver.com/docs/install) on your computer.
-
-Before running the proxy script for the first time, you need to make it executable:
-```shell
-chmod +x caddy.sh
-```
-
-This script will start Caddy, which automatically handles HTTPS certificate generation and trust for `idp.localhost` and `rp.localhost`. The first time you run it, Caddy will ask for your system password to install a local certificate authority.
+This command will run emulator, RP and IdP projects, and Caddy proxy:
 
 ```shell
-sh caddy.sh
+sudo npm run dev:local
 ```
 
-Now Caddy should proxy from [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:8000`, or other ports that you specify in the config files.
+Caddy should proxy from [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:8000`, 
+or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
 
 ## Adding a new sign-in flow
 

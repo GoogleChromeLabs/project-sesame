@@ -14,16 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Stop any existing Caddy instances to prevent port conflicts.
-# The '|| true' ensures the script doesn't exit if no Caddy processes are found.
+LOG_FILE="caddy.log"
+
+# --- Startup and Cleanup ---
 echo "Attempting to stop any running Caddy instances..."
-sudo killall caddy || true
+npx caddy stop > /dev/null 2>&1 || sudo killall caddy > /dev/null 2>&1 || true
 
-RP_PORT=$(node -p "require('./rp-localhost.config.json').port")
-IDP_PORT=$(node -p "require('./idp-localhost.config.json').port")
+# --- Get Ports ---
+RP_PORT=$(node -p "require('./rp-localhost.config.json').port" | sed 's/\x1b\[[0-9;]*m//g')
+IDP_PORT=$(node -p "require('./idp-localhost.config.json').port" | sed 's/\x1b\[[0-9;]*m//g')
 
-echo "Starting Caddy to proxy rp.localhost -> ${RP_PORT} and idp.localhost -> ${IDP_PORT}"
-RP_PORT=${RP_PORT} IDP_PORT=${IDP_PORT} caddy run --config Caddyfile
+
+# Inform the user where the logs will be.
+echo "Caddy logs will be stored in ${LOG_FILE}. Tailing this file in another terminal..."
+echo "To monitor logs, run: tail -f ${LOG_FILE}"
+
+# Run Caddy, redirecting all output, and provide a custom failure message.
+# The parentheses group the command and its redirections.
+(
+  RP_PORT=${RP_PORT} IDP_PORT=${IDP_PORT} npx caddy run --config Caddyfile > "${LOG_FILE}" 2>&1
+) || {
+  # This code runs ONLY if the Caddy process exits with a non-zero status (an error).
+  echo "Caddy process failed. See ${LOG_FILE} for details." >&2
+  exit 1 # Ensure the script exits with a failure code
+}
