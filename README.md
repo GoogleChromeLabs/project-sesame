@@ -27,11 +27,14 @@ npm run build
 
 ### Run
 
+This command will run emulator, RP and IdP projects, and Caddy proxy:
+
 ```shell
-npm run emulator & npm run dev
+sudo npm run dev:local
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Caddy should proxy from [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:8000`, 
+or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
 
 ## Adding a new sign-in flow
 

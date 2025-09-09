@@ -24,12 +24,17 @@ export interface RelyingParty {
 }
 
 export class RelyingParties {
-  static rps = [
+  static rps: RelyingParty[] = [
     {
       origin: 'https://project-sesame-426206.appspot.com',
       client_id: 'https://project-sesame-426206.appspot.com',
       name: 'Project Sesame',
-    } as RelyingParty,
+    },
+    {
+      origin: 'https://rp.localhost',
+      client_id: 'https://rp.localhost',
+      name: 'Project Sesame (Local)',
+    },
   ];
 
   static async findByClientID(
@@ -40,11 +45,11 @@ export class RelyingParties {
     // return Promise.resolve(clone);
 
     // Allow any RPs to register themselves temporarily.
-    const rp = {
+    const rp: RelyingParty = {
       origin: client_id,
       client_id,
       name: 'Relying Party',
-    } as RelyingParty;
+    };
     return Promise.resolve(rp);
   }
 }

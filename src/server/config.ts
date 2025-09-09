@@ -25,7 +25,12 @@ import {getFirestore} from 'firebase-admin/firestore';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost = 
+process.env.NODE_ENV === 'localhost' 
+
+const is_mock_cross_site = 
+process.env.NODE_ENV === 'idp-localhost' 
+|| process.env.NODE_ENV === 'rp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -42,9 +47,6 @@ const project_root_file_path = path.join(
   '..'
 );
 const dist_root_file_path = path.join(project_root_file_path, 'dist');
-
-// console.log('Reading config from', path.join(project_root_file_path, '/.env'));
-// dotenv.config({path: path.join(project_root_file_path, '/.env')});
 
 function generateApkKeyHash(sha256hash: string): string {
   const hexString = sha256hash.replace(/:/g, '');
@@ -70,7 +72,7 @@ function generateApkKeyHash(sha256hash: string): string {
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (is_localhost) {
+  if (is_localhost || is_mock_cross_site) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -108,6 +110,7 @@ const {
   project_name,
   origin_trials = [],
   csp,
+  supported_idps = [],
 } = (
   await import(path.join(project_root_file_path, `${env}.config.json`), {
     with: {type: 'json'},
@@ -129,8 +132,7 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-
-const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
+const domain = port === 8081 || is_mock_cross_site ? hostname : `${hostname}:${port}`;
 const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
 associated_domains.push({
@@ -150,7 +152,7 @@ export const store = initializeFirestore();
 
 export const config = {
   project_name,
-  debug: is_localhost,
+  debug: is_localhost || is_mock_cross_site,
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
@@ -179,5 +181,6 @@ export const config = {
     style_src,
     style_src_elem,
   },
+  supported_idps,
 };
 console.log(config);

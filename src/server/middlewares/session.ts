@@ -114,7 +114,6 @@ export function initializeSession() {
  *   authentication status.
  */
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
-  console.log(req.session);
   const {signup_username, signin_username, last_signedin_at, user} =
     req.session;
 

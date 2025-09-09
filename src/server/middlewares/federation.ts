@@ -166,7 +166,6 @@ router.post(
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {token: raw_token, url} = req.body;
-    // console.error(raw_token);
 
     try {
       const expected_nonce = getChallenge(req, res);
@@ -296,6 +295,19 @@ router.post(
     // Set the user as a signed in status
     setSignedIn(user, req, res);
     return res.json({});
+  }
+);
+
+/**
+ * Returns a list of IdP URLs based on the environment.
+ */
+router.get(
+  '/idp-list',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response) => {
+    const idpUrls = IdentityProviders.getOrigins();
+
+    return res.json(idpUrls);
   }
 );
 
