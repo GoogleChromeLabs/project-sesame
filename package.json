@@ -76,7 +76,7 @@
     "indexes": "firebase deploy --only firestore:indexes",
     "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",
     "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
-    "deploy:prod": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy prod.yaml",
+    "deploy:prod": "CLOUDSDK_CORE_PROJECT=identity-sesame gcloud app deploy prod.yaml",
     "logs": "gcloud app logs tail --project=project-sesame-426206",
     "emulator": "firebase emulators:start --only firestore --project=project-sesame-426206 --import=./.data --export-on-exit",
     "lint:fix": "eslint -c .eslintrc --fix ./src"
