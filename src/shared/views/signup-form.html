@@ -45,10 +45,17 @@ Append `autocomplete="username"` attribute for `username` field. Append
       id="username"
       name="username"
       autocomplete="username"
-      label="username"
+      label="Username *"
       width="100"
       variant="outlined"
-      autofocus
+    >
+    </mdui-text-field>
+    <mdui-text-field
+      type="text"
+      id="display-name"
+      name="display-name"
+      label="Display name"
+      variant="outlined"
     >
     </mdui-text-field>
     <mdui-text-field
@@ -56,10 +63,9 @@ Append `autocomplete="username"` attribute for `username` field. Append
       id="password1"
       name="password1"
       autocomplete="new-password"
-      label="New password"
+      label="New password *"
       width="100"
       variant="outlined"
-      autofocus
     >
       <mdui-button-icon
         class="password-toggle"
@@ -77,10 +83,9 @@ Append `autocomplete="username"` attribute for `username` field. Append
       id="password2"
       name="password2"
       autocomplete="new-password"
-      label="Confirm password"
+      label="Confirm password *"
       width="100"
       variant="outlined"
-      autofocus
     >
       <mdui-button-icon
         class="password-toggle"

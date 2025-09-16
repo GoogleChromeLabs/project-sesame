@@ -43,6 +43,15 @@ export interface User {
   approved_clients: string[];
 }
 
+export interface SignUpUser {
+  username: string;
+  displayName?: string;
+  email?: string;
+  picture?: string;
+  password?: string;
+  passkeyUserId?: PasskeyUserId;
+}
+
 /**
  * Generates a passkey user ID.
  * @returns The generated passkey user ID as a Base64URLString.
