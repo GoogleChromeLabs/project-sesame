@@ -142,7 +142,6 @@ router.post(
 
     try {
       const newUser = await Users.create(username, user);
-      // const user = await Users.validatePassword(username, password1);
       if (newUser) {
         // Set the user as a signed in status
         setSignedIn(newUser, req, res);
