@@ -98,6 +98,11 @@ app.use(useragent.express());
 app.use(initializeSession());
 app.use(cookieParser());
 
+app.use(
+  '/static',
+  express.static(path.join(config.dist_root_file_path, 'client/static'))
+);
+
 // Set page defaults
 app.use((req: Request, res: Response, next) => {
   const width = req.headers['sec-ch-viewport-width'];
@@ -318,10 +323,6 @@ app.use('/settings', settings);
 app.use('/webauthn', webauthn);
 app.use('/.well-known', wellKnown);
 
-app.use(
-  '/static',
-  express.static(path.join(config.dist_root_file_path, 'client/static'))
-);
 app.use(
   helmet({
     crossOriginResourcePolicy: {policy: 'cross-origin'},

@@ -16,7 +16,7 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users} from '~project-sesame/server/libs/users.ts';
+import {Users, SignUpUser} from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
   setSignedIn,
@@ -25,6 +25,7 @@ import {
   setSigningUp,
   setSigningIn,
   setSignedOut,
+  getSigningUp,
 } from '~project-sesame/server/middlewares/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
@@ -39,7 +40,7 @@ router.post(
   '/new-user',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
-    const {username} = <{username: string}>req.body;
+    const {username, 'display-name': displayName} = req.body;
     // TODO: Use Captcha to block bots.
 
     try {
@@ -56,7 +57,14 @@ router.post(
         }
 
         // Set username in the session
-        setSigningUp(username, req, res);
+        setSigningUp(
+          {
+            username,
+            displayName,
+          },
+          req,
+          res
+        );
 
         return res.json({});
       } else {
@@ -106,7 +114,12 @@ router.post(
   '/new-username-password',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
-    const {username, password1, password2} = req.body;
+    const {
+      username,
+      'display-name': displayName,
+      password1,
+      password2,
+    } = req.body;
 
     if (!Users.isValidUsername(username)) {
       return res.status(400).json({error: 'Invalid username'});
@@ -114,16 +127,26 @@ router.post(
       return res.status(400).json({error: 'Invalid password'});
     }
 
-    // TODO: Validate entered parameter.
-    // TODO: Validate the password format
+    // See if account already exists
+    const existingUser = await Users.findByUsername(username);
+    if (existingUser) {
+      // User already exists
+      return res.status(400).send({error: 'The username is already taken.'});
+    }
+
+    const user: SignUpUser = {
+      username,
+      displayName,
+      password: password1,
+    };
 
     try {
-      const user = await Users.validatePassword(username, password1);
-      if (user) {
+      const newUser = await Users.create(username, user);
+      if (newUser) {
         // Set the user as a signed in status
-        setSignedIn(user, req, res);
+        setSignedIn(newUser, req, res);
 
-        return res.json(user);
+        return res.json(newUser);
       }
     } catch (e: any) {
       console.error(e);
@@ -140,6 +163,7 @@ router.post(
   async (req: Request, res: Response) => {
     const {password} = req.body;
     const {username} = res.locals;
+    const user = getSigningUp(req, res);
 
     // TODO: Validate entered parameter.
     // TODO: Validate the password format
@@ -148,12 +172,15 @@ router.post(
     }
 
     if (username) {
-      const user = await Users.validatePassword(username, password);
-      if (user) {
-        // Set the user as a signed in status
-        setSignedIn(user, req, res);
+      if (!user) return res.status(401).json({error: 'Failed to sign up.'});
+      user.password = password;
 
-        return res.json(user);
+      const newUser = await Users.create(username, user);
+      if (newUser) {
+        // Set the user as a signed in status
+        setSignedIn(newUser, req, res);
+
+        return res.json(newUser);
       }
     }
 

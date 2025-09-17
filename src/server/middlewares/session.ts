@@ -21,7 +21,7 @@ import session from 'express-session';
 import {CustomFirestoreStore} from '../libs/custom-firestore-session.ts';
 import {getTime} from '~project-sesame/server/middlewares/common.ts';
 import {store, config} from '~project-sesame/server/config.ts';
-import {User} from '~project-sesame/server/libs/users.ts';
+import {User, SignUpUser} from '~project-sesame/server/libs/users.ts';
 import {generateRandomString} from '~project-sesame/server/libs/helpers.ts';
 
 export enum UserSignInStatus {
@@ -91,7 +91,6 @@ export function initializeSession() {
     cookie: {
       path: '/',
       httpOnly: true,
-      sameSite: 'none',
       secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },
@@ -114,12 +113,25 @@ export function initializeSession() {
  *   authentication status.
  */
 export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
-  const {signup_username, signin_username, last_signedin_at, user} =
-    req.session;
+  const {
+    signup_username,
+    signin_username,
+    signup_user,
+    last_signedin_at,
+    user,
+  } = req.session;
+
+  console.log(req.session);
 
   if (!user) {
+    // TODO: This path is deprecating
     if (signup_username) {
       res.locals.username = req.session.signup_username;
+      // The user is signing up.
+      return UserSignInStatus.SigningUp;
+    }
+    if (signup_user) {
+      res.locals.username = req.session.signup_user?.username;
       // The user is signing up.
       return UserSignInStatus.SigningUp;
     }
@@ -409,6 +421,7 @@ export function deleteEpehemeralPasskeyUserId(
 
 /**
  * Sets the username in the session during the sign-up process.
+ * TODO: Move this to database instead of session, eventually.
  *
  * @param username - The username to set.
  * @param req - The request object.
@@ -416,15 +429,35 @@ export function deleteEpehemeralPasskeyUserId(
  * @throws Error if `username` is invalid.
  */
 export function setSigningUp(
-  username: string,
+  user: {username: string; displayName?: string},
   req: Request,
   res: Response
 ): void {
+  const {username, displayName} = user;
   if (!username) {
     throw new Error('Invalid username.');
   }
-  req.session.signup_username = username;
+  req.session.signup_username = username; // TODO: deprecate
+  req.session.signup_user = {
+    username,
+    displayName,
+  };
   return;
+}
+
+/**
+ * Retrieve signing up user information.
+ * TODO: Move this to database instead of session, eventually.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns `signup_user` object.
+ */
+export function getSigningUp(
+  req: Request,
+  res: Response
+): SignUpUser | undefined {
+  return req.session.signup_user;
 }
 
 /**
@@ -435,6 +468,7 @@ export function setSigningUp(
  */
 export function resetSigningUp(req: Request, res: Response): void {
   delete req.session.signup_username;
+  delete req.session.signup_user;
   return;
 }
 

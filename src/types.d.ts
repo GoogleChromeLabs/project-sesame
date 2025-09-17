@@ -26,7 +26,7 @@ import {
 import {JwtPayload} from 'jsonwebtoken';
 import {StringDecoder} from 'string_decoder';
 import {UserSignInStatus} from './server/middlewares/session.js';
-import {User} from './server/libs/users.js';
+import {User, SignUpUser} from './server/libs/users.js';
 
 interface AppLocals {
   is_localhost?: boolean;
@@ -73,12 +73,14 @@ declare global {
 }
 
 declare module 'express-session' {
-  // TODO: Shouldn't we treat `username` and `passkey_user_id` separately?
   interface Session {
     // Claimed username. This isn't validated.
-    signin_username: string;
-    // Claimed username. DB does not have a conflicting entry.
-    signup_username: string;
+    signin_username?: string;
+    // Deprecating: Claimed username. DB does not have a conflicting entry.
+    signup_username?: string;
+    // Claimed user info.
+    // TODO: Move this out to a database.
+    signup_user?: SignUpUser;
     // A new passkey user ID upon sign-up.
     passkey_user_id?: string;
     // User information if the user is signed in.
