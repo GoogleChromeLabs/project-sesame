@@ -77,9 +77,9 @@ declare module 'express-session' {
     // Claimed username. This isn't validated.
     signin_username?: string;
     // Deprecating: Claimed username. DB does not have a conflicting entry.
-    // TODO: Move this out to a database.
     signup_username?: string;
     // Claimed user info.
+    // TODO: Move this out to a database.
     signup_user?: SignUpUser;
     // A new passkey user ID upon sign-up.
     passkey_user_id?: string;
