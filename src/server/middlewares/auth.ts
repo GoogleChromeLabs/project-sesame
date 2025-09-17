@@ -16,7 +16,7 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users} from '~project-sesame/server/libs/users.ts';
+import {Users, SignUpUser} from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
   setSignedIn,
@@ -127,9 +127,15 @@ router.post(
       return res.status(400).json({error: 'Invalid password'});
     }
 
-    // TODO: See if the user already exists.
+    // See if account already exists
+    const existingUser = await Users.findByUsername(username);
+    if (existingUser) {
+      // User already exists
+      return res.status(400).send({error: 'The username is already taken.'});
+    }
 
     const user: SignUpUser = {
+      username,
       displayName,
       password: password1,
     };
