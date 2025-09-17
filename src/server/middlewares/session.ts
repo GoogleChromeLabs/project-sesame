@@ -131,7 +131,7 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
       return UserSignInStatus.SigningUp;
     }
     if (signup_user) {
-      res.locals.username = req.session.user?.username;
+      res.locals.username = req.session.signup_user?.username;
       // The user is signing up.
       return UserSignInStatus.SigningUp;
     }
