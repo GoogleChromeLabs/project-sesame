@@ -45,11 +45,11 @@ export interface User {
 
 export interface SignUpUser {
   username: string;
+  passkeyUserId: PasskeyUserId;
   displayName?: string;
   email?: string;
   picture?: string;
   password?: string;
-  passkeyUserId?: PasskeyUserId;
 }
 
 /**

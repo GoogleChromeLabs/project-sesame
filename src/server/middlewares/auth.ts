@@ -16,7 +16,11 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {Users, SignUpUser} from '~project-sesame/server/libs/users.ts';
+import {
+  generatePasskeyUserId,
+  Users,
+  SignUpUser,
+} from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
   setSignedIn,
@@ -41,9 +45,13 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
     const {username, 'display-name': displayName} = req.body;
+
     // TODO: Use Captcha to block bots.
 
     try {
+      // TODO: Validate the display name
+      const trimmedDisplayName = displayName.trim();
+
       // Only check username, no need to check password as this is a mock
       if (Users.isValidUsername(username)) {
         // See if account already exists
@@ -56,11 +64,14 @@ router.post(
             .send({error: 'The username is already taken.'});
         }
 
+        const passkeyUserId = generatePasskeyUserId();
+
         // Set username in the session
         setSigningUp(
           {
             username,
-            displayName,
+            displayName: trimmedDisplayName,
+            passkeyUserId,
           },
           req,
           res

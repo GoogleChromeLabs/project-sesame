@@ -37,21 +37,16 @@ import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import {
-  generatePasskeyUserId,
-  Users,
-} from '~project-sesame/server/libs/users.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
 import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
   UserSignInStatus,
   deleteChallenge,
-  deleteEpehemeralPasskeyUserId,
   getChallenge,
-  getEphemeralPasskeyUserId,
   setChallenge,
-  setEphemeralPasskeyUserId,
+  getSigningUp,
   setSignedIn,
 } from '~project-sesame/server/middlewares/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
@@ -138,12 +133,17 @@ router.post(
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let passkeyUserId, username, displayName;
-    const non_platform = req.query.hasOwnProperty('non_platform');
+    const non_platform = !!req.query.non_platform;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
-      displayName = username;
-      passkeyUserId = generatePasskeyUserId();
-      setEphemeralPasskeyUserId(passkeyUserId, req, res);
+      const signup_user = getSigningUp(req, res);
+      if (!signup_user) {
+        return res.status(400).send({
+          error: "Sign-up session doesn't contain a `signup_user` object",
+        });
+      }
+      displayName = signup_user?.displayName || username;
+      passkeyUserId = signup_user.passkeyUserId;
     } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
       const {user} = res.locals;
       passkeyUserId = user.passkeyUserId;
@@ -211,16 +211,22 @@ router.post(
   async (req: Request, res: Response) => {
     let user, passkeyUserId;
     const {type} = req.query;
-    const username = res.locals.username;
-    if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-      passkeyUserId = getEphemeralPasskeyUserId(req, res);
-    } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+    const {username, signin_status} = res.locals;
+    const signup_user = getSigningUp(req, res);
+    if (signin_status === UserSignInStatus.SigningUp) {
+      if (!signup_user) {
+        return res.status(400).send({
+          error: "Sign-up session doesn't contain a `signup_user` object",
+        });
+      }
+      passkeyUserId = signup_user.passkeyUserId;
+    } else if (signin_status >= UserSignInStatus.SignedIn) {
       user = res.locals.user;
       passkeyUserId = user.passkeyUserId;
     }
 
     // Set expected values.
-    const conditional = req.query.hasOwnProperty('conditional');
+    const conditional = !!req.query.conditional;
     const response = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
     const expectedOrigin = config.associated_origins;
@@ -314,8 +320,8 @@ router.post(
       deleteChallenge(req, res);
 
       // If this is a sign-up, create a new user
-      if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-        user = await Users.create(username, {passkeyUserId});
+      if (signin_status === UserSignInStatus.SigningUp) {
+        user = await Users.create(username, signup_user);
         setSignedIn(user, req, res);
       }
 
