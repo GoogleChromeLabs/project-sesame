@@ -353,73 +353,6 @@ export function deleteChallenge(req: Request, res: Response): void {
 }
 
 /**
- * Sets the ephemeral passkey user ID in the session.
- * This is used during the sign-up process before the user is fully created.
- *
- * @param passkey_user_id - The passkey user ID to set.
- * @param req - The request object.
- * @param res - The response object.
- * @throws Error if `passkey_user_id` is invalid.
- */
-export function setEphemeralPasskeyUserId(
-  passkey_user_id: string,
-  req: Request,
-  res: Response
-): void {
-  if (!passkey_user_id) {
-    throw new Error('Invalid passkey_user_id.');
-  }
-  req.session.passkey_user_id = passkey_user_id;
-  return;
-}
-
-/**
- * Retrieves the ephemeral passkey user ID from the session.
- * This is used during the sign-up process before the user is fully created.
- *
- * @param req - The request object.
- * @param res - The response object.
- * @returns The ephemeral passkey user ID, or undefined if not set.
- */
-export function getEphemeralPasskeyUserId(
-  req: Request,
-  res: Response
-): string | undefined {
-  if (req.session.passkey_user_id) {
-    return req.session.passkey_user_id;
-  } else {
-    // TODO: Generate a passkey user id
-    console.log('TODO: passkey user id does not exist yet.');
-    return undefined;
-  }
-}
-
-/**
- * Deletes the ephemeral passkey user ID from the session.
- * This is used after the user is fully created during the sign-up process.
- *
- * @param req - The request object.
- * @param res - The response object.
- */
-export function deleteEpehemeralPasskeyUserId(
-  req: Request,
-  res: Response
-): void {
-  delete req.session.passkey_user_id;
-  return;
-}
-
-// export function setSigningUp(req: Request, res: Response): void {
-//   req.session.signing_up = true;
-//   return;
-// }
-
-// export function unsetSigningUp(req: Request, res: Response): void {
-//   delete req.session.signing_up;
-//   return;
-// }
-
-/**
  * Sets the username in the session during the sign-up process.
  * TODO: Move this to database instead of session, eventually.
  *
@@ -429,19 +362,12 @@ export function deleteEpehemeralPasskeyUserId(
  * @throws Error if `username` is invalid.
  */
 export function setSigningUp(
-  user: {username: string; displayName?: string},
+  user: SignUpUser,
   req: Request,
   res: Response
 ): void {
-  const {username, displayName} = user;
-  if (!username) {
-    throw new Error('Invalid username.');
-  }
-  req.session.signup_username = username; // TODO: deprecate
-  req.session.signup_user = {
-    username,
-    displayName,
-  };
+  req.session.signup_username = user.username; // TODO: deprecate
+  req.session.signup_user = user;
   return;
 }
 
@@ -516,7 +442,6 @@ export function resetSigningIn(req: Request, res: Response): void {
  */
 export function setSignedIn(user: User, req: Request, res: Response): void {
   deleteChallenge(req, res);
-  deleteEpehemeralPasskeyUserId(req, res);
   resetSigningIn(req, res);
   resetSigningUp(req, res);
 
