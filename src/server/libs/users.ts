@@ -45,7 +45,7 @@ export interface User {
 
 export interface SignUpUser {
   username: string;
-  passkeyUserId: PasskeyUserId;
+  passkeyUserId?: PasskeyUserId;
   displayName?: string;
   email?: string;
   picture?: string;
