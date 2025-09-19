@@ -44,7 +44,7 @@ router.post(
   '/new-user',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
-    const {username, 'display-name': displayName} = req.body;
+    const {username, displayName = ''} = req.body;
 
     // TODO: Use Captcha to block bots.
 
@@ -125,12 +125,7 @@ router.post(
   '/new-username-password',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response) => {
-    const {
-      username,
-      'display-name': displayName,
-      password1,
-      password2,
-    } = req.body;
+    const {username, displayName, password1, password2} = req.body;
 
     if (!Users.isValidUsername(username)) {
       return res.status(400).json({error: 'Invalid username'});

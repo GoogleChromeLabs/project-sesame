@@ -133,7 +133,7 @@ router.post(
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response) => {
     let passkeyUserId, username, displayName;
-    const non_platform = !!req.query.non_platform;
+    const non_platform = 'non_platform' in req.query;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
       const signup_user = getSigningUp(req, res);
@@ -226,7 +226,7 @@ router.post(
     }
 
     // Set expected values.
-    const conditional = !!req.query.conditional;
+    const conditional = 'conditional' in req.query;
     const response = <RegistrationResponseJSON>req.body;
     const expectedChallenge = getChallenge(req, res);
     const expectedOrigin = config.associated_origins;
