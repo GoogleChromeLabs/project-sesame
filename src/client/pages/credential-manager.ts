@@ -41,6 +41,9 @@ if (
       } catch (error: any) {
         loading.stop();
         console.error(error);
+        // TODO: When the user is in Incognito mode, the browser should throw an
+        // `NotFoundError`. However, since it doesn't support `immediateGet`
+        // anyway, we neglect to catch it yet.
         if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
           toast(error.message);
         }
