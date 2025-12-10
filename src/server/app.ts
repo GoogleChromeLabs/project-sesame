@@ -274,10 +274,10 @@ app.get(
 );
 
 app.get(
-  '/password-passkey',
+  '/credential-manager',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response) => {
-    return res.render('password-passkey.html', {
+    return res.render('credential-manager.html', {
       title: 'Credential Manager for the Web',
     });
   }
