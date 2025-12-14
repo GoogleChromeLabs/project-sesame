@@ -23,14 +23,12 @@ import {
 } from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
-  setSignedIn,
   apiAclCheck,
   ApiType,
-  setSigningUp,
-  setSigningIn,
-  setSignedOut,
-  getSigningUp,
-} from '~project-sesame/server/middlewares/session.ts';
+  setSignedIn, // Keeping this for now as it handles headers too
+  setSignedOut, // Keeping this for now as it handles headers too
+} from '~project-sesame/server/libs/session.ts';
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
@@ -67,15 +65,11 @@ router.post(
         const passkeyUserId = generatePasskeyUserId();
 
         // Set username in the session
-        setSigningUp(
-          {
-            username,
-            displayName: trimmedDisplayName,
-            passkeyUserId,
-          },
-          req,
-          res
-        );
+        new SessionService(req.session).setSigningUp({
+          username,
+          displayName: trimmedDisplayName,
+          passkeyUserId,
+        });
 
         return res.json({});
       } else {
@@ -107,7 +101,7 @@ router.post(
         // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
         // Set username in the session
-        setSigningIn(username, req, res);
+        new SessionService(req.session).setSigningIn(username);
 
         return res.json({});
       } else {
@@ -169,7 +163,7 @@ router.post(
   async (req: Request, res: Response) => {
     const {password} = req.body;
     const {username} = res.locals;
-    const user = getSigningUp(req, res);
+    const user = new SessionService(req.session).getSigningUp();
 
     // TODO: Validate entered parameter.
     // TODO: Validate the password format

@@ -43,12 +43,10 @@ import {
   apiAclCheck,
   ApiType,
   UserSignInStatus,
-  deleteChallenge,
-  getChallenge,
-  setChallenge,
-  getSigningUp,
   setSignedIn,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '~project-sesame/server/libs/session.ts';
+
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
@@ -136,7 +134,7 @@ router.post(
     const non_platform = 'non_platform' in req.query;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
-      const signup_user = getSigningUp(req, res);
+      const signup_user = new SessionService(req.session).getSigningUp();
       if (!signup_user) {
         return res.status(400).send({
           error: "Sign-up session doesn't contain a `signup_user` object",
@@ -191,7 +189,7 @@ router.post(
       });
 
       // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      new SessionService(req.session).setChallenge(options.challenge);
 
       // Respond with the registration options.
       return res.json(options);
@@ -212,7 +210,7 @@ router.post(
     let user, passkeyUserId;
     const {type} = req.query;
     const {username, signin_status} = res.locals;
-    const signup_user = getSigningUp(req, res);
+    const signup_user = new SessionService(req.session).getSigningUp();
     if (signin_status === UserSignInStatus.SigningUp) {
       if (!signup_user) {
         return res.status(400).send({
@@ -228,7 +226,7 @@ router.post(
     // Set expected values.
     const conditional = 'conditional' in req.query;
     const response = <RegistrationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
@@ -251,7 +249,7 @@ router.post(
 
       // If the verification failed, throw.
       if (!verified || !registrationInfo) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         throw new Error('User verification failed.');
       }
 
@@ -317,7 +315,7 @@ router.post(
       } as SesamePublicKeyCredential);
 
       // Delete the challenge from the session.
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       // If this is a sign-up, create a new user
       if (signin_status === UserSignInStatus.SigningUp) {
@@ -328,7 +326,7 @@ router.post(
       // Respond with the user information.
       return res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
       return res.status(400).send({error: error.message});
@@ -372,7 +370,7 @@ router.post(
       } as GenerateAuthenticationOptionsOpts);
 
       // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      new SessionService(req.session).setChallenge(options.challenge);
 
       return res.json(options);
     } catch (error: any) {
@@ -392,7 +390,7 @@ router.post(
   async (req: Request, res: Response) => {
     // Set expected values.
     const response = <AuthenticationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
@@ -404,7 +402,7 @@ router.post(
       // If the matching public key is not found, return an error
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         return res
           .status(404)
           .json({error: 'Matching credential not found on the server.'});
@@ -416,14 +414,14 @@ router.post(
         res.locals.user &&
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         return res.status(400).json({error: 'Wrong sign-in account.'});
       }
 
       // Find the matching user from the user ID contained in the credential.
       const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         return res.status(401).json({error: 'User not found.'});
       }
 
@@ -448,7 +446,7 @@ router.post(
 
       // If the authentication failed, throw.
       if (!verified) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         return res.status(401).json({error: 'User verification failed.'});
       }
 
@@ -463,7 +461,7 @@ router.post(
 
       return res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
       return res.status(500).json({error: error.message});

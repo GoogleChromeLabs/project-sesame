@@ -28,11 +28,9 @@ import {
   getSignInStatus,
   initializeSession,
   pageAclCheck,
-  setChallenge,
-  setEntrancePath,
-  getEntrancePath,
   setSignedOut,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '~project-sesame/server/libs/session.ts';
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import {admin} from '~project-sesame/server/middlewares/admin.ts';
 import {auth} from '~project-sesame/server/middlewares/auth.ts';
 import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
@@ -147,7 +145,7 @@ app.get(
   pageAclCheck(PageType.SignUp),
   (req: Request, res: Response) => {
     // Manually set the entrance path as this is a sign-up page
-    setEntrancePath(req, res, '/signin-form');
+    new SessionService(req.session).setEntrancePath('/signin-form');
 
     return res.render('signup-form.html', {
       title: 'Sign-Up Form',
@@ -200,7 +198,7 @@ app.get(
   pageAclCheck(PageType.SignUp),
   (req: Request, res: Response) => {
     // Manually set the entrance path as this is a sign-up page
-    setEntrancePath(req, res, '/passkey-form-autofill');
+    new SessionService(req.session).setEntrancePath('/passkey-form-autofill');
 
     return res.render('fedcm-delegate.html', {
       title: 'FedCM delegation flow',
@@ -253,7 +251,7 @@ app.get(
   pageAclCheck(PageType.SignUp),
   (req: Request, res: Response) => {
     // Manually set the entrance path as this is a sign-up page
-    setEntrancePath(req, res, '/passkey-form-autofill');
+    new SessionService(req.session).setEntrancePath('/passkey-form-autofill');
 
     return res.render('passkey-signup.html', {
       title: 'Passkey sign-up',
@@ -315,7 +313,7 @@ app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
   (req: Request, res: Response) => {
-    const entrancePath = getEntrancePath(req, res);
+    const entrancePath = new SessionService(req.session).getEntrancePath();
 
     setSignedOut(req, res);
 

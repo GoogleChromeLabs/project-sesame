@@ -29,10 +29,9 @@ import {csrfCheck, getTime} from '../middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
-  setChallenge,
-  getChallenge,
   setSignedIn,
-} from '../middlewares/session.ts';
+} from '../libs/session.ts';
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import {RelyingParties} from '../libs/relying-parties.ts';
 
 const router = Router();
@@ -65,7 +64,7 @@ router.post(
         idps.push(idp);
       }
       options.idps = idps;
-      options.nonce = setChallenge(req, res);
+      options.nonce = new SessionService(req.session).setChallenge();
       return res.json(options);
     } catch (e: any) {
       console.error(e);
@@ -168,7 +167,7 @@ router.post(
     const {token: raw_token, url} = req.body;
 
     try {
-      const expected_nonce = getChallenge(req, res);
+      const expected_nonce = new SessionService(req.session).getChallenge();
 
       if (!expected_nonce || typeof expected_nonce !== 'string') {
         throw new Error('Invalid nonce.');
