@@ -6,7 +6,7 @@
   "exports": "./dist/server.js",
   "type": "module",
   "engines": {
-    "node": ">=20.x"
+    "node": ">=22.x"
   },
   "repository": {
     "url": "https://github.com/GoogleChromeLabs/project-sesame"
