@@ -25,7 +25,7 @@ router.use(
   })
 );
 
-router.get('/assetlinks.json', (req: Request, res: Response) => {
+router.get('/assetlinks.json', (req: Request, res: Response): void => {
   const assetlinks = [];
   for (const domain of config.associated_domains) {
     if (domain.sha256_cert_fingerprints) {
@@ -53,27 +53,27 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
       });
     }
   }
-  return res.json(assetlinks);
+  res.json(assetlinks);
 });
 
-router.get('/web-identity', (req: Request, res: Response) => {
+router.get('/web-identity', (req: Request, res: Response): void => {
   const url = new URL(config.origin);
   url.pathname = '/fedcm/config.json';
   const web_endpoint = url.toString();
-  return res.json({
+  res.json({
     provider_urls: [web_endpoint],
   });
 });
 
-router.get('/passkey-endpoints', (req: Request, res: Response) => {
+router.get('/passkey-endpoints', (req: Request, res: Response): void => {
   const url = new URL(config.origin);
   url.pathname = '/settings/passkeys';
   const web_endpoint = url.toString();
-  return res.json({enroll: web_endpoint, manage: web_endpoint});
+  res.json({ enroll: web_endpoint, manage: web_endpoint });
 });
 
-router.get('/change-password', (req: Request, res: Response) => {
-  return res.redirect(302, '/settings/password-change');
+router.get('/change-password', (req: Request, res: Response): void => {
+  res.redirect(302, '/settings/password-change');
 });
 
 export {router as wellKnown};

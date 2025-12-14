@@ -27,7 +27,7 @@ export function csrfCheck(
 ): any {
   const xhr = req.header('X-Requested-With');
   if (!xhr || xhr !== 'XMLHttpRequest') {
-    return res.status(400).json({error: 'Invalid XHR request.'});
+    return res.status(400).json({ error: 'Invalid XHR request.' });
   }
   return next();
 }
@@ -42,7 +42,7 @@ export function fedcmCheck(
 ): any {
   const dest = req.header('Sec-Fetch-Dest');
   if (!dest || dest !== 'webidentity') {
-    return res.status(400).json({error: 'Invalid FedCM request.'});
+    return res.status(400).json({ error: 'Invalid FedCM request.' });
   }
   return next();
 }

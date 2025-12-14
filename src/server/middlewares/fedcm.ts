@@ -49,8 +49,8 @@ router.use(
 router.get(
   '/config.json',
   apiAclCheck(ApiType.NoAuth),
-  (req: Request, res: Response): Response => {
-    return res.json({
+  (req: Request, res: Response) => {
+    res.json({
       accounts_endpoint: '/fedcm/accounts',
       client_metadata_endpoint: '/fedcm/metadata',
       id_assertion_endpoint: '/fedcm/idtokens',
@@ -74,14 +74,14 @@ router.get(
   '/accounts',
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
-  (req: Request, res: Response): Response => {
+  (req: Request, res: Response): void => {
     const {user} = res.locals;
 
     //TODO: Read the database and determine whether the user has registered with
     //the RP before.
 
     // Only one signed-in account at a time is supported on Project Sesame.
-    return res.json({
+    res.json({
       accounts: [
         {
           id: user.id,
@@ -98,8 +98,8 @@ router.get(
 router.get(
   '/metadata',
   apiAclCheck(ApiType.NoAuth),
-  (req: Request, res: Response): Response => {
-    return res.json({
+  (req: Request, res: Response): void => {
+    res.json({
       privacy_policy_url: `${config.origin}/privacy_policy`,
       terms_of_service_url: `${config.origin}/terms_of_service`,
     });
@@ -110,7 +110,7 @@ router.post(
   '/idtokens',
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response): Promise<Response> => {
+  async (req: Request, res: Response): Promise<void> => {
     const {
       client_id,
       nonce,
@@ -122,7 +122,8 @@ router.post(
 
     if (!idp_info) {
       console.log("I am not a registrable IdP: ", config.origin)
-      return res.status(400).json({error: 'I am not a registrable IdP: '});
+      res.status(400).json({ error: 'I am not a registrable IdP: ' });
+      return;
     }
     const rp = await RelyingParties.findByClientID(client_id);
 
@@ -130,19 +131,22 @@ router.post(
     if (!rp) {
       const message = `RP not registered. Client ID: ${client_id}`;
       console.error(message);
-      return res.status(400).json({error: message});
+      res.status(400).json({ error: message });
+      return;
     }
     // Error when: The RP URL matches the requesting origin.
     if (!compareUrls(rp.origin, req.headers.origin)) {
       const message = `RP origin doesn't match: ${rp.origin}`;
       console.error(message);
-      return res.status(400).json({error: message});
+      res.status(400).json({ error: message });
+      return;
     }
     // Error when: the account does not match who is currently signed in.
     if (account_id !== user.id) {
       const message = `Account ID doesn't match: ${account_id}`;
       console.error(message);
-      return res.status(400).json({error: message});
+      res.status(400).json({ error: message });
+      return;
     }
 
     // TODO: Should it reject if consent is not acquired?
@@ -179,7 +183,7 @@ router.post(
       idp_info.secret
     );
 
-    return res.json({token});
+    res.json({ token });
     // } else {
     //   let error_code = 401;
     //   switch (user.status) {
@@ -206,7 +210,7 @@ router.post(
   '/disconnect',
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
-  (req: Request, res: Response): Response => {
+  (req: Request, res: Response): void => {
     const {account_hint, client_id} = req.body;
 
     const {user} = res.locals;
@@ -214,7 +218,8 @@ router.post(
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
       console.error("Account hint doesn't match.");
-      return res.status(401).json({error: "Account hint doesn't match."});
+      res.status(401).json({ error: "Account hint doesn't match." });
+      return;
     }
 
     // Ensure approved_clients is an array to prevent runtime errors.
@@ -225,7 +230,8 @@ router.post(
     // Use .includes() for arrays, not .has()
     if (!user.approved_clients.includes(client_id)) {
       console.error('The client is not connected.');
-      return res.status(400).json({error: 'The client is not connected.'});
+      res.status(400).json({ error: 'The client is not connected.' });
+      return;
     }
 
     // Remove the client ID from the `approved_clients` list.
@@ -233,7 +239,7 @@ router.post(
       (_client_id: Base64URLString) => _client_id !== client_id
     );
     Users.update(user);
-    return res.json({account_id: user.id});
+    res.json({ account_id: user.id });
   }
 );
 

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import express, {Request, Response} from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import {create} from 'express-handlebars';
 import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
@@ -114,7 +114,7 @@ app.use(
 );
 
 // Set page defaults
-app.use((req: Request, res: Response, next) => {
+app.use((req: Request, res: Response, next: NextFunction): void => {
   const width = req.headers['sec-ch-viewport-width'];
   if (typeof width === 'string') {
     res.locals.open_drawer = parseInt(width) > 768;
@@ -134,7 +134,7 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
-app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
+app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response): void => {
   return res.render('index.html', {
     title: 'Welcome!',
   });
@@ -143,7 +143,7 @@ app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response) => {
 app.get(
   '/signup-form',
   pageAclCheck(PageType.SignUp),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     // Manually set the entrance path as this is a sign-up page
     new SessionService(req.session).setEntrancePath('/signin-form');
 
@@ -156,7 +156,7 @@ app.get(
 app.get(
   '/signin-form',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('signin-form.html', {
       title: 'Sign-In Form',
     });
@@ -166,7 +166,7 @@ app.get(
 app.get(
   '/new-password',
   pageAclCheck(PageType.SigningUp),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     res.render('new-password.html', {
       title: 'Password',
     });
@@ -176,7 +176,7 @@ app.get(
 app.get(
   '/password',
   pageAclCheck(PageType.FirstCredential),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     res.render('password.html', {
       title: 'Password verification',
     });
@@ -186,7 +186,7 @@ app.get(
 app.get(
   '/password-reauth',
   pageAclCheck(PageType.Reauth),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     res.render('password-reauth.html', {
       title: 'Password reauthentication',
     });
@@ -196,7 +196,7 @@ app.get(
 app.get(
   '/fedcm-delegate',
   pageAclCheck(PageType.SignUp),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     // Manually set the entrance path as this is a sign-up page
     new SessionService(req.session).setEntrancePath('/passkey-form-autofill');
 
@@ -209,7 +209,7 @@ app.get(
 app.get(
   '/fedcm-form-autofill',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('fedcm-form-autofill.html', {
       title: 'Identifier-first form',
     });
@@ -219,7 +219,7 @@ app.get(
 app.get(
   '/passkey-form-autofill',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('passkey-form-autofill.html', {
       title: 'Passkey form autofill',
     });
@@ -229,7 +229,7 @@ app.get(
 app.get(
   '/passkey-one-button',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('passkey-one-button.html', {
       title: 'Passkey one button',
     });
@@ -239,7 +239,7 @@ app.get(
 app.get(
   '/passkey-reauth',
   pageAclCheck(PageType.Reauth),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     res.render('passkey-reauth.html', {
       title: 'Passkey reauthentication',
     });
@@ -249,11 +249,11 @@ app.get(
 app.get(
   '/passkey-signup',
   pageAclCheck(PageType.SignUp),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     // Manually set the entrance path as this is a sign-up page
     new SessionService(req.session).setEntrancePath('/passkey-form-autofill');
 
-    return res.render('passkey-signup.html', {
+    res.render('passkey-signup.html', {
       title: 'Passkey sign-up',
     });
   }
@@ -262,8 +262,8 @@ app.get(
 app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    return res.render('fedcm-active-mode.html', {
+  (req: Request, res: Response): void => {
+    res.render('fedcm-active-mode.html', {
       title: 'FedCM active mode',
     });
   }
@@ -272,8 +272,8 @@ app.get(
 app.get(
   '/fedcm-passive-mode',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    return res.render('fedcm-passive-mode.html', {
+  (req: Request, res: Response): void => {
+    res.render('fedcm-passive-mode.html', {
       title: 'FedCM passive mode',
     });
   }
@@ -282,8 +282,8 @@ app.get(
 app.get(
   '/credential-manager',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    return res.render('credential-manager.html', {
+  (req: Request, res: Response): void => {
+    res.render('credential-manager.html', {
       title: 'Credential Manager for the Web',
     });
   }
@@ -292,8 +292,8 @@ app.get(
 app.get(
   '/legacy-credman',
   pageAclCheck(PageType.SignIn),
-  (req: Request, res: Response) => {
-    return res.render('legacy-credman.html', {
+  (req: Request, res: Response): void => {
+    res.render('legacy-credman.html', {
       title: 'Legacy Credential Management',
     });
   }
@@ -302,8 +302,8 @@ app.get(
 app.get(
   '/home',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response) => {
-    return res.render('home.html', {
+  (req: Request, res: Response): void => {
+    res.render('home.html', {
       title: 'home',
     });
   }
@@ -312,12 +312,12 @@ app.get(
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     const entrancePath = new SessionService(req.session).getEntrancePath();
 
     setSignedOut(req, res);
 
-    return res.redirect(307, entrancePath);
+    res.redirect(307, entrancePath);
   }
 );
 
@@ -338,10 +338,10 @@ app.use(
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
-app.get('/__health-check', (req: Request, res: Response) => {
+app.get('/__health-check', (req: Request, res: Response): void => {
   res.send('OK');
 });
 
-app.listen(config.port, () => {
+app.listen(config.port, (): void => {
   console.log(`Server listening at ${config.origin}`);
 });

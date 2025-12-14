@@ -24,14 +24,14 @@ import {
 const router = Router();
 
 // There's nothing here.
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response): void => {
   return res.redirect(307, '/home');
 });
 
 router.get(
   '/passkeys',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/passkeys.html', {
       title: 'Passkey Management',
     });
@@ -41,7 +41,7 @@ router.get(
 router.get(
   '/password-change',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     const username = res.locals.username;
     return res.render('settings/password-change.html', {
       title: 'Password Change',
@@ -53,7 +53,7 @@ router.get(
 router.get(
   '/identity-providers',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/identity-providers.html', {
       title: 'Associated Identity Providers',
     });
@@ -63,7 +63,7 @@ router.get(
 router.get(
   '/delete-account',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/delete-account.html', {
       title: 'Delete account',
     });
