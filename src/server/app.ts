@@ -52,7 +52,19 @@ const app = express();
  */
 function configureTemplateEngine(app: express.Application) {
   const hbs = create({
-    helpers: {},
+    helpers: {
+      isPageEnabled: (path: string) => {
+        if (!config.enabled_pages) {
+          return true;
+        }
+        return config.enabled_pages.includes(path);
+      },
+      isSignedIn: (options: any) => {
+        return (
+          options.data.root.signin_status >= UserSignInStatus.SignedIn
+        );
+      },
+    },
     extname: 'html',
     defaultLayout: 'index',
     layoutsDir: path.join(config.views_root_file_path, 'layouts'),
@@ -112,10 +124,6 @@ app.use((req: Request, res: Response, next) => {
   res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
 
   res.locals.signin_status = getSignInStatus(req, res);
-
-  res.locals.helpers = {
-    isSignedIn: () => res.locals.signin_status >= UserSignInStatus.SignedIn,
-  };
 
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
@@ -333,7 +341,7 @@ app.use(
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
 app.get('/__health-check', (req: Request, res: Response) => {
-  return res.send('OK');
+  res.send('OK');
 });
 
 app.listen(config.port, () => {

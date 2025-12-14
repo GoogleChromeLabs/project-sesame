@@ -22,19 +22,39 @@ brought back to where they sign in from.
   <h2>Welcome to Project Sesame</h2>
   <h3>Sign-up</h3>
   <ul>
+    {{#if (isPageEnabled '/signup-form')}}
     <li><a href="/signup-form">Sign-up Form</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/passkey-signup')}}
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/fedcm-delegate')}}
     <li><a href="/fedcm-delegate">FedCM delegation flow</a></li>
+    {{/if}}
   </ul>
   <h3>Sign-in</h3>
   <ul>
+    {{#if (isPageEnabled '/signin-form')}}
     <li><a href="/signin-form">Sign-in Form</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/passkey-form-autofill')}}
     <li><a href="/passkey-form-autofill">Passkey form autofill</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/passkey-one-button')}}
     <li><a href="/passkey-one-button">Passkey one button</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/fedcm-active-mode')}}
     <li><a href="/fedcm-active-mode">FedCM active mode</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/fedcm-passive-mode')}}
     <li><a href="/fedcm-passive-mode">FedCM passive mode</a></li>
+    {{/if}}
+    {{#if (isPageEnabled '/fedcm-form-autofill')}}
     <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
+    {{/if}}
     <!-- <li><a href="/legacy-credman">Legacy Credential Management</a></li> -->
+    {{#if (isPageEnabled '/credential-manager')}}
     <li><a href="/credential-manager">Credential Manager for the Web</a></li>
+    {{/if}}
   </ul>
 </main>

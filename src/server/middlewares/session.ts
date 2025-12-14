@@ -159,7 +159,11 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
 }
 
 export function pageAclCheck(pageType: PageType): RequestHandlerParams {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, res: Response, next: NextFunction): void | any => {
+    if (config.enabled_pages && !config.enabled_pages.includes(req.baseUrl + req.path)) {
+      return res.status(404).send('Not Found');
+    }
+
     const {signin_status} = res.locals;
 
     if (pageType === PageType.SignUp) {
