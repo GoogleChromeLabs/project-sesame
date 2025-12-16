@@ -20,18 +20,26 @@
           <mdui-list-item type="link" href="/home" icon="home--outlined">
             Home
           </mdui-list-item>
+          {{#if (isPageEnabled '/settings/password-change')}}
           <mdui-list-item type="link" href="/settings/password-change" icon="password--outlined">
             Password Change
           </mdui-list-item>
+          {{/if}}
+          {{#if (isPageEnabled '/settings/passkeys')}}
           <mdui-list-item type="link" href="/settings/passkeys" icon="key--outlined">
             Passkey Management
           </mdui-list-item>
+          {{/if}}
+          {{#if (isPageEnabled '/settings/identity-providers')}}
           <mdui-list-item type="link" href="/settings/identity-providers" icon="link--outlined">
             Associated IdPs
           </mdui-list-item>
+          {{/if}}
+          {{#if (isPageEnabled '/settings/delete-account')}}
           <mdui-list-item type="link" href="/settings/delete-account" icon="no_accounts--outlined">
             Delete account
           </mdui-list-item>
+          {{/if}}
         </mdui-list>
         <mdui-list class="flex-bottom">
           <mdui-list-item type="button" icon="logout--outlined" id="signout">
