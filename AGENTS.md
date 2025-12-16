@@ -1,3 +1,19 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 # Repository Architecture
 
 ## Overview
@@ -7,7 +23,7 @@ Project Sesame is a Node.js web application designed to provide a hands-on envir
 
 ### Core
 *   **Language**: **TypeScript** (Used across both client and server).
-*   **Runtime**: **Node.js** 20+.
+*   **Runtime**: **Node.js**.
 
 ### Backend (`src/server`)
 *   **Framework**: **Express.js** handling routing and middleware.
@@ -74,7 +90,13 @@ The local setup mimics a real-world scenario using **Caddy** as a reverse proxy:
     *   **Server**: Bundled with `esbuild` (`npm run build:server`).
 *   **Deploy**: Configured for Google App Engine (GAE) via `app.yaml` variants (`staging.yaml`, `idp.yaml`, `prod.yaml`).
 
-## Adding a new sign-in/sign-up page
+## Rules
+
+### General rules
+
+* Don't forget to add Appache 2.0 license header at the top of the source code.
+
+### Adding a new sign-in/sign-up page
 
 When a new page is being added, the following steps are required:
 1. Add HTML to `src/shared/views/`.
