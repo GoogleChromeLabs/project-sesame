@@ -26,9 +26,9 @@ router.get(
   async (
     req: Request,
     res: Response
-  ): Promise<Response<any, Record<string, any>>> => {
+  ): Promise<void> => {
     await Users.deleteOldUsers();
-    return res.sendStatus(200);
+    res.sendStatus(200);
   }
 );
 

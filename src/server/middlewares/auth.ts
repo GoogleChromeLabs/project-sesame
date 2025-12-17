@@ -23,14 +23,12 @@ import {
 } from '~project-sesame/server/libs/users.ts';
 import {
   UserSignInStatus,
-  setSignedIn,
   apiAclCheck,
   ApiType,
-  setSigningUp,
-  setSigningIn,
-  setSignedOut,
-  getSigningUp,
-} from '~project-sesame/server/middlewares/session.ts';
+  setSignedIn, // Keeping this for now as it handles headers too
+  setSignedOut, // Keeping this for now as it handles headers too
+} from '~project-sesame/server/libs/session.ts';
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
@@ -43,7 +41,7 @@ router.use(csrfCheck);
 router.post(
   '/new-user',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {username, displayName = ''} = req.body;
 
     // TODO: Use Captcha to block bots.
@@ -59,31 +57,31 @@ router.post(
 
         if (user) {
           // User already exists
-          return res
+          res
             .status(400)
             .send({error: 'The username is already taken.'});
+          return;
         }
 
         const passkeyUserId = generatePasskeyUserId();
 
         // Set username in the session
-        setSigningUp(
-          {
-            username,
-            displayName: trimmedDisplayName,
-            passkeyUserId,
-          },
-          req,
-          res
-        );
+        new SessionService(req.session).setSigningUp({
+          username,
+          displayName: trimmedDisplayName,
+          passkeyUserId,
+        });
 
-        return res.json({});
+        res.json({});
+        return;
       } else {
-        return res.status(400).send({error: 'Invalid username.'});
+        res.status(400).send({ error: 'Invalid username.' });
+        return;
       }
     } catch (error: any) {
       console.error(error);
-      return res.status(400).send({error: error.message});
+      res.status(400).send({ error: error.message });
+      return;
     }
   }
 );
@@ -95,7 +93,7 @@ router.post(
 router.post(
   '/username',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {username} = <{username: string}>req.body;
 
     try {
@@ -107,15 +105,17 @@ router.post(
         // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
         // Set username in the session
-        setSigningIn(username, req, res);
+        new SessionService(req.session).setSigningIn(username);
 
-        return res.json({});
+        res.json({});
+        return;
       } else {
         throw new Error('Invalid username');
       }
     } catch (error: any) {
       console.error(error);
-      return res.status(400).send({error: error.message});
+      res.status(400).send({ error: error.message });
+      return;
     }
   }
 );
@@ -124,20 +124,23 @@ router.post(
 router.post(
   '/new-username-password',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {username, displayName, password1, password2} = req.body;
 
     if (!Users.isValidUsername(username)) {
-      return res.status(400).json({error: 'Invalid username'});
+      res.status(400).json({ error: 'Invalid username' });
+      return;
     } else if (!Users.isValidPassword(password1) || password1 !== password2) {
-      return res.status(400).json({error: 'Invalid password'});
+      res.status(400).json({ error: 'Invalid password' });
+      return;
     }
 
     // See if account already exists
     const existingUser = await Users.findByUsername(username);
     if (existingUser) {
       // User already exists
-      return res.status(400).send({error: 'The username is already taken.'});
+      res.status(400).send({ error: 'The username is already taken.' });
+      return;
     }
 
     const user: SignUpUser = {
@@ -152,33 +155,39 @@ router.post(
         // Set the user as a signed in status
         setSignedIn(newUser, req, res);
 
-        return res.json(newUser);
+        res.json(newUser);
+        return;
       }
     } catch (e: any) {
       console.error(e);
-      return res.status(400).send({error: e.message});
+      res.status(400).send({ error: e.message });
+      return;
     }
 
-    return res.status(401).json({error: 'Failed to sign in.'});
+    res.status(401).json({ error: 'Failed to sign in.' });
   }
 );
 
 router.post(
   '/new-password',
   apiAclCheck(ApiType.SigningUp),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {password} = req.body;
     const {username} = res.locals;
-    const user = getSigningUp(req, res);
+    const user = new SessionService(req.session).getSigningUp();
 
     // TODO: Validate entered parameter.
     // TODO: Validate the password format
     if (!Users.isValidPassword(password)) {
-      return res.status(401).json({error: 'Invalid password.'});
+      res.status(401).json({ error: 'Invalid password.' });
+      return;
     }
 
     if (username) {
-      if (!user) return res.status(401).json({error: 'Failed to sign up.'});
+      if (!user) {
+        res.status(401).json({ error: 'Failed to sign up.' });
+        return;
+      }
       user.password = password;
 
       const newUser = await Users.create(username, user);
@@ -186,11 +195,12 @@ router.post(
         // Set the user as a signed in status
         setSignedIn(newUser, req, res);
 
-        return res.json(newUser);
+        res.json(newUser);
+        return;
       }
     }
 
-    return res.status(401).json({error: 'Failed to sign in.'});
+    res.status(401).json({ error: 'Failed to sign in.' });
   }
 );
 
@@ -202,13 +212,14 @@ router.post(
 router.post(
   '/password',
   apiAclCheck(ApiType.FirstCredential),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {password} = req.body;
     const {username} = res.locals;
 
     // TODO: Validate entered parameter.
     if (!Users.isValidPassword(password)) {
-      return res.status(401).json({error: 'Invalid password.'});
+      res.status(401).json({ error: 'Invalid password.' });
+      return;
     }
 
     if (username) {
@@ -217,17 +228,18 @@ router.post(
         // Set the user as a signed in status
         setSignedIn(user, req, res);
 
-        return res.json(user);
+        res.json(user);
+        return;
       }
     }
-    return res.status(401).json({error: 'Failed to sign in.'});
+    res.status(401).json({ error: 'Failed to sign in.' });
   }
 );
 
 router.post(
   '/username-password',
   apiAclCheck(ApiType.SignIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {username, password} = req.body;
 
     // TODO: Verify the current password
@@ -241,34 +253,37 @@ router.post(
         // Set the user as a signed in status
         setSignedIn(user, req, res);
 
-        return res.json(user);
+        res.json(user);
+        return;
       }
     }
 
-    return res.status(401).json({error: 'Failed to sign in.'});
+    res.status(401).json({ error: 'Failed to sign in.' });
   }
 );
 
 router.post(
   '/password-change',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const newPassword1 = req.body['new-password1'];
     const newPassword2 = req.body['new-password2'];
 
     if (newPassword1 === '') {
-      return res
+      res
         .status(400)
         .json({error: 'Enter at least * characters for the password.'});
+      return;
     }
     if (newPassword1 !== newPassword2) {
-      return res.status(400).json({error: 'New passwords do not match.'});
+      res.status(400).json({ error: 'New passwords do not match.' });
+      return;
     }
 
     // TODO: Validate the password format
     // TODO: Update the password in the database
 
-    return res.json({});
+    res.json({});
   }
 );
 
@@ -278,13 +293,14 @@ router.post(
 router.post(
   '/userinfo',
   apiAclCheck(ApiType.SignedIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
-      return res.status(401).json({error: 'The user needs to be signed in.'});
+      res.status(401).json({ error: 'The user needs to be signed in.' });
+      return;
     }
     const {user} = res.locals;
-    return res.json(user);
+    res.json(user);
   }
 );
 
@@ -294,19 +310,22 @@ router.post(
 router.post(
   '/updateDisplayName',
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
-      return res.status(401).json({error: 'The user needs to be signed in.'});
+      res.status(401).json({ error: 'The user needs to be signed in.' });
+      return;
     }
     const {newName} = req.body;
     if (newName) {
       const {user} = res.locals;
       user.displayName = newName;
       await Users.update(user);
-      return res.json(user);
+      res.json(user);
+      return;
     } else {
-      return res.status(400);
+      res.sendStatus(400);
+      return;
     }
   }
 );
@@ -314,17 +333,18 @@ router.post(
 router.post(
   '/delete-user',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
       // If the user has not signed in recently enough, return an error.
-      return res.status(401).json({error: 'The user needs to reauthenticate.'});
+      res.status(401).json({ error: 'The user needs to reauthenticate.' });
+      return;
     }
     const {user} = res.locals;
     await Users.delete(user.id);
 
     setSignedOut(req, res);
 
-    return res.json({});
+    res.json({});
   }
 );
 

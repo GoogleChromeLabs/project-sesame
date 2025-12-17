@@ -15,25 +15,24 @@
  * limitations under the License
  */
 
-import {Router, Request, Response} from 'express';
+import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import {
   FederationMap,
   FederationMappings,
 } from '../libs/federation-mappings.ts';
-import {config} from '../config.ts';
-import {IdentityProviders} from '../libs/identity-providers.ts';
-import {OAuth2Client} from 'google-auth-library';
-import {Users} from '../libs/users.ts';
-import {csrfCheck, getTime} from '../middlewares/common.ts';
+import { config } from '../config.ts';
+import { IdentityProviders } from '../libs/identity-providers.ts';
+import { OAuth2Client } from 'google-auth-library';
+import { Users } from '../libs/users.ts';
+import { csrfCheck, getTime } from '../middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
-  setChallenge,
-  getChallenge,
   setSignedIn,
-} from '../middlewares/session.ts';
-import {RelyingParties} from '../libs/relying-parties.ts';
+} from '../libs/session.ts';
+import { SessionService } from '~project-sesame/server/libs/session.ts';
+import { RelyingParties } from '../libs/relying-parties.ts';
 
 const router = Router();
 const googleClient = new OAuth2Client();
@@ -45,31 +44,32 @@ router.use(csrfCheck);
 router.post(
   '/options',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const options = {
       idps: [] as IdentityProviders[],
       nonce: '' as string | undefined,
     };
     const idps = [];
-    const {urls} = req.body;
+    const { urls } = req.body;
     try {
       for (const _url of urls) {
         const url = new URL(_url);
         const idp = await IdentityProviders.findByOrigin(url.toString());
         if (!idp) {
-          return res
+          res
             .status(404)
-            .json({error: 'No matching identity provider found.'});
+            .json({ error: 'No matching identity provider found.' });
+          return;
         }
         idp.secret = '';
         idps.push(idp);
       }
       options.idps = idps;
-      options.nonce = setChallenge(req, res);
-      return res.json(options);
+      options.nonce = new SessionService(req.session).setChallenge();
+      res.json(options);
     } catch (e: any) {
       console.error(e);
-      return res.status(400).json({error: e.message});
+      res.status(400).json({ error: e.message });
     }
   }
 );
@@ -87,51 +87,17 @@ router.post(
 router.get(
   '/mappings',
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response) => {
-    const {user} = res.locals;
+  async (req: Request, res: Response): Promise<void> => {
+    const { user } = res.locals;
     try {
       const maps = await FederationMappings.findByUserId(user.id);
-      return res.json(maps);
+      res.json(maps);
     } catch (e: any) {
       console.error(e);
-      return res.status(400).json({error: e.message});
+      res.status(400).json({ error: e.message });
     }
   }
 );
-
-// router.post(
-//   '/issueIdToken',
-//   apiAclCheck(ApiType.SignedIn),
-//   async (req: Request, res: Response) => {
-//     const {client_id, nonce} = req.body;
-//     const {user} = res.locals;
-
-//     const rp = await RelyingParties.findByClientID(client_id);
-//     if (!rp) {
-//       return res.status(400).json({error: 'Invalid client_id.'});
-//     }
-
-//     const token = jwt.sign(
-//       {
-//         iss: process.env.ORIGIN,
-//         sub: user.id,
-//         aud: client_id,
-//         nonce,
-//         exp: getTime(config.id_token_lifetime),
-//         iat: getTime(),
-//         name: `${user.given_name} ${user.family_name}`,
-//         email: user.username,
-//         given_name: user.given_name,
-//         family_name: user.family_name,
-//         picture: user.picture,
-//       },
-//       'xxxxx'
-//     );
-
-//     console.log(`/token returns "token": "${token}"`);
-//     return res.json({token});
-//   }
-// );
 
 /**
  * Verifies the ID token received from an identity provider.
@@ -164,11 +130,11 @@ router.get(
 router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
-  async (req: Request, res: Response) => {
-    const {token: raw_token, url} = req.body;
+  async (req: Request, res: Response): Promise<void> => {
+    const { token: raw_token, url } = req.body;
 
     try {
-      const expected_nonce = getChallenge(req, res);
+      const expected_nonce = new SessionService(req.session).getChallenge();
 
       if (!expected_nonce || typeof expected_nonce !== 'string') {
         throw new Error('Invalid nonce.');
@@ -248,10 +214,10 @@ router.post(
       // Set the user as a signed in status
       setSignedIn(user, req, res);
 
-      return res.status(200).json(user);
+      res.status(200).json(user);
     } catch (error: any) {
       console.error(error.message);
-      return res.status(401).json({error: 'ID token verification failed.'});
+      res.status(401).json({ error: 'ID token verification failed.' });
     }
   }
 );
@@ -259,7 +225,7 @@ router.post(
 router.post(
   '/verifySdJwt',
   apiAclCheck(ApiType.SignIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // Respond with static result for now.
     // TODO: Implement SD-JWT parser
     const payload = {
@@ -294,7 +260,7 @@ router.post(
 
     // Set the user as a signed in status
     setSignedIn(user, req, res);
-    return res.json({});
+    res.json({});
   }
 );
 
@@ -304,11 +270,11 @@ router.post(
 router.get(
   '/idp-list',
   apiAclCheck(ApiType.NoAuth),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     const idpUrls = IdentityProviders.getOrigins();
 
-    return res.json(idpUrls);
+    res.json(idpUrls);
   }
 );
 
-export {router as federation};
+export { router as federation };

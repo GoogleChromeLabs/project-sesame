@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import {Router, Request, Response} from 'express';
+import { Router, Request, Response } from 'express';
 const router = Router();
 // import crypto from 'crypto';
 import {
@@ -31,24 +31,22 @@ import {
   verifyRegistrationResponse,
   WebAuthnCredential,
 } from '@simplewebauthn/server';
-import {isoBase64URL} from '@simplewebauthn/server/helpers';
-import {config} from '~project-sesame/server/config.ts';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import { config } from '~project-sesame/server/config.ts';
 import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import {Users} from '~project-sesame/server/libs/users.ts';
-import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
+import { Users } from '~project-sesame/server/libs/users.ts';
+import { csrfCheck, getTime } from '~project-sesame/server/middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
   UserSignInStatus,
-  deleteChallenge,
-  getChallenge,
-  setChallenge,
-  getSigningUp,
   setSignedIn,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '~project-sesame/server/libs/session.ts';
+
+import { SessionService } from '~project-sesame/server/libs/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
@@ -66,8 +64,8 @@ router.use(csrfCheck);
 router.post(
   '/getKeys',
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response) => {
-    const {user} = res.locals;
+  async (req: Request, res: Response): Promise<void> => {
+    const { user } = res.locals;
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(
       user.passkeyUserId
     );
@@ -81,7 +79,7 @@ router.post(
         credential.providerIcon = entry.icon_light;
       }
     }
-    return res.json({rpId, userId, credentials});
+    res.json({ rpId, userId, credentials });
   }
 );
 
@@ -91,20 +89,21 @@ router.post(
 router.post(
   '/renameKey',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
-    const {credId, newName} = req.body;
-    const {user} = res.locals;
+  async (req: Request, res: Response): Promise<void> => {
+    const { credId, newName } = req.body;
+    const { user } = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
     if (
       !user ||
       !credential ||
       user.passkeyUserId !== credential?.passkeyUserId
     ) {
-      return res.status(401).json({error: 'User not authorized.'});
+      res.status(401).json({ error: 'User not authorized.' });
+      return;
     }
     credential.name = newName;
     await PublicKeyCredentials.update(credential);
-    return res.json(credential);
+    res.json(credential);
   }
 );
 
@@ -115,13 +114,13 @@ router.post(
 router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // TODO: Check if the user is authorized to remove the credential.
     const credId = <Base64URLString>req.query.credId;
 
     await PublicKeyCredentials.remove(credId);
 
-    return res.json({});
+    res.json({});
   }
 );
 
@@ -131,21 +130,22 @@ router.post(
 router.post(
   '/registerRequest',
   apiAclCheck(ApiType.PasskeyRegistration),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     let passkeyUserId, username, displayName;
     const non_platform = 'non_platform' in req.query;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
-      const signup_user = getSigningUp(req, res);
+      const signup_user = new SessionService(req.session).getSigningUp();
       if (!signup_user) {
-        return res.status(400).send({
+        res.status(400).send({
           error: "Sign-up session doesn't contain a `signup_user` object",
         });
+        return;
       }
       displayName = signup_user?.displayName || username;
       passkeyUserId = signup_user.passkeyUserId;
     } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
-      const {user} = res.locals;
+      const { user } = res.locals;
       passkeyUserId = user.passkeyUserId;
       username = user.username;
       displayName = user.displayName;
@@ -191,13 +191,13 @@ router.post(
       });
 
       // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      new SessionService(req.session).setChallenge(options.challenge);
 
       // Respond with the registration options.
-      return res.json(options);
+      res.json(options);
     } catch (error: any) {
       console.error(error);
-      return res.status(400).json({error: error.message});
+      res.status(400).json({ error: error.message });
     }
   }
 );
@@ -208,16 +208,17 @@ router.post(
 router.post(
   '/registerResponse',
   apiAclCheck(ApiType.PasskeyRegistration),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     let user, passkeyUserId;
-    const {type} = req.query;
-    const {username, signin_status} = res.locals;
-    const signup_user = getSigningUp(req, res);
+    const { type } = req.query;
+    const { username, signin_status } = res.locals;
+    const signup_user = new SessionService(req.session).getSigningUp();
     if (signin_status === UserSignInStatus.SigningUp) {
       if (!signup_user) {
-        return res.status(400).send({
+        res.status(400).send({
           error: "Sign-up session doesn't contain a `signup_user` object",
         });
+        return;
       }
       passkeyUserId = signup_user.passkeyUserId;
     } else if (signin_status >= UserSignInStatus.SignedIn) {
@@ -228,13 +229,14 @@ router.post(
     // Set expected values.
     const conditional = 'conditional' in req.query;
     const response = <RegistrationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {
       if (!expectedChallenge) {
-        return res.status(400).send({error: 'Invalid challenge'});
+        res.status(400).send({ error: 'Invalid challenge' });
+        return;
       }
 
       // Use SimpleWebAuthn's handy function to verify the registration request.
@@ -247,15 +249,15 @@ router.post(
         requireUserVerification: false,
       });
 
-      const {verified, registrationInfo} = verification;
+      const { verified, registrationInfo } = verification;
 
       // If the verification failed, throw.
       if (!verified || !registrationInfo) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         throw new Error('User verification failed.');
       }
 
-      const {credential} = registrationInfo;
+      const { credential } = registrationInfo;
       const {
         aaguid,
         credentialType,
@@ -317,7 +319,7 @@ router.post(
       } as SesamePublicKeyCredential);
 
       // Delete the challenge from the session.
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       // If this is a sign-up, create a new user
       if (signin_status === UserSignInStatus.SigningUp) {
@@ -326,12 +328,12 @@ router.post(
       }
 
       // Respond with the user information.
-      return res.json(user);
+      res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      return res.status(400).send({error: error.message});
+      res.status(400).send({ error: error.message });
     }
   }
 );
@@ -342,7 +344,7 @@ router.post(
 router.post(
   '/signinRequest',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const allowCredentials: PublicKeyCredentialDescriptorJSON[] = [];
 
     // For reauthentication
@@ -351,9 +353,10 @@ router.post(
         res.locals.user.passkeyUserId
       );
       if (!credentials?.length) {
-        return res
+        res
           .status(404)
-          .json({error: 'No credentials found to sign in with.'});
+          .json({ error: 'No credentials found to sign in with.' });
+        return;
       }
 
       for (let cred of credentials) {
@@ -372,13 +375,13 @@ router.post(
       } as GenerateAuthenticationOptionsOpts);
 
       // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      new SessionService(req.session).setChallenge(options.challenge);
 
-      return res.json(options);
+      res.json(options);
     } catch (error: any) {
       console.error(error);
 
-      return res.status(500).json({error: error.message});
+      res.status(500).json({ error: error.message });
     }
   }
 );
@@ -389,25 +392,27 @@ router.post(
 router.post(
   '/signinResponse',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // Set expected values.
     const response = <AuthenticationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {
       if (!expectedChallenge) {
-        return res.status(401).json({error: 'Invalid challenge.'});
+        res.status(401).json({ error: 'Invalid challenge.' });
+        return;
       }
 
       // If the matching public key is not found, return an error
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
-        deleteChallenge(req, res);
-        return res
+        new SessionService(req.session).deleteChallenge();
+        res
           .status(404)
-          .json({error: 'Matching credential not found on the server.'});
+          .json({ error: 'Matching credential not found on the server.' });
+        return;
       }
 
       // If the user is already signed in and passkey user ID doesn't match,
@@ -416,15 +421,17 @@ router.post(
         res.locals.user &&
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
-        deleteChallenge(req, res);
-        return res.status(400).json({error: 'Wrong sign-in account.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).json({ error: 'Wrong sign-in account.' });
+        return;
       }
 
       // Find the matching user from the user ID contained in the credential.
       const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
-        deleteChallenge(req, res);
-        return res.status(401).json({error: 'User not found.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(401).json({ error: 'User not found.' });
+        return;
       }
 
       // Decode ArrayBuffers and construct a credential.
@@ -444,12 +451,13 @@ router.post(
         requireUserVerification: false,
       } as VerifyAuthenticationResponseOpts);
 
-      const {verified, authenticationInfo} = verification;
+      const { verified, authenticationInfo } = verification;
 
       // If the authentication failed, throw.
       if (!verified) {
-        deleteChallenge(req, res);
-        return res.status(401).json({error: 'User verification failed.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(401).json({ error: 'User verification failed.' });
+        return;
       }
 
       // TODO: Use the `uv` flag as the risk signal.
@@ -461,14 +469,14 @@ router.post(
       // Set the user as a signed in status
       setSignedIn(user, req, res);
 
-      return res.json(user);
+      res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      return res.status(500).json({error: error.message});
+      res.status(500).json({ error: error.message });
     }
   }
 );
 
-export {router as webauthn};
+export { router as webauthn };
