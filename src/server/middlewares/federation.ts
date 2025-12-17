@@ -99,40 +99,6 @@ router.get(
   }
 );
 
-// router.post(
-//   '/issueIdToken',
-//   apiAclCheck(ApiType.SignedIn),
-//   async (req: Request, res: Response): Promise<void> => {
-//     const {client_id, nonce} = req.body;
-//     const {user} = res.locals;
-
-//     const rp = await RelyingParties.findByClientID(client_id);
-//     if (!rp) {
-//       return res.status(400).json({error: 'Invalid client_id.'});
-//     }
-
-//     const token = jwt.sign(
-//       {
-//         iss: process.env.ORIGIN,
-//         sub: user.id,
-//         aud: client_id,
-//         nonce,
-//         exp: getTime(config.id_token_lifetime),
-//         iat: getTime(),
-//         name: `${user.given_name} ${user.family_name}`,
-//         email: user.username,
-//         given_name: user.given_name,
-//         family_name: user.family_name,
-//         picture: user.picture,
-//       },
-//       'xxxxx'
-//     );
-
-//     console.log(`/token returns "token": "${token}"`);
-//     return res.json({token});
-//   }
-// );
-
 /**
  * Verifies the ID token received from an identity provider.
  * This endpoint is used during the sign-in process when a user chooses to
