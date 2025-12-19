@@ -2,6 +2,7 @@ import {FOREVER, getTime} from '../middlewares/common.ts';
 import {Session, SessionData} from 'express-session';
 import {config} from '../config.ts';
 import {FirestoreStore, StoreOptions} from '@google-cloud/connect-firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Override the Firestore `set` function by adding two additional top-level
@@ -41,20 +42,20 @@ export class CustomFirestoreStore extends FirestoreStore {
     // The 'user' property is added to the SessionData via module augmentation in types.d.ts
     const username: string | null = (sess as Session)?.user?.username || null;
 
-    // Correctly calculate the expiration Date object.
+    // Correctly calculate the expiration Timestamp.
     // config.long_session_duration is expected to be in milliseconds.
-    let expiresAt: number;
+    let expiresAt: Timestamp;
     if (config.allowlisted_accounts.includes(username)) {
-      expiresAt = getTime(FOREVER);
+      expiresAt = Timestamp.fromMillis(getTime(FOREVER));
     } else {
-      expiresAt = getTime(config.long_session_duration);
+      expiresAt = Timestamp.fromMillis(getTime(config.long_session_duration));
     }
 
     try {
       await this.db.collection(this.kind).doc(sid).set(
         {
           data: sessionString,
-          expiresAt, // This will now be a proper Date object for Firestore
+          expiresAt, // This will now be a proper Timestamp object for Firestore
           username,
         },
         {merge: true}
