@@ -37,6 +37,30 @@ router.use(csrfCheck);
 
 /**
  * Start creating a new user
+ * @swagger
+ * /auth/new-user:
+ *   post:
+ *     summary: Create a new user
+ *     description: Starts the registration process for a new user.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *             properties:
+ *               username:
+ *                 type: string
+ *               displayName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User created successfully
+ *       400:
+ *         description: Username invalid or taken
  */
 router.post(
   '/new-user',
