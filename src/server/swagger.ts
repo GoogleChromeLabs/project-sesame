@@ -16,7 +16,7 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ['./src/server/middlewares/*.ts'], // Path to the API docs
+  apis: ['./src/server/middlewares/*.ts', './src/server/app.ts'], // Path to the API docs
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

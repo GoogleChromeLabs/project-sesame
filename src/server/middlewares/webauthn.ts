@@ -60,6 +60,39 @@ router.use(csrfCheck);
 
 /**
  * Respond with a list of stored credentials.
+ * @swagger
+ * /webauthn/getKeys:
+ *   post:
+ *     summary: Get Credentials
+ *     description: Returns a list of registered passkeys for the signed-in user.
+ *     tags: [WebAuthn]
+ *     responses:
+ *       200:
+ *         description: List of credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 rpId:
+ *                   type: string
+ *                 userId:
+ *                   type: string
+ *                 credentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                       transports:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       providerIcon:
+ *                         type: string
  */
 router.post(
   '/getKeys',
@@ -85,6 +118,40 @@ router.post(
 
 /**
  * Update the name of a passkey.
+ * @swagger
+ * /webauthn/renameKey:
+ *   post:
+ *     summary: Rename Passkey
+ *     description: Updates the name of an existing passkey.
+ *     tags: [WebAuthn]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credId
+ *               - newName
+ *             properties:
+ *               credId:
+ *                 type: string
+ *               newName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Passkey renamed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/renameKey',
@@ -110,7 +177,23 @@ router.post(
 /**
  * Removes a credential id attached to the user.
  * Responds with empty JSON `{}`.
- **/
+ * @swagger
+ * /webauthn/removeKey:
+ *   post:
+ *     summary: Remove Passkey
+ *     description: Deletes a specific passkey by its credential ID.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: credId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Credential ID to remove
+ *     responses:
+ *       200:
+ *         description: Passkey removed
+ */
 router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
@@ -126,6 +209,48 @@ router.post(
 
 /**
  * Start creating a new passkey by serving registration options.
+ * @swagger
+ * /webauthn/registerRequest:
+ *   post:
+ *     summary: Start Passkey Registration
+ *     description: Generates registration options for creating a new passkey.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: non_platform
+ *         schema:
+ *           type: boolean
+ *         description: Allow cross-platform authenticators
+ *     responses:
+ *       200:
+ *         description: Registration options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 challenge:
+ *                   type: string
+ *                 rp:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *                 pubKeyCredParams:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 timeout:
+ *                   type: integer
+ *                 attestation:
+ *                   type: string
+ *                 excludeCredentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 authenticatorSelection:
+ *                   type: object
+ *       400:
+ *         description: Session error
  */
 router.post(
   '/registerRequest',
@@ -203,7 +328,87 @@ router.post(
 );
 
 /**
- *
+ * Verify passkey registration response.
+ * @swagger
+ * /webauthn/registerResponse:
+ *   post:
+ *     summary: Finish Passkey Registration
+ *     description: Verifies the registration response and creates the passkey.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *         description: Type of credential (e.g., 'rc')
+ *       - in: query
+ *         name: conditional
+ *         schema:
+ *           type: boolean
+ *         description: If true, user presence is not required (conditional UI)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - rawId
+ *               - response
+ *               - type
+ *               - clientExtensionResults
+ *             properties:
+ *               id:
+ *                 type: string
+ *               rawId:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [public-key]
+ *               authenticatorAttachment:
+ *                 type: string
+ *                 enum: [platform, cross-platform]
+ *               response:
+ *                 type: object
+ *                 required:
+ *                   - clientDataJSON
+ *                   - attestationObject
+ *                 properties:
+ *                   clientDataJSON:
+ *                     type: string
+ *                   attestationObject:
+ *                     type: string
+ *                   transports:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   authenticatorData:
+ *                     type: string
+ *                   publicKeyAlgorithm:
+ *                     type: integer
+ *                   publicKey:
+ *                     type: string
+ *               clientExtensionResults:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Passkey registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 picture:
+ *                   type: string
+ *       400:
+ *         description: Verification failed
  */
 router.post(
   '/registerResponse',
@@ -340,6 +545,36 @@ router.post(
 
 /**
  * Start authenticating the user.
+ * @swagger
+ * /webauthn/signinRequest:
+ *   post:
+ *     summary: Start Sign-in
+ *     description: Generates authentication options for signing in a user.
+ *     tags: [WebAuthn]
+ *     responses:
+ *       200:
+ *         description: Authentication options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 challenge:
+ *                   type: string
+ *                 timeout:
+ *                   type: integer
+ *                 rpId:
+ *                   type: string
+ *                 allowCredentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 userVerification:
+ *                   type: string
+ *       404:
+ *         description: No credentials found
+ *       500:
+ *         description: Server error
  */
 router.post(
   '/signinRequest',
@@ -388,6 +623,74 @@ router.post(
 
 /**
  * Verify the authentication request.
+ * @swagger
+ * /webauthn/signinResponse:
+ *   post:
+ *     summary: Finish Sign-in
+ *     description: Verifies the authentication response and signs the user in.
+ *     tags: [WebAuthn]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - rawId
+ *               - response
+ *               - type
+ *               - clientExtensionResults
+ *             properties:
+ *               id:
+ *                 type: string
+ *               rawId:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [public-key]
+ *               authenticatorAttachment:
+ *                 type: string
+ *                 enum: [platform, cross-platform]
+ *               response:
+ *                 type: object
+ *                 required:
+ *                   - clientDataJSON
+ *                   - authenticatorData
+ *                   - signature
+ *                 properties:
+ *                   clientDataJSON:
+ *                     type: string
+ *                   authenticatorData:
+ *                     type: string
+ *                   signature:
+ *                     type: string
+ *                   userHandle:
+ *                     type: string
+ *               clientExtensionResults:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Signed in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 picture:
+ *                   type: string
+ *       401:
+ *         description: Verification failed
+ *       404:
+ *         description: Credential not found
+ *       500:
+ *         description: Server error
  */
 router.post(
   '/signinResponse',

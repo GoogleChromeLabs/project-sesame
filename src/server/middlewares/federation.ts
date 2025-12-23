@@ -40,6 +40,33 @@ const googleClient = new OAuth2Client();
 router.use(csrfCheck);
 
 /**
+ * Get Identity Provider options.
+ * @swagger
+ * /federation/options:
+ *   post:
+ *     summary: Get IdP Options
+ *     description: Returns a list of identity providers based on the provided URLs and a challenge nonce.
+ *     tags: [Federation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - urls
+ *             properties:
+ *               urls:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: IdP options and nonce
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: No matching identity provider found
  */
 router.post(
   '/options',
@@ -80,6 +107,23 @@ router.post(
  * the currently signed-in user. It returns an array of federation mapping
  * objects, each containing details about the federated identity and its
  * association with the user.
+ * @swagger
+ * /federation/mappings:
+ *   get:
+ *     summary: Get Federation Mappings
+ *     description: Returns a list of federation mappings for the currently signed-in user.
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: List of federation mappings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       400:
+ *         description: Error fetching mappings
  * @param req The Express Request object.
  * @param res The Express Response object, used to send the list of federation mappings.
  * @returns A Promise that resolves to the Express Response object containing the list of federation mappings.
@@ -122,6 +166,31 @@ router.get(
  * 10. Responds with the user object upon successful verification and sign-in.
  * 11. Catches any errors during the process and responds with a 401 status
  *     and an error message.
+ * @swagger
+ * /federation/verifyIdToken:
+ *   post:
+ *     summary: Verify ID Token
+ *     description: Verifies an ID token from a federated identity provider and signs the user in.
+ *     tags: [Federation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - url
+ *             properties:
+ *               token:
+ *                 type: string
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User signed in successfully
+ *       401:
+ *         description: ID token verification failed
  * @param req The Express Request object. The body is expected to contain `token` (the raw ID token string)
  *            and `url` (the URL string of the Identity Provider).
  * @param res The Express Response object, used to send the user object or an error.
@@ -222,6 +291,18 @@ router.post(
   }
 );
 
+/**
+ * Verify SD-JWT.
+ * @swagger
+ * /federation/verifySdJwt:
+ *   post:
+ *     summary: Verify SD-JWT
+ *     description: Verifies an SD-JWT (mock implementation).
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: Verified successfully
+ */
 router.post(
   '/verifySdJwt',
   apiAclCheck(ApiType.SignIn),
@@ -266,6 +347,21 @@ router.post(
 
 /**
  * Returns a list of IdP URLs based on the environment.
+ * @swagger
+ * /federation/idp-list:
+ *   get:
+ *     summary: List IdPs
+ *     description: Returns a list of available Identity Provider URLs.
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: List of IdP URLs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
  */
 router.get(
   '/idp-list',

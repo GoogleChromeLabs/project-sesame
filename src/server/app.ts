@@ -139,12 +139,44 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
+/**
+ * Landing Page.
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Landing Page
+ *     description: Renders the welcome page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response): void => {
   return res.render('index.html', {
     title: 'Welcome!',
   });
 });
 
+/**
+ * Sign-Up Form Page.
+ * @swagger
+ * /signup-form:
+ *   get:
+ *     summary: Sign-Up Form
+ *     description: Renders the sign-up form page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/signup-form',
   pageAclCheck(PageType.SignUp),
@@ -158,6 +190,22 @@ app.get(
   }
 );
 
+/**
+ * Sign-In Form Page.
+ * @swagger
+ * /signin-form:
+ *   get:
+ *     summary: Sign-In Form
+ *     description: Renders the sign-in form page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/signin-form',
   pageAclCheck(PageType.SignIn),
@@ -304,6 +352,22 @@ app.get(
   }
 );
 
+/**
+ * Home Page.
+ * @swagger
+ * /home:
+ *   get:
+ *     summary: Home Page
+ *     description: Renders the home page for signed-in users.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/home',
   pageAclCheck(PageType.SignedIn),
@@ -314,6 +378,18 @@ app.get(
   }
 );
 
+/**
+ * Sign Out.
+ * @swagger
+ * /signout:
+ *   get:
+ *     summary: Sign Out
+ *     description: Signs out the user and redirects to the entrance path.
+ *     tags: [Pages]
+ *     responses:
+ *       307:
+ *         description: Redirects to entrance path
+ */
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
@@ -404,6 +480,18 @@ app.get(
 
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
+/**
+ * Health Check.
+ * @swagger
+ * /__health-check:
+ *   get:
+ *     summary: Health Check
+ *     description: Returns 200 OK if server is healthy.
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 app.get('/__health-check', (req: Request, res: Response): void => {
   res.send('OK');
 });
