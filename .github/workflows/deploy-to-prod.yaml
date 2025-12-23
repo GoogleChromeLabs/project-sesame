@@ -5,7 +5,7 @@ on:
   push:
     branches:
       # Trigger the workflow on pushes to the 'dev' branch.
-      - main
+      - prod
   workflow_dispatch:
 
 # This section defines the jobs that will be run as part of the workflow.
