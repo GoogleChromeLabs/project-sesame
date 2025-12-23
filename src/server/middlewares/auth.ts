@@ -37,6 +37,30 @@ router.use(csrfCheck);
 
 /**
  * Start creating a new user
+ * @swagger
+ * /auth/new-user:
+ *   post:
+ *     summary: Create a new user
+ *     description: Starts the registration process for a new user.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *             properties:
+ *               username:
+ *                 type: string
+ *               displayName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User created successfully
+ *       400:
+ *         description: Username invalid or taken
  */
 router.post(
   '/new-user',
@@ -87,9 +111,30 @@ router.post(
 );
 
 /**
- * Check username, create a new account if it doesn't exist.
- * Set a `username` in the session.
- **/
+ * Check if the username exists and initiate sign-in.
+ * @swagger
+ * /auth/username:
+ *   post:
+ *     summary: Initiate sign-in with username
+ *     description: Checks if a username exists and sets it in the session to begin the sign-in process.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *             properties:
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Username accepted
+ *       400:
+ *         description: Invalid username
+ */
 router.post(
   '/username',
   apiAclCheck(ApiType.NoAuth),
@@ -121,6 +166,41 @@ router.post(
 );
 
 // TODO: This part is not really worked on yet
+/**
+ * Create a new user with username and password.
+ * @swagger
+ * /auth/new-username-password:
+ *   post:
+ *     summary: Create user with password
+ *     description: Registers a new user with a username and password.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password1
+ *               - password2
+ *             properties:
+ *               username:
+ *                 type: string
+ *               displayName:
+ *                 type: string
+ *               password1:
+ *                 type: string
+ *               password2:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User created and signed in
+ *       400:
+ *         description: Invalid input or username taken
+ *       401:
+ *         description: Failed to sign in
+ */
 router.post(
   '/new-username-password',
   apiAclCheck(ApiType.NoAuth),
@@ -168,6 +248,31 @@ router.post(
   }
 );
 
+/**
+ * Set a password for a new user during sign-up.
+ * @swagger
+ * /auth/new-password:
+ *   post:
+ *     summary: Set new user password
+ *     description: Sets the password for a user currently in the sign-up process.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password set and user signed in
+ *       401:
+ *         description: Invalid password or session state
+ */
 router.post(
   '/new-password',
   apiAclCheck(ApiType.SigningUp),
@@ -208,7 +313,29 @@ router.post(
  * Verifies user credential and let the user sign-in.
  * No preceding registration required.
  * This only checks if `username` is not empty string and ignores the password.
- **/
+ * @swagger
+ * /auth/password:
+ *   post:
+ *     summary: Sign in with password
+ *     description: Verifies password for the user in the current session context.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Signed in successfully
+ *       401:
+ *         description: Invalid password or failed to sign in
+ */
 router.post(
   '/password',
   apiAclCheck(ApiType.FirstCredential),
@@ -236,6 +363,34 @@ router.post(
   }
 );
 
+/**
+ * Sign in with username and password.
+ * @swagger
+ * /auth/username-password:
+ *   post:
+ *     summary: Sign in with username and password
+ *     description: Authenticates a user using their username and password.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Signed in successfully
+ *       401:
+ *         description: Failed to sign in
+ */
 router.post(
   '/username-password',
   apiAclCheck(ApiType.SignIn),
@@ -262,6 +417,36 @@ router.post(
   }
 );
 
+/**
+ * Change the current user's password.
+ * @swagger
+ * /auth/password-change:
+ *   post:
+ *     summary: Change password
+ *     description: Updates the password for the currently signed-in user.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - new-password1
+ *               - new-password2
+ *             properties:
+ *               new-password1:
+ *                 type: string
+ *               new-password2:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Passwords do not match or are invalid
+ *       401:
+ *         description: User not signed in
+ */
 router.post(
   '/password-change',
   apiAclCheck(ApiType.Sensitive),
@@ -289,6 +474,17 @@ router.post(
 
 /**
  * Response with user information.
+ * @swagger
+ * /auth/userinfo:
+ *   post:
+ *     summary: Get user info
+ *     description: Retrieves information about the currently signed-in user.
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: User information
+ *       401:
+ *         description: User not signed in
  */
 router.post(
   '/userinfo',
@@ -306,6 +502,30 @@ router.post(
 
 /**
  * Update the user's display name.
+ * @swagger
+ * /auth/updateDisplayName:
+ *   post:
+ *     summary: Update display name
+ *     description: Updates the display name for the currently signed-in user.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newName
+ *             properties:
+ *               newName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       400:
+ *         description: Missing new name
+ *       401:
+ *         description: User not signed in
  */
 router.post(
   '/updateDisplayName',
@@ -330,6 +550,20 @@ router.post(
   }
 );
 
+/**
+ * Delete the current user's account.
+ * @swagger
+ * /auth/delete-user:
+ *   post:
+ *     summary: Delete user account
+ *     description: Deletes the currently signed-in user's account. Requires recent authentication.
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       401:
+ *         description: User not signed in or session too old
+ */
 router.post(
   '/delete-user',
   apiAclCheck(ApiType.Sensitive),
