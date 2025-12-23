@@ -22,6 +22,8 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
+import { logger } from '~project-sesame/server/libs/logger.ts';
+
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
@@ -185,4 +187,5 @@ export const config = {
   supported_idps,
   enabled_pages,
 };
-console.log(config);
+logger.info('Project Sesame configuration', config);
+

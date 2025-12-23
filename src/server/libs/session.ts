@@ -24,6 +24,7 @@ import { Request, Response, NextFunction } from 'express';
 import { RequestHandlerParams } from 'express-serve-static-core';
 import session from 'express-session';
 import { CustomFirestoreStore } from '../libs/custom-firestore-session.js';
+import { logger } from '../libs/logger.js';
 
 export enum UserSignInStatus {
   SignedOut = 1,
@@ -70,7 +71,7 @@ export class SessionService {
    */
   setChallenge(challenge?: string): string {
     challenge ??= generateRandomString();
-    console.log('set challenge:', challenge);
+    logger.debug('set challenge:', challenge);
     this.session.challenge = challenge;
     return challenge;
   }
@@ -81,7 +82,7 @@ export class SessionService {
    * @returns The challenge value stored in the session, or undefined if not found
    */
   getChallenge(): string | undefined {
-    console.log('get challenge:', this.session.challenge);
+    logger.debug('get challenge:', this.session.challenge);
     return this.session.challenge;
   }
 
@@ -89,7 +90,7 @@ export class SessionService {
    * Deletes the challenge value from the session.
    */
   deleteChallenge(): void {
-    console.log('delete challenge:', this.session.challenge);
+    logger.debug('delete challenge:', this.session.challenge);
     delete this.session.challenge;
   }
 
@@ -204,7 +205,7 @@ export class SessionService {
       user,
     } = this.session;
 
-    console.log(this.session);
+    logger.debug('Session content:', this.session);
 
     if (!user) {
       // TODO: This path is deprecating
@@ -385,7 +386,7 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         const url = new URL(sessionService.getEntrancePath(), config.origin);
         const search = new URLSearchParams({ r: req.originalUrl });
         url.search = search.toString();
-        console.log(url.toString());
+        logger.debug(url.toString());
 
         // If the user has not signed in yet, redirect to the original entrance.
         return res.redirect(307, url.pathname + url.search);

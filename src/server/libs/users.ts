@@ -26,6 +26,7 @@ import {getTime, FOREVER} from '~project-sesame/server/middlewares/common.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 import {FederationMappings} from './federation-mappings.ts';
+import { logger } from '~project-sesame/server/libs/logger.ts';
 
 export type UserId = Base64URLString;
 export type PasskeyUserId = Base64URLString;
@@ -204,16 +205,16 @@ export class Users {
     if (!user) {
       throw new Error('User not found.');
     }
-    console.log(`Federation mapping is being deleted for ${user.username}.`);
+    logger.info(`Federation mapping is being deleted for ${user.username}.`);
     await FederationMappings.deleteByUserId(user.id);
 
     const passkey_user_id = user?.passkeyUserId;
     if (passkey_user_id) {
-      console.log(`Passkeys are being deleted for ${user.username}.`);
+      logger.info(`Passkeys are being deleted for ${user.username}.`);
       await PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
     }
 
-    console.log(`The user account "${user.username}" has been deleted.`);
+    logger.info(`The user account "${user.username}" has been deleted.`);
     await store.collection(Users.collection).doc(user_id).delete();
     return;
   }
@@ -223,7 +224,7 @@ export class Users {
    * @returns
    */
   static async deleteOldUsers(): Promise<void> {
-    console.log('All users eviction started...');
+    logger.info('All users eviction started...');
     const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
     const users = await store
       .collection(Users.collection)
@@ -232,7 +233,7 @@ export class Users {
     for (const user of users.docs) {
       await Users.delete(user.id);
     }
-    console.log('Eviction ended successfully.');
+    logger.info('Eviction ended successfully.');
     return;
   }
 }

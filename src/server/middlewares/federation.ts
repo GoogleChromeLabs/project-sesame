@@ -33,6 +33,7 @@ import {
 } from '../libs/session.ts';
 import { SessionService } from '~project-sesame/server/libs/session.ts';
 import { RelyingParties } from '../libs/relying-parties.ts';
+import { logger } from '../libs/logger.ts';
 
 const router = Router();
 const googleClient = new OAuth2Client();
@@ -95,7 +96,7 @@ router.post(
       options.nonce = new SessionService(req.session).setChallenge();
       res.json(options);
     } catch (e: any) {
-      console.error(e);
+      logger.error(e);
       res.status(400).json({ error: e.message });
     }
   }
@@ -137,7 +138,7 @@ router.get(
       const maps = await FederationMappings.findByUserId(user.id);
       res.json(maps);
     } catch (e: any) {
-      console.error(e);
+      logger.error(e);
       res.status(400).json({ error: e.message });
     }
   }
@@ -223,13 +224,15 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
-        console.log(
+        logger.debug(
           'verify',
-          raw_token,
-          idp.secret,
-          idp.origin,
-          expected_nonce,
-          idp.clientId
+          {
+            token: raw_token,
+            secret: idp.secret,
+            origin: idp.origin,
+            nonce: expected_nonce,
+            clientId: idp.clientId
+          }
         );
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
@@ -268,7 +271,7 @@ router.post(
           await FederationMappings.create(user.id, payload);
         } else {
           // TODO: Think about how each IdP provided properties match against RP's.
-          console.log('More than 1 federation mappings found:', maps);
+          logger.warn('More than 1 federation mappings found:', maps);
         }
       } else {
         // If the user does not exist yet, create a new user.
@@ -285,7 +288,7 @@ router.post(
 
       res.status(200).json(user);
     } catch (error: any) {
-      console.error(error.message);
+      logger.error(error.message);
       res.status(401).json({ error: 'ID token verification failed.' });
     }
   }
@@ -327,7 +330,7 @@ router.post(
         await FederationMappings.create(user.id, payload);
       } else {
         // TODO: Think about how each IdP provided properties match against RP's.
-        console.log('More than 1 federation mappings found:', maps);
+        logger.warn('More than 1 federation mappings found:', maps);
       }
     } else {
       // If the user does not exist yet, create a new user.

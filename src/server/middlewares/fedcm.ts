@@ -28,6 +28,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import {fedcmCheck, getTime} from '../middlewares/common.ts';
 import {ApiType, apiAclCheck} from '../libs/session.ts';
+import { logger } from '../libs/logger.ts';
 
 const router = Router();
 
@@ -236,7 +237,7 @@ router.post(
     const {user} = res.locals;
 
     if (!idp_info) {
-      console.log("I am not a registrable IdP: ", config.origin)
+      logger.warn("I am not a registrable IdP: ", config.origin)
       res.status(400).json({ error: 'I am not a registrable IdP: ' });
       return;
     }
@@ -245,21 +246,21 @@ router.post(
     // Error when: the RP is not registered.
     if (!rp) {
       const message = `RP not registered. Client ID: ${client_id}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
     // Error when: The RP URL matches the requesting origin.
     if (!compareUrls(rp.origin, req.headers.origin)) {
       const message = `RP origin doesn't match: ${rp.origin}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
     // Error when: the account does not match who is currently signed in.
     if (account_id !== user.id) {
       const message = `Account ID doesn't match: ${account_id}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
@@ -269,7 +270,7 @@ router.post(
       (consent_acquired === 'true' || disclosure_text_shown === 'true') &&
       (!user.approved_clients || !user.approved_clients.includes(rp.client_id))
     ) {
-      console.log('The user is registering to the RP.');
+      logger.info('The user is registering to the RP.');
       // Add the current RP as an approved client to sign in with this account
       if (!user.approved_clients) {
         user.approved_clients = [];
@@ -279,7 +280,7 @@ router.post(
         await Users.update(user);
       }
     } else {
-      console.log('The user is signing in to the RP.');
+      logger.info('The user is signing in to the RP.');
     }
 
     // if (user.status === '') {
@@ -362,7 +363,7 @@ router.post(
 
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
-      console.error("Account hint doesn't match.");
+      logger.error("Account hint doesn't match.");
       res.status(401).json({ error: "Account hint doesn't match." });
       return;
     }
@@ -374,7 +375,7 @@ router.post(
 
     // Use .includes() for arrays, not .has()
     if (!user.approved_clients.includes(client_id)) {
-      console.error('The client is not connected.');
+      logger.error('The client is not connected.');
       res.status(400).json({ error: 'The client is not connected.' });
       return;
     }

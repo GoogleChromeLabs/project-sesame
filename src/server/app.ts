@@ -39,6 +39,7 @@ import { settings } from '~project-sesame/server/middlewares/settings.ts';
 import { webauthn } from '~project-sesame/server/middlewares/webauthn.ts';
 
 import { wellKnown } from '~project-sesame/server/middlewares/well-known.ts';
+import { logger } from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from '~project-sesame/server/swagger.ts';
 import fs from 'node:fs/promises';
@@ -496,6 +497,7 @@ app.get('/__health-check', (req: Request, res: Response): void => {
   res.send('OK');
 });
 
+
 app.listen(config.port, (): void => {
-  console.log(`Server listening at ${config.origin}`);
+  logger.info(`Server listening at ${config.origin}`);
 });
