@@ -44,6 +44,8 @@
     "@rsbuild/plugin-sass": "^1.3.1",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.19",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "esbuild": "0.25.3",
     "firebase-tools": "14.2.2",
     "gts": "6.0.2",
@@ -51,6 +53,9 @@
     "mdui": "^2.1.3",
     "nodemon": "3.1.10",
     "rimraf": "6.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "typedoc": "^0.28.15",
     "ua-parser-js": "^1.0.40",
     "webauthn-polyfills": "^0.1.7"
   },
@@ -65,7 +70,7 @@
     "clean": "rimraf ./dist",
     "build:client": "npx rsbuild build",
     "build:server": "node esbuild.config.mjs",
-    "build": "npm run clean && npm run build:client && npm run build:server",
+    "build": "npm run clean && npm run build:client && npm run build:server && npm run docs:build",
     "dev:server": "nodemon --watch 'src/server/*' -e ts,html --exec 'node esbuild.config.mjs && PROXY=true node --enable-source-maps dist/server/app.js'",
     "dev:client": "npx rsbuild dev",
     "dev": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
@@ -79,6 +84,8 @@
     "deploy:prod": "CLOUDSDK_CORE_PROJECT=identity-sesame gcloud app deploy prod.yaml",
     "logs": "gcloud app logs tail --project=project-sesame-426206",
     "emulator": "firebase emulators:start --only firestore --project=project-sesame-426206 --import=./.data --export-on-exit",
-    "lint:fix": "eslint -c .eslintrc --fix ./src"
+    "lint:fix": "eslint -c .eslintrc --fix ./src",
+    "docs:build": "typedoc",
+    "docs:serve": "http-server dist/docs"
   }
 }

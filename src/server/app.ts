@@ -16,12 +16,12 @@
  */
 
 import express, { Request, Response, NextFunction } from 'express';
-import {create} from 'express-handlebars';
+import { create } from 'express-handlebars';
 import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import {config} from '~project-sesame/server/config.ts';
+import { config } from '~project-sesame/server/config.ts';
 import {
   PageType,
   UserSignInStatus,
@@ -31,13 +31,19 @@ import {
   setSignedOut,
 } from '~project-sesame/server/libs/session.ts';
 import { SessionService } from '~project-sesame/server/libs/session.ts';
-import {admin} from '~project-sesame/server/middlewares/admin.ts';
-import {auth} from '~project-sesame/server/middlewares/auth.ts';
-import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
-import {federation} from '~project-sesame/server/middlewares/federation.ts';
-import {settings} from '~project-sesame/server/middlewares/settings.ts';
-import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+import { admin } from '~project-sesame/server/middlewares/admin.ts';
+import { auth } from '~project-sesame/server/middlewares/auth.ts';
+import { fedcm } from '~project-sesame/server/middlewares/fedcm.ts';
+import { federation } from '~project-sesame/server/middlewares/federation.ts';
+import { settings } from '~project-sesame/server/middlewares/settings.ts';
+import { webauthn } from '~project-sesame/server/middlewares/webauthn.ts';
+
+import { wellKnown } from '~project-sesame/server/middlewares/well-known.ts';
+import { logger } from '~project-sesame/server/libs/logger.ts';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from '~project-sesame/server/swagger.ts';
+import fs from 'node:fs/promises';
+import { marked } from 'marked';
 
 const app = express();
 
@@ -102,7 +108,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(useragent.express());
 
 app.use(initializeSession());
@@ -134,12 +140,44 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 
+/**
+ * Landing Page.
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Landing Page
+ *     description: Renders the welcome page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response): void => {
   return res.render('index.html', {
     title: 'Welcome!',
   });
 });
 
+/**
+ * Sign-Up Form Page.
+ * @swagger
+ * /signup-form:
+ *   get:
+ *     summary: Sign-Up Form
+ *     description: Renders the sign-up form page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/signup-form',
   pageAclCheck(PageType.SignUp),
@@ -153,6 +191,22 @@ app.get(
   }
 );
 
+/**
+ * Sign-In Form Page.
+ * @swagger
+ * /signin-form:
+ *   get:
+ *     summary: Sign-In Form
+ *     description: Renders the sign-in form page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/signin-form',
   pageAclCheck(PageType.SignIn),
@@ -299,6 +353,22 @@ app.get(
   }
 );
 
+/**
+ * Home Page.
+ * @swagger
+ * /home:
+ *   get:
+ *     summary: Home Page
+ *     description: Renders the home page for signed-in users.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 app.get(
   '/home',
   pageAclCheck(PageType.SignedIn),
@@ -309,6 +379,18 @@ app.get(
   }
 );
 
+/**
+ * Sign Out.
+ * @swagger
+ * /signout:
+ *   get:
+ *     summary: Sign Out
+ *     description: Signs out the user and redirects to the entrance path.
+ *     tags: [Pages]
+ *     responses:
+ *       307:
+ *         description: Redirects to entrance path
+ */
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
@@ -331,17 +413,91 @@ app.use('/.well-known', wellKnown);
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: {policy: 'cross-origin'},
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   }),
   express.static(path.join(config.dist_root_file_path, 'shared/public'))
 );
 
+// Documentation Routes
+app.get(
+  '/docs',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    res.render('docs.html', {
+      title: 'Documentation',
+      layout: 'simple',
+    });
+  }
+);
+
+app.use('/docs/endpoints', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(
+  '/docs/apis',
+  express.static(path.join(config.dist_root_file_path, 'docs/apis'))
+);
+
+app.get(
+  '/docs/guides/:page',
+  pageAclCheck(PageType.NoAuth),
+  async (req: Request, res: Response): Promise<void> => {
+    const { page } = req.params;
+    let filePath = '';
+
+    if (page === 'readme') {
+      filePath = path.join(config.project_root_file_path, 'README.md');
+    } else if (page === 'contributing') {
+      filePath = path.join(config.project_root_file_path, 'CONTRIBUTING.md');
+    } else {
+      res.status(404).send('Guide not found');
+      return;
+    }
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const htmlContent = await marked.parse(content);
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Guide: ${page}</title>
+            <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css"/>
+            <style>
+              body { padding: 20px; max-width: 800px; margin: 0 auto; }
+              img { max-width: 100%; }
+            </style>
+          </head>
+          <body class="mdui-typo">
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send('Error reading guide');
+    }
+  }
+);
+
 // After successfully registering all routes, add a health check endpoint.
 // Do it last, as previous routes may throw errors during start-up.
+/**
+ * Health Check.
+ * @swagger
+ * /__health-check:
+ *   get:
+ *     summary: Health Check
+ *     description: Returns 200 OK if server is healthy.
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
 app.get('/__health-check', (req: Request, res: Response): void => {
   res.send('OK');
 });
 
+
 app.listen(config.port, (): void => {
-  console.log(`Server listening at ${config.origin}`);
+  logger.info(`Server listening at ${config.origin}`);
 });

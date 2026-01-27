@@ -57,47 +57,23 @@ or other ports that you specify in the `rp-localhost.config.json` and `idp-local
 You can use this code base to try and experiment with new ideas. To add a new
 sign-in flow, follow the instructions below.
 
-### Determine the path
+1. Determine the path. e.g. `/sign-in`
+2. Add a new HTML template under `src/shared/views`. e.g. `src/shared/views/sign-in.html`
+3. Add a TypeScript file under `src/client/pages`. e.g. `src/client/pages/sign-in.ts`.
+4. Layout template is `src/client/layout.html`. The partial templates are under `src/shared/views/partials`.
+5. Add a server behavior at `src/server/app.ts`. e.g.
+    ```ts
+    app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
+      res.render('sign-in.html', {
+        title: 'Password',
+        layout: 'password',
+      });
+    });
+    ```
 
-For example, `/sign-in`.
+### Use `pageAclCheck` middleware for pages
 
-### Add a new HTML template
-
-To add a new HTML template, create a file under `src/shared/views`.
-
-For example, `src/shared/views/sign-in.html`.
-
-### Add a TypeScript file
-
-To add a TypeScript file that runs on the HTML template, create a file under
-`src/client/pages`.
-
-For example, `src/client/pages/sign-in.ts`.
-
-### Where to find layout templates
-
-The layout template is at `src/client/layout.html`. The partial templates are
-under `src/shared/views/partials`.
-
-### Add a server behavior
-
-To access the HTML on the browser, you need to add a path to the server as well.
-Add a server behavior in `src/server/app.ts`.
-
-For example, to add a behavior for `/sign-in`, add a code like so:
-
-```ts
-app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
-  res.render('password.html', {
-    title: 'Password',
-    layout: 'password',
-  });
-});
-```
-
-#### `pageAclCheck`
-
-Define the type of the page from the following list with `pageAclCheck`.
+Unless this is a public page, use the `pageAclCheck` middleware to specify ACL.
 
 ```ts
 export enum PageType {
@@ -112,11 +88,11 @@ export enum PageType {
 }
 ```
 
-The `pageAclCheck` middleware automatically redirects users in a wrong sign-in status.
+The `pageAclCheck` middleware automatically redirects the user if they need to be signed in to access this page etc.
 
-#### `apiAclCheck`
+### Use `apiAclCheck` middleware for APIs
 
-Define the type of the API from the following list with `apiAclCheck`.
+Unless this is a public API, use the `apiAclCheck` middleware to specify ACL.
 
 ```ts
 export enum ApiType {
@@ -131,11 +107,11 @@ export enum ApiType {
 }
 ```
 
-The `apiAclCheck` middleware automatically blocks users in a wrong sign-in status.
+The `apiAclCheck` middleware automatically blocks requests with insuffcient privilege.
 
-#### Start a session
+### Start a session
 
-You can start a session for the user by verifying the authentication credential.
+Start a session after the user successfully signed in.
 Create or use a middleware under `src/server/middlewares`.
 
 For example, if the you want to check a password at `/auth/sign-in`, create the
@@ -152,7 +128,7 @@ router.post('/sign-in', apiAclCheck(ApiType.Authentication), async (req: Request
   const user = await Users.validatePassword(username, password);
   if (user) {
     // Set the user as a signed in status
-    setSessionUser(user, req, res);
+    new SessionService(req.session).setSessionUser(user);
 
     return res.json(user);
   } else {

@@ -28,6 +28,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import {fedcmCheck, getTime} from '../middlewares/common.ts';
 import {ApiType, apiAclCheck} from '../libs/session.ts';
+import { logger } from '../libs/logger.ts';
 
 const router = Router();
 
@@ -46,6 +47,35 @@ router.use(
   })
 );
 
+/**
+ * Get FedCM configuration.
+ * @swagger
+ * /fedcm/config.json:
+ *   get:
+ *     summary: FedCM Configuration
+ *     description: Returns the FedCM configuration file required for the IDP.
+ *     tags: [FedCM]
+ *     responses:
+ *       200:
+ *         description: Configuration object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accounts_endpoint:
+ *                   type: string
+ *                 client_metadata_endpoint:
+ *                   type: string
+ *                 id_assertion_endpoint:
+ *                   type: string
+ *                 disconnect_endpoint:
+ *                   type: string
+ *                 login_url:
+ *                   type: string
+ *                 branding:
+ *                   type: object
+ */
 router.get(
   '/config.json',
   apiAclCheck(ApiType.NoAuth),
@@ -70,6 +100,36 @@ router.get(
   }
 );
 
+/**
+ * Get FedCM accounts.
+ * @swagger
+ * /fedcm/accounts:
+ *   get:
+ *     summary: List Accounts
+ *     description: Returns a list of accounts for FedCM.
+ *     tags: [FedCM]
+ *     responses:
+ *       200:
+ *         description: Accounts list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accounts:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       picture:
+ *                         type: string
+ * */
 router.get(
   '/accounts',
   fedcmCheck,
@@ -95,6 +155,27 @@ router.get(
   }
 );
 
+/**
+ * Get FedCM client metadata.
+ * @swagger
+ * /fedcm/metadata:
+ *   get:
+ *     summary: Client Metadata
+ *     description: Returns metadata URLs for the IDP, such as privacy policy and terms of service.
+ *     tags: [FedCM]
+ *     responses:
+ *       200:
+ *         description: Metadata URLs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 privacy_policy_url:
+ *                   type: string
+ *                 terms_of_service_url:
+ *                   type: string
+ */
 router.get(
   '/metadata',
   apiAclCheck(ApiType.NoAuth),
@@ -106,6 +187,41 @@ router.get(
   }
 );
 
+/**
+ * Issue an identity assertion.
+ * @swagger
+ * /fedcm/idtokens:
+ *   post:
+ *     summary: Issue ID Token
+ *     description: Verifies the request and issues an ID token for FedCM.
+ *     tags: [FedCM]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - client_id
+ *               - nonce
+ *               - account_id
+ *             properties:
+ *               client_id:
+ *                 type: string
+ *               nonce:
+ *                 type: string
+ *               account_id:
+ *                 type: string
+ *               consent_acquired:
+ *                 type: string
+ *               disclosure_text_shown:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: ID Token issued
+ *       400:
+ *         description: Bad request or validation failure
+ */
 router.post(
   '/idtokens',
   fedcmCheck,
@@ -121,7 +237,7 @@ router.post(
     const {user} = res.locals;
 
     if (!idp_info) {
-      console.log("I am not a registrable IdP: ", config.origin)
+      logger.warn("I am not a registrable IdP: ", config.origin)
       res.status(400).json({ error: 'I am not a registrable IdP: ' });
       return;
     }
@@ -130,21 +246,21 @@ router.post(
     // Error when: the RP is not registered.
     if (!rp) {
       const message = `RP not registered. Client ID: ${client_id}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
     // Error when: The RP URL matches the requesting origin.
     if (!compareUrls(rp.origin, req.headers.origin)) {
       const message = `RP origin doesn't match: ${rp.origin}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
     // Error when: the account does not match who is currently signed in.
     if (account_id !== user.id) {
       const message = `Account ID doesn't match: ${account_id}`;
-      console.error(message);
+      logger.error(message);
       res.status(400).json({ error: message });
       return;
     }
@@ -154,7 +270,7 @@ router.post(
       (consent_acquired === 'true' || disclosure_text_shown === 'true') &&
       (!user.approved_clients || !user.approved_clients.includes(rp.client_id))
     ) {
-      console.log('The user is registering to the RP.');
+      logger.info('The user is registering to the RP.');
       // Add the current RP as an approved client to sign in with this account
       if (!user.approved_clients) {
         user.approved_clients = [];
@@ -164,7 +280,7 @@ router.post(
         await Users.update(user);
       }
     } else {
-      console.log('The user is signing in to the RP.');
+      logger.info('The user is signing in to the RP.');
     }
 
     // if (user.status === '') {
@@ -206,6 +322,36 @@ router.post(
   }
 );
 
+/**
+ * Disconnect a client.
+ * @swagger
+ * /fedcm/disconnect:
+ *   post:
+ *     summary: Disconnect Client
+ *     description: Revokes the user's approval for a specific client (RP).
+ *     tags: [FedCM]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - client_id
+ *               - account_hint
+ *             properties:
+ *               client_id:
+ *                 type: string
+ *               account_hint:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Disconnected successfully
+ *       400:
+ *         description: Client not connected or bad request
+ *       401:
+ *         description: Account hint mismatch
+ */
 router.post(
   '/disconnect',
   fedcmCheck,
@@ -217,7 +363,7 @@ router.post(
 
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
-      console.error("Account hint doesn't match.");
+      logger.error("Account hint doesn't match.");
       res.status(401).json({ error: "Account hint doesn't match." });
       return;
     }
@@ -229,7 +375,7 @@ router.post(
 
     // Use .includes() for arrays, not .has()
     if (!user.approved_clients.includes(client_id)) {
-      console.error('The client is not connected.');
+      logger.error('The client is not connected.');
       res.status(400).json({ error: 'The client is not connected.' });
       return;
     }

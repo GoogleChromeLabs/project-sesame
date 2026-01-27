@@ -28,6 +28,22 @@ router.get('/', (req: Request, res: Response): void => {
   return res.redirect(307, '/home');
 });
 
+/**
+ * Passkey Settings Page.
+ * @swagger
+ * /settings/passkeys:
+ *   get:
+ *     summary: Passkey Settings
+ *     description: Renders the passkey management page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/passkeys',
   pageAclCheck(PageType.Sensitive),
@@ -38,6 +54,22 @@ router.get(
   }
 );
 
+/**
+ * Password Change Page.
+ * @swagger
+ * /settings/password-change:
+ *   get:
+ *     summary: Password Change
+ *     description: Renders the password change page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/password-change',
   pageAclCheck(PageType.Sensitive),
@@ -50,6 +82,22 @@ router.get(
   }
 );
 
+/**
+ * Identity Providers Settings Page.
+ * @swagger
+ * /settings/identity-providers:
+ *   get:
+ *     summary: Identity Providers
+ *     description: Renders the identity providers settings page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/identity-providers',
   pageAclCheck(PageType.SignedIn),
@@ -60,6 +108,22 @@ router.get(
   }
 );
 
+/**
+ * Delete Account Page.
+ * @swagger
+ * /settings/delete-account:
+ *   get:
+ *     summary: Delete Account
+ *     description: Renders the delete account page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/delete-account',
   pageAclCheck(PageType.Sensitive),

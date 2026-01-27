@@ -1,0 +1,15 @@
+{
+  "entryPoints": [
+    "src/client",
+    "src/shared"
+  ],
+  "out": "dist/docs/apis",
+  "name": "Project Sesame Code Reference",
+  "readme": "README.md",
+  "tsconfig": "tsconfig.doc.json",
+  "entryPointStrategy": "expand",
+  "skipErrorChecking": true,
+  "exclude": [
+    "**/*.test.ts"
+  ]
+}
