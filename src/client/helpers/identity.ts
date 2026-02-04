@@ -18,7 +18,7 @@
 import {$, post} from '~project-sesame/client/helpers/index';
 import {saveFederation} from '~project-sesame/client/helpers/federated';
 
-interface FedCmOptions {
+export interface FedCmOptions {
   mode?: 'active' | 'passive';
   loginHint?: string;
   context?: string;
