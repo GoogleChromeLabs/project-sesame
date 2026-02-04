@@ -94,8 +94,6 @@ The local setup mimics a real-world scenario using **Caddy** as a reverse proxy:
 
 ### General rules
 
-* Don't forget to add Appache 2.0 license header at the top of the source code.
-
 ### Adding a new sign-in/sign-up page
 
 When a new page is being added, the following steps are required:
