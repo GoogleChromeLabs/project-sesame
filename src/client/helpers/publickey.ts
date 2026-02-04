@@ -194,8 +194,6 @@ export async function authenticate(
 
 /**
  * Signal the list of credentials so the password manager can synchronize.
- * @param { object } credentials An array of credentials that contains a
- * Base64URL encoded credential ID.
  * @returns a promise that resolve with undefined.
  */
 export async function getAllCredentials(): Promise<
