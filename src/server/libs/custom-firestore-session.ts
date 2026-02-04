@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {FOREVER, getTime} from '../middlewares/common.ts';
+import { ALLOW_LISTED_FOREVER, getTime } from '../middlewares/common.ts';
 import {Session, SessionData} from 'express-session';
 import {config} from '../config.ts';
 import {FirestoreStore, StoreOptions} from '@google-cloud/connect-firestore';
@@ -62,7 +62,7 @@ export class CustomFirestoreStore extends FirestoreStore {
     // config.long_session_duration is expected to be in milliseconds.
     let expiresAt: number;
     if (config.allowlisted_accounts.includes(username)) {
-      expiresAt = getTime(FOREVER);
+      expiresAt = getTime(ALLOW_LISTED_FOREVER);
     } else {
       expiresAt = getTime(config.long_session_duration);
     }

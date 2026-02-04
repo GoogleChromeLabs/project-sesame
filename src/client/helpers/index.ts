@@ -213,7 +213,7 @@ export async function post(
 /**
  * Dialog controller
  */
-class SesameDialog {
+export class SesameDialog {
   dialog: Dialog;
 
   constructor() {
@@ -242,7 +242,7 @@ export const dialog = new SesameDialog();
 /**
  * Indicate loading status using a material progress web component.
  */
-class Loading {
+export class Loading {
   progress: LinearProgress;
 
   constructor() {

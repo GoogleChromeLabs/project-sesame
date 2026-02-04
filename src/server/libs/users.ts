@@ -16,13 +16,14 @@
  */
 
 import {Base64URLString} from '@simplewebauthn/server';
+import { Timestamp } from 'firebase-admin/firestore';
 
 import {
   generateRandomString,
   getGravatarUrl,
 } from '~project-sesame/server/libs/helpers.ts';
 import {config} from '~project-sesame/server/config.ts';
-import {getTime, FOREVER} from '~project-sesame/server/middlewares/common.ts';
+import { getTime, ALLOW_LISTED_FOREVER } from '~project-sesame/server/middlewares/common.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 import {FederationMappings} from './federation-mappings.ts';
@@ -39,8 +40,8 @@ export interface User {
   picture?: string;
   password?: string;
   passkeyUserId?: PasskeyUserId;
-  registeredAt: number;
-  expiresAt: number;
+  registeredAt: Timestamp;
+  expiresAt: Timestamp;
   approved_clients: string[];
 }
 
@@ -92,12 +93,12 @@ export class Users {
       passkeyUserId: passkey_user_id = generatePasskeyUserId(),
     } = options;
 
-    const registeredAt = getTime();
-    let expiresAt: number;
+    const registeredAt = Timestamp.fromMillis(getTime());
+    let expiresAt: Timestamp;
     if (config.allowlisted_accounts.includes(username)) {
-      expiresAt = getTime(FOREVER);
+      expiresAt = Timestamp.fromMillis(getTime(ALLOW_LISTED_FOREVER));
     } else {
-      expiresAt = getTime(config.account_retention_duration);
+      expiresAt = Timestamp.fromMillis(getTime(config.account_retention_duration));
     }
 
     // TODO: Check duplicates
@@ -225,10 +226,10 @@ export class Users {
    */
   static async deleteOldUsers(): Promise<void> {
     logger.info('All users eviction started...');
-    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const retentionDuration = new Date(Date.now() - config.account_retention_duration);
     const users = await store
       .collection(Users.collection)
-      .where('registeredAt', '<', twoDaysAgo.getTime())
+      .where('registeredAt', '<', Timestamp.fromDate(retentionDuration))
       .get();
     for (const user of users.docs) {
       await Users.delete(user.id);
