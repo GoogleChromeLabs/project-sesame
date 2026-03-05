@@ -1,8 +1,18 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="description" content="{{description}}">
 <link id="favicon" rel="icon" href="/images/favicon.svg" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" as="style">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+<link rel="preload" href="https://fonts.googleapis.com/icon?family=Rubik" as="style">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Rubik">
+<link rel="preload"
+  href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400&family=Google+Sans:wght@500&display=swap"
+  as="style">
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400&family=Google+Sans:wght@500&display=swap">
+<link href="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css" rel="stylesheet">
 <!--TODO: Conditionalize meta data-->
 <meta name="nonce" content="{{nonce}}">
 <!-- <script type="speculationrules">
@@ -21,3 +31,9 @@
 {{#each origin_trials}}
 <meta http-equiv="origin-trial" content="{{this}}">
 {{/each}}
+{{#if analytics_id}}
+<meta name="analytics-id" content="{{analytics_id}}">
+{{/if}}
+<script src="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js"
+  data-glue-cookie-notification-bar-category="2A">
+  </script>
