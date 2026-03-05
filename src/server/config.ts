@@ -27,12 +27,11 @@ import { logger } from '~project-sesame/server/libs/logger.ts';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = 
-process.env.NODE_ENV === 'localhost' 
+const is_localhost = process.env.NODE_ENV === 'localhost';
 
-const is_mock_cross_site = 
-process.env.NODE_ENV === 'idp-localhost' 
-|| process.env.NODE_ENV === 'rp-localhost';
+const is_mock_cross_site =
+  process.env.NODE_ENV === 'idp-localhost' ||
+  process.env.NODE_ENV === 'rp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -114,6 +113,7 @@ const {
   csp,
   supported_idps = [],
   enabled_pages,
+  analytics_id,
 } = (
   await import(path.join(project_root_file_path, `${env}.config.json`), {
     with: {type: 'json'},
@@ -135,7 +135,8 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-const domain = port === 8081 || is_mock_cross_site ? hostname : `${hostname}:${port}`;
+const domain =
+  port === 8081 || is_mock_cross_site ? hostname : `${hostname}:${port}`;
 const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
 associated_domains.push({
@@ -186,6 +187,6 @@ export const config = {
   },
   supported_idps,
   enabled_pages,
+  analytics_id,
 };
 logger.info('Project Sesame configuration', config);
-

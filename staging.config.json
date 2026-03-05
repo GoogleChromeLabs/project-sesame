@@ -27,16 +27,26 @@
   ],
   "rp_name": "Project Sesame",
   "project_name": "project-sesame-426206",
-  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
+  "allowlisted_accounts": [
+    "agektmr",
+    "chromedemojp@gmail.com",
+    "johnzoeller"
+  ],
   "csp": {
     "connect_src": [
       "https://sesame-identity-provider.appspot.com",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
-      "https://accounts.sandbox.google.com"
+      "https://accounts.sandbox.google.com",
+      "https://www.gstatic.com"
     ],
-    "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
-    "frame_src": ["https://accounts.google.com/gsi/"],
+    "font_src": [
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com"
+    ],
+    "frame_src": [
+      "https://accounts.google.com/gsi/"
+    ],
     "img_src": [
       "https://www.gravatar.com",
       "https://gravatar.com",
@@ -46,13 +56,18 @@
     ],
     "script_src": [
       "https://sesame-identity-provider.appspot.com",
-      "https://accounts.google.com/gsi/client"
+      "https://accounts.google.com/gsi/client",
+      "https://www.gstatic.com"
     ],
     "style_src": [
       "https://accounts.google.com/gsi/style",
-      "https://fonts.googleapis.com/icon"
+      "https://fonts.googleapis.com/icon",
+      "https://www.gstatic.com"
     ],
-    "style_src_elem": ["https://fonts.googleapis.com/icon"]
+    "style_src_elem": [
+      "https://fonts.googleapis.com",
+      "https://www.gstatic.com"
+    ]
   },
   "supported_idps": [
     {
@@ -84,5 +99,6 @@
       "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
       "secret": "*****"
     }
-  ]
+  ],
+  "analytics_id": "G-V64M3LXRDX"
 }
