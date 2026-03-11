@@ -16,6 +16,11 @@
  */
 import './styles/main.scss';
 
+import '~project-sesame/client/helpers/analytics';
+import {initAnalytics} from '~project-sesame/client/helpers/analytics';
+
+initAnalytics();
+
 import 'mdui/components/top-app-bar.js';
 import 'mdui/components/top-app-bar-title.js';
 import 'mdui/components/navigation-drawer.js';
