@@ -45,7 +45,7 @@ export function initAnalytics() {
   if (measurementId) {
     gtag('config', measurementId);
   } else {
-    // console.warn('Google Analytics Measurement ID not found.');
+    console.warn('Google Analytics Measurement ID not found.');
   }
 
   const initCookieBar = () => {
@@ -57,9 +57,7 @@ export function initAnalytics() {
       return;
     }
 
-    function updateCookieBtn(status: string) {
-      const cookieBtn = $('#manage-cookies-btn');
-
+    function updateConsent(status: string) {
       if (status === CookieNotificationBarStatus.ACCEPTED) {
         gtag('consent', 'update', {
           analytics_storage: 'granted',
@@ -71,24 +69,18 @@ export function initAnalytics() {
           script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
           document.head.appendChild(script);
         }
-        if (cookieBtn) {
-          cookieBtn.style.display = 'none';
-        }
       } else {
         gtag('consent', 'update', {
           analytics_storage: 'denied',
         });
-        if (cookieBtn) {
-          cookieBtn.style.display = status === CookieNotificationBarStatus.REJECTED ? 'block' : 'none';
-        }
       }
     }
     // Listen for changes
     instance.listen('statuschange', (event: any) => {
-      updateCookieBtn(event.detail.status);
+      updateConsent(event.detail.status);
     });
 
-    updateCookieBtn(instance.status);
+    updateConsent(instance.status);
   };
 
   if (window.glue && window.glue.CookieNotificationBar && window.glue.CookieNotificationBar.instance) {
