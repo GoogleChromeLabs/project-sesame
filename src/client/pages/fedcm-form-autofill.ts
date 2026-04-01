@@ -73,11 +73,10 @@ async function fedcm() {
         'https://sesame-identity-provider.appspot.com',
         'https://issuer.sgo.to',
       ]);
-      const nonce = await idp.initialize();
+      await idp.initialize();
       await idp.signIn({
         // @ts-ignore
         mediation: 'conditional',
-        nonce,
       });
       await redirect('/home');
     } catch (error: any) {

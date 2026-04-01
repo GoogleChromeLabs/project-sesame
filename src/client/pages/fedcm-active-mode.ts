@@ -22,14 +22,11 @@ import {SesameIdP} from '~project-sesame/client/helpers/identity';
 const fedcm = new SesameIdP(['https://sesame-identity-provider.appspot.com']);
 await fedcm.initialize();
 const google = new SesameIdP(['https://accounts.google.com']);
-// `.initialize()` function returns a `nonce`. Since there are multiple
-// `.initialize()` functions called in this page, only the last one will be
-// recorded in the session. Use the last `nonce` for all `.signIn()` functions.
-const nonce = await google.initialize();
+await google.initialize();
 
 const signIn = async (idp: SesameIdP) => {
   try {
-    await idp.signIn({mode: 'active', nonce});
+    await idp.signIn({ mode: 'active' });
     await redirect('/home');
   } catch (e: any) {
     console.error(e);

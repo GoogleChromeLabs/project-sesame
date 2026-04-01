@@ -229,10 +229,12 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     const {
       client_id,
-      nonce,
       account_id,
       consent_acquired,
       disclosure_text_shown,
+      is_auto_selected,
+      fields,
+      params,
     } = req.body;
     const {user} = res.locals;
 
@@ -289,7 +291,7 @@ router.post(
         iss: config.origin,
         sub: user.id,
         aud: client_id,
-        nonce,
+        nonce: params.nonce,
         exp: getTime(config.id_token_lifetime),
         iat: getTime(),
         name: `${user.displayName}`,

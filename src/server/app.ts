@@ -264,8 +264,10 @@ app.get(
   '/fedcm-form-autofill',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
     return res.render('fedcm-form-autofill.html', {
       title: 'Identifier-first form',
+      nonce,
     });
   }
 );
@@ -317,8 +319,10 @@ app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
     res.render('fedcm-active-mode.html', {
       title: 'FedCM active mode',
+      nonce,
     });
   }
 );
@@ -327,8 +331,10 @@ app.get(
   '/fedcm-passive-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
     res.render('fedcm-passive-mode.html', {
       title: 'FedCM passive mode',
+      nonce,
     });
   }
 );
