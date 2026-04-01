@@ -27,7 +27,7 @@ patterns.
 
 * [Node.js 22+](https://nodejs.org/)
 * [gcloud CLI](https://cloud.google.com/sdk/docs/install)
-* [Java JDK 11+](https://jdk.java.net/)
+* [Java JDK 21+](https://jdk.java.net/)
 
 ### Install
 
