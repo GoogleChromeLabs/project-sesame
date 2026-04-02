@@ -85,7 +85,7 @@ router.get(
       client_metadata_endpoint: '/fedcm/metadata',
       id_assertion_endpoint: '/fedcm/idtokens',
       disconnect_endpoint: '/fedcm/disconnect',
-      login_url: '/passkey-form-autofill',
+      login_url: config.idp_login_path,
       branding: {
         background_color: '#6200ee',
         color: '#ffffff',

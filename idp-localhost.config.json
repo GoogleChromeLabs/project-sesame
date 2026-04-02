@@ -13,21 +13,39 @@
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com",
       "wss://localhost:3000",
-      "wss://localhost:3001"
+      "wss://localhost:3001",
+      "https://www.gstatic.com"
     ],
-    "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
-    "frame_src": ["https://accounts.google.com/gsi/"],
-    "img_src": ["https://www.gravatar.com", "https://gravatar.com"],
+    "font_src": [
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com"
+    ],
+    "frame_src": [
+      "https://accounts.google.com/gsi/"
+    ],
+    "img_src": [
+      "https://www.gravatar.com",
+      "https://gravatar.com",
+      "https://accounts.google.com/gsi-static",
+      "https://cdn.glitch.global",
+      "https://lh3.googleusercontent.com"
+    ],
     "script_src": [
-      "https://idp.localhost",
+      "https://sesame-identity-provider.appspot.com",
       "https://rp.localhost",
-      "https://accounts.google.com/gsi/client"
+      "https://idp.localhost",
+      "https://accounts.google.com/gsi/client",
+      "https://www.gstatic.com"
     ],
     "style_src": [
       "https://accounts.google.com/gsi/style",
-      "https://fonts.googleapis.com"
+      "https://fonts.googleapis.com",
+      "https://www.gstatic.com"
     ],
-    "style_src_elem": ["https://fonts.googleapis.com/icon"]
+    "style_src_elem": [
+      "https://fonts.googleapis.com",
+      "https://www.gstatic.com"
+    ]
   },
   "supported_idps": [
     {

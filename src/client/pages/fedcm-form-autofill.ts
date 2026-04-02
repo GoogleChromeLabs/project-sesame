@@ -71,6 +71,7 @@ async function fedcm() {
       const idp = new SesameIdP([
         'https://accounts.google.com',
         'https://sesame-identity-provider.appspot.com',
+        'https://idp.localhost',
         'https://issuer.sgo.to',
       ]);
       await idp.initialize();
