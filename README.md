@@ -16,7 +16,7 @@ limitations under the License.
 
 # Project Sesame
 
-Project Sesame is an open-source demo web application built with node.js,
+Project Sesame is an open-source demo web application built with Node.js,
 designed to provide a hands-on environment for web developers to explore,
 experiment and learn a wide range of identity and authentication features and
 patterns.
@@ -35,7 +35,7 @@ patterns.
 npm ci
 ```
 
-### Bulid
+### Build
 
 ```shell
 npm run build
@@ -43,14 +43,17 @@ npm run build
 
 ### Run
 
-This command will run emulator, RP and IdP projects, and Caddy proxy:
+This command will run the emulator, RP and IdP projects, and Caddy proxy:
 
 ```shell
-sudo npm run dev:local
+npm run dev:local
 ```
 
-Caddy should proxy from [https://rp.localhost](https://rp.localhost) to `localhost:8080` and [https://idp.localhost](https://idp.localhost) to `localhost:8000`, 
+Caddy should proxy from https://rp.localhost to `localhost:8080` and https://idp.localhost to `localhost:8000`, 
 or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
+
+> [!NOTE]
+> `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
 
 ## Adding a new sign-in flow
 
