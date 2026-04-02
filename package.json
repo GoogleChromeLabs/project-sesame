@@ -73,7 +73,7 @@
     "build": "npm run clean && npm run build:client && npm run build:server && npm run docs:build",
     "dev:server": "nodemon --watch 'src/server/*' -e ts,html --exec 'node esbuild.config.mjs && PROXY=true node --enable-source-maps dist/server/app.js'",
     "dev:client": "npx rsbuild dev",
-    "dev": "npm run dev:client & NODE_ENV=localhost npm run dev:server",
+    "dev": "concurrently -k -n \"EMU,CLIENT,SERVER\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:client\" \"wait-on tcp:4000 && NODE_ENV=localhost npm run dev:server\"",
     "dev:rp": "npm run dev:client & NODE_ENV=rp-localhost npm run dev:server",
     "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
     "dev:local": "concurrently -k -n \"EMU,RP,IDP,CADDY\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:rp\" \"wait-on tcp:4000 && npm run dev:idp\" \"wait-on tcp:8080 tcp:8000 && ./caddy.sh\"",
