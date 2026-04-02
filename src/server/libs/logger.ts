@@ -36,11 +36,11 @@ export class Logger {
     'key',
     'displayName',
     'email',
-    'name',
+    'username',
   ];
 
   private replacer(key: string, value: any): any {
-    if (Logger.REDACTED_KEYS.some((k) => key.toLowerCase().includes(k.toLowerCase()))) {
+    if (Logger.REDACTED_KEYS.some((k) => key.toLowerCase() === k.toLowerCase())) {
       return '[REDACTED]';
     }
     return value;
@@ -74,7 +74,7 @@ export class Logger {
       }
     }
 
-    console.log(JSON.stringify(entry, this.replacer));
+    console.log(JSON.stringify(entry, this.replacer, "  "));
   }
 
   debug(message: string, data?: any) {
