@@ -6,14 +6,13 @@
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "wss://idp.localhost",
-      "https://idp.localhost",
+      "wss://localhost:3000",
+      "wss://localhost:3001",
+      "https://sesame-identity-provider.appspot.com",
       "https://rp.localhost",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com",
-      "wss://localhost:3000",
-      "wss://localhost:3001",
       "https://www.gstatic.com"
     ],
     "font_src": [

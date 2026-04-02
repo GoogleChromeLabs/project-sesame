@@ -19,7 +19,12 @@ import '~project-sesame/client/layout';
 import {$, toast, redirect} from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
-const fedcm = new SesameIdP(['https://sesame-identity-provider.appspot.com']);
+let fedcm;
+if (location.host.indexOf('rp.localhost') > -1) {
+  fedcm = new SesameIdP(['https://idp.localhost']);
+} else {
+  fedcm = new SesameIdP(['https://identity-provider-sesame.appspot.com']);
+}
 await fedcm.initialize();
 const google = new SesameIdP(['https://accounts.google.com']);
 await google.initialize();

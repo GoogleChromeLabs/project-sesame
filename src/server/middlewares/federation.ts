@@ -223,7 +223,7 @@ router.post(
         payload = ticket.getPayload();
       } else {
         logger.debug(
-          'verify',
+          'Verifying ID Token',
           {
             token: raw_token,
             secret: idp.secret,

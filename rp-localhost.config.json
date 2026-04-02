@@ -27,8 +27,6 @@
       "wss://localhost:3000",
       "wss://localhost:3001",
       "https://sesame-identity-provider.appspot.com",
-      "wss://rp.localhost",
-      "https://rp.localhost",
       "https://idp.localhost",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
