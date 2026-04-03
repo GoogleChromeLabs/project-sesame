@@ -167,7 +167,7 @@ export class SesameIdP {
       token: cred.token,
       url: idp.origin,
     });
-    await saveFederation(user, idp.configURL);
+    // await saveFederation(user, idp.configURL);
     return user;
   }
 
