@@ -205,7 +205,7 @@ export class SessionService {
       user,
     } = this.session;
 
-    logger.debug('Session content:', this.session);
+    logger.debug('Session content', this.session);
 
     if (!user) {
       // TODO: This path is deprecating
@@ -272,6 +272,7 @@ export function initializeSession() {
     cookie: {
       path: '/',
       httpOnly: true,
+      sameSite: 'none',
       secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },
@@ -427,11 +428,13 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
     if (apiType === ApiType.SigningUp) {
       if (signin_status !== UserSignInStatus.SigningUp) {
         // Unless the user is signing up, this is an invalid access
+        logger.debug("The user is already signed in.");
         return res.status(400).json({ error: 'The user is already signed in.' });
       }
       // The user is authenticating or reauthenticating
     } else if (apiType === ApiType.SignIn) {
       if (signin_status !== UserSignInStatus.SignedOut) {
+        logger.debug("Invalid request.");
         return res.status(400).json({ error: 'Invalid request.' });
       }
       // The user is signing in and submitting a credential.
@@ -440,30 +443,33 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
         signin_status !== UserSignInStatus.SigningIn &&
         signin_status !== UserSignInStatus.SignedIn
       ) {
+        logger.debug("The user is not signing in.")
         return res.status(400).json({ error: 'The user is not signing in.' });
       }
       // The user must be signed in.
     } else if (apiType === ApiType.SignedIn) {
       if (signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
+        logger.debug("The user is not signed in.")
         return res.status(401).json({ error: 'The user is not signed in.' });
       }
       // The user must be recently signed in.
     } else if (apiType === ApiType.Sensitive) {
       if (signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
+        logger.debug("The user is not signed in.")
         return res.status(401).json({ error: 'The user is not signed in.' });
       }
       if (signin_status < UserSignInStatus.RecentlySignedIn) {
         // If the user has not authenticated recently, request a reauth.
+        logger.debug("Insufficient privilege.")
         return res.status(401).json({ error: 'Insufficient privilege.' });
       }
       // The user is about to register a new passkey upon sign-up or .
     } else if (apiType === ApiType.PasskeyRegistration) {
       if (signin_status < UserSignInStatus.SigningUp) {
-        res
-          .status(400)
-          .json({ error: 'Invalid request. User is not signing up.' });
+        logger.debug("Invalid request. User is not signing up.")
+        return res.status(400).json({ error: 'Invalid request. User is not signing up.' });
       }
     }
     return next();
@@ -482,8 +488,10 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
  * @param res - The response object.
  */
 export function setSignedIn(user: User, req: Request, res: Response): void {
+  delete user.password;
   new SessionService(req.session).setSignedIn(user);
   // Set a login status using the Login Status API
+  logger.debug(`The user logged in as ${user.username}`)
   res.set('Set-Login', 'logged-in');
   return;
 }
@@ -502,6 +510,7 @@ export function setSignedOut(req: Request, res: Response) {
   new SessionService(req.session).setSignedOut();
 
   // Set a login status using the Login Status API
+  logger.debug("The user logged out.")
   res.set('Set-Login', 'logged-out');
   return;
 }

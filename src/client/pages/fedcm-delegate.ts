@@ -44,12 +44,11 @@ if (window.IdentityCredential) {
       'https://accounts.sandbox.google.com',
       'https://issuer.sgo.to',
     ]);
-    const nonce = await idp.initialize();
+    await idp.initialize();
     await idp.delegate({
       fields: ['name', 'email', 'picture'],
       // @ts-ignore
       mediation: 'conditional',
-      nonce,
     });
     await redirect('/home');
   } catch (error: any) {
