@@ -55,6 +55,16 @@ or other ports that you specify in the `rp-localhost.config.json` and `idp-local
 > [!NOTE]
 > `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
 
+### Useful Chrome flags (optional)
+
+For local testing, you can configure Chrome to ignore warnings and errors related to certificates.
+
+* Launch Chrome with the `--ignore-certificate-errors` command line flag
+* Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` and set its contents to:
+```text
+https://localhost,wss://localhost:3000,https://rp.localhost,wss://rp.localhost,wss://rp.localhost:3000,https://idp.localhost
+```
+
 ## Adding a new sign-in flow
 
 You can use this code base to try and experiment with new ideas. To add a new
