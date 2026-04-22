@@ -43,7 +43,7 @@ async function passkey() {
   if (capabilities?.conditionalGet) {
     try {
       // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-      const user = await authenticate('conditional');
+      const user = await authenticate({ mediation: 'conditional' });
       if (user) {
         // When the user is signed in, redirect to the home page.
         $('#username').value = user.username;
