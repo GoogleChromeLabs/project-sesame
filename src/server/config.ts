@@ -86,15 +86,48 @@ function initializeFirestore() {
 
 // Load the environment specific config file.
 const env = process.env.NODE_ENV || 'localhost';
+
+const defaultConfigPath = path.join(project_root_file_path, 'default.config.json');
+const envConfigPath = path.join(project_root_file_path, `${env}.config.json`);
+
 try {
-  await fs.access(path.join(project_root_file_path, `${env}.config.json`));
+  await fs.access(envConfigPath);
 } catch (e) {
   throw new Error(`"${env}.config.json" not found.`);
 }
+
+const defaultConfig = (await import(defaultConfigPath, { with: { type: 'json' } })).default;
+const envConfig = (await import(envConfigPath, { with: { type: 'json' } })).default;
+
+function mergeConfigs(target: any, source: any) {
+  const result = { ...target };
+  for (const key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+        if (key === 'supported_idps' || key === 'supported_rps') {
+          const map = new Map();
+          [...target[key], ...source[key]].forEach(item => map.set(item.origin, item));
+          result[key] = Array.from(map.values());
+        } else {
+          result[key] = [...new Set([...target[key], ...source[key]])];
+        }
+      } else if (typeof source[key] === 'object' && source[key] !== null && typeof target[key] === 'object' && target[key] !== null) {
+        result[key] = mergeConfigs(target[key], source[key]);
+      } else {
+        result[key] = source[key];
+      }
+    }
+  }
+  return result;
+}
+
+const mergedConfig = mergeConfigs(defaultConfig, envConfig);
+
 const {
   hostname,
   // Set the port number 8081 for AppEngine
   port = is_localhost ? 8080 : 8081,
+  // Associate domains and apps with Digital Asset Links
   associated_domains = [],
   // ID token: 24 hours
   id_token_lifetime = 1000 * 60 * 60 * 24 * 1,
@@ -104,21 +137,23 @@ const {
   long_session_duration = 1000 * 60 * 60 * 24 * 2,
   // Account retention: 48 hours
   account_retention_duration = 1000 * 60 * 60 * 24 * 2,
+  // Exempt accounts from auto deletion
   allowlisted_accounts = [],
   secret = 'set your own secret in the config file',
   session_cookie_name = 'SESAME_SESSION_COOKIE',
+  idp_login_path = '/passkey-form-autofill',
   rp_name,
   project_name,
   origin_trials = [],
   csp,
+  // List of supported IdPs as an RP
   supported_idps = [],
+  // List of supported RPs as an IdP
+  supported_rps = [],
+  // Allowlist pages to render to prevent experimental features from being exposed
   enabled_pages,
   analytics_id,
-} = (
-  await import(path.join(project_root_file_path, `${env}.config.json`), {
-    with: {type: 'json'},
-  })
-).default;
+} = mergedConfig;
 
 const {
   connect_src = [],
@@ -186,6 +221,7 @@ export const config = {
     style_src_elem,
   },
   supported_idps,
+  supported_rps,
   enabled_pages,
   analytics_id,
 };
