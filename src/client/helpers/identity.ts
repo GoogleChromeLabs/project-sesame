@@ -63,9 +63,9 @@ export class SesameIdP {
   /**
    * Initializes the IdP by fetching configuration options from the server.
    * Resolves the config URLs and client IDs for each IdP.
-   * @returns The nonce to be used for authentication.
+   * @returns A promise that resolves when initialization is complete.
    */
-  async initialize() {
+  async initialize(): Promise<void> {
     const options = await post('/federation/options', {
       urls: this.urls,
     });
@@ -82,7 +82,6 @@ export class SesameIdP {
       };
       this.idps.push(idp);
     }
-    return;
   }
 
   /**
