@@ -75,7 +75,6 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     const options = {
       idps: [] as IdentityProviders[],
-      nonce: '' as string | undefined,
     };
     const idps = [];
     const { urls } = req.body;
@@ -93,7 +92,6 @@ router.post(
         idps.push(idp);
       }
       options.idps = idps;
-      options.nonce = new SessionService(req.session).setChallenge();
       res.json(options);
     } catch (e: any) {
       logger.error(e);
@@ -225,7 +223,7 @@ router.post(
         payload = ticket.getPayload();
       } else {
         logger.debug(
-          'verify',
+          'Verifying ID Token',
           {
             token: raw_token,
             secret: idp.secret,
