@@ -34,14 +34,5 @@ export class RelyingParties {
     const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
     const clone = structuredClone(rp);
     return Promise.resolve(clone);
-
-    // // Allow any RPs to register themselves temporarily.
-    // const rp: RelyingParty = {
-    //   origin: client_id,
-    //   client_id,
-    //   name: 'Relying Party',
-    //   secret: 'xxxxx'
-    // };
-    // return Promise.resolve(rp);
   }
 }
