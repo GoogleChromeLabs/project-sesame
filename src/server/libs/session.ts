@@ -154,6 +154,7 @@ export class SessionService {
     this.resetSigningUp();
 
     this.session.last_signedin_at = getTime();
+    delete user.password;
     this.session.user = user;
   }
 
