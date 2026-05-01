@@ -68,7 +68,17 @@ export default defineConfig({
     entry,
   },
   html: {
-    template: './src/client/layout.html',
+    template({ entryName }) {
+      // Specify which entries should use the iframe layout
+      const iframeEntries = ['iframe-federation'];
+
+      if (iframeEntries.includes(entryName)) {
+        return './src/shared/views/layouts/iframe.html';
+      }
+
+      // Default template for all other pages
+      return './src/client/layout.html';
+    },
     title: '{{ title }} | Project Sesame',
   },
   output: {
