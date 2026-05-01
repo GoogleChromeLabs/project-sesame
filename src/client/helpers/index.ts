@@ -331,14 +331,16 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
   const drawer = $('mdui-navigation-drawer');
   const bar = $('mdui-top-app-bar');
 
-  if (e.matches) {
-    // Mobile display
-    bar.style.display = 'flex';
-    drawer.open = false;
-  } else {
-    // Desktop display
-    bar.style.display = 'none';
-    drawer.open = true;
+  if (drawer && bar) {
+    if (e.matches) {
+      // Mobile display
+      bar.style.display = 'flex';
+      drawer.open = false;
+    } else {
+      // Desktop display
+      bar.style.display = 'none';
+      drawer.open = true;
+    }
   }
 }
 
