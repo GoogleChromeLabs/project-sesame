@@ -39,13 +39,19 @@ import { settings } from '~project-sesame/server/middlewares/settings.ts';
 import { webauthn } from '~project-sesame/server/middlewares/webauthn.ts';
 
 import { wellKnown } from '~project-sesame/server/middlewares/well-known.ts';
-import { logger } from '~project-sesame/server/libs/logger.ts';
+import { logger, logContextStorage } from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from '~project-sesame/server/swagger.ts';
 import fs from 'node:fs/promises';
 import { marked } from 'marked';
 
 const app = express();
+
+app.use((req, res, next) => {
+  logContextStorage.run({ path: req.path }, () => {
+    next();
+  });
+});
 
 /**
  * Authentication often needs to add server-side data to the rendered HTML. In order
