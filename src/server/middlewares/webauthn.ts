@@ -15,6 +15,7 @@
  * limitations under the License
  */
 import { Router, Request, Response } from 'express';
+import { logger } from '~project-sesame/server/libs/logger.ts';
 const router = Router();
 // import crypto from 'crypto';
 import {
@@ -438,6 +439,8 @@ router.post(
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
+    logger.debug('WebAuthn registration response', response);
+
     try {
       if (!expectedChallenge) {
         res.status(400).send({ error: 'Invalid challenge' });
@@ -707,6 +710,8 @@ router.post(
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
+
+    logger.debug('WebAuthn sign-in response', response);
 
     try {
       if (!expectedChallenge) {
