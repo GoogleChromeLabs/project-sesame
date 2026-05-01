@@ -499,10 +499,12 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
  */
 export function setSignedIn(user: User, req: Request, res: Response): void {
   delete user.password;
+  logger.debug('Set signed-in');
+
   new SessionService(req.session).setSignedIn(user);
   // Set a login status using the Login Status API
   logger.debug(`The user logged in as ${user.username}`);
-  res.set('Set-Login', 'logged-in');
+  res.setHeader('Set-Login', 'logged-in');
   return;
 }
 
@@ -515,12 +517,14 @@ export function setSignedIn(user: User, req: Request, res: Response): void {
  * @param req - The request object.
  * @param res - The response object.
  */
-export function setSignedOut(req: Request, res: Response) {
+export async function setSignedOut(req: Request, res: Response) {
+  logger.debug('Set signed-out');
+
   // Destroy the session
-  new SessionService(req.session).setSignedOut();
+  await new SessionService(req.session).setSignedOut();
 
   // Set a login status using the Login Status API
   logger.debug('The user logged out.');
-  res.set('Set-Login', 'logged-out');
+  res.setHeader('Set-Login', 'logged-out');
   return;
 }

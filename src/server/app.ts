@@ -409,10 +409,10 @@ app.get(
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response): void => {
+  async (req: Request, res: Response): Promise<void> => {
     const entrancePath = new SessionService(req.session).getEntrancePath();
 
-    setSignedOut(req, res);
+    await setSignedOut(req, res);
 
     res.redirect(307, entrancePath);
   }

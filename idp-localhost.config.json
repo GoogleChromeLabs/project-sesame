@@ -8,15 +8,6 @@
     "connect_src": ["wss://idp.localhost", "https://rp.localhost"],
     "script_src": ["https://rp.localhost"]
   },
-  "supported_idps": [
-    {
-      "name": "FedCM Local IdP",
-      "iconURL": "https://idp.localhost/images/idp-logo-512.png",
-      "origin": "https://idp.localhost",
-      "configURL": "https://idp.localhost/fedcm/config.json",
-      "secret": "xxxxx"
-    }
-  ],
   "supported_rps": [
     {
       "origin": "https://rp.localhost",
