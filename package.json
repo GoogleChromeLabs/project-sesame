@@ -23,7 +23,7 @@
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
     "@radically-straightforward/caddy": "^2.0.6",
-    "@simplewebauthn/server": "13.1.1",
+    "@simplewebauthn/server": "^13.1.1",
     "concurrently": "^9.2.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

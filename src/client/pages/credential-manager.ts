@@ -32,7 +32,7 @@ if (
     async (e: {target: HTMLButtonElement}) => {
       try {
         loading.start();
-        const user = await authenticate('immediate');
+        const user = await authenticate({ ui_mode: 'immediate' });
         if (user) {
           await redirect('/home');
         } else {

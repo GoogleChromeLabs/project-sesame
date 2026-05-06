@@ -15,6 +15,11 @@
  * limitations under the License
  */
 
+/**
+ * Unified authentication helpers.
+ * Handles combined flows for Password, Passkeys, and Federated authentication.
+ */
+
 import {
   capabilities,
   preparePublicKeyRequestOptions,
@@ -25,26 +30,23 @@ import {verifyPassword} from './password';
 
 let controller = new AbortController();
 
-export async function authenticate(
-  mediation: string = 'optional'
+/**
+ * Authenticates the user using a unified prompt (Password, Passkey, or FedCM).
+ * @param {Object} [params] - Authentication parameters.
+ * @param {CredentialMediationRequirement} [params.mediation] - Credential mediation requirement.
+ * @param {CredentialUiMode} [params.ui_mode] - UI mode for the request.
+ * @returns {Promise<PasswordCredential | string | undefined>}
+ */
+export async function authenticate(params?: {
+  mediation?: CredentialMediationRequirement,
   // @ts-ignore
-): Promise<PasswordCredential | string | undefined> {
+  ui_mode?: CredentialUiMode
+  // @ts-ignore
+}): Promise<PasswordCredential | string | undefined> {
   controller.abort();
   controller = new AbortController();
 
-  if (
-    mediation !== 'optional' &&
-    mediation !== 'conditional' &&
-    mediation !== 'immediate' &&
-    mediation !== 'required' &&
-    mediation !== 'silent'
-  ) {
-    throw new Error('Unexpected condition for mediation');
-  }
-
-  const options = await preparePublicKeyRequestOptions(
-    mediation !== 'optional'
-  );
+  const options = await preparePublicKeyRequestOptions(params?.mediation);
 
   try {
     const cred = await navigator.credentials.get({
@@ -56,8 +58,8 @@ export async function authenticate(
       // },
       // temporary experiment for unified auth
       publicKey: options,
-      // @ts-ignore
-      mediation,
+      ...(params?.mediation && { mediation: params.mediation }),
+      ...(params?.ui_mode && { uiMode: params.ui_mode }),
     });
     if (cred?.type === 'password') {
       // @ts-ignore
@@ -94,6 +96,11 @@ export async function authenticate(
   }
 }
 
+/**
+ * Legacy authentication flow (Password and FedCM only).
+ * @param {string} [mediation='optional'] - Mediation requirement.
+ * @returns {Promise<PasswordCredential | string | undefined>}
+ */
 export async function legacyAuthenticate(
   mediation: string = 'optional'
   // @ts-ignore

@@ -28,12 +28,20 @@ import {
 import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';
 import 'webauthn-polyfills';
 
+/**
+ * The client capabilities supported by the browser's WebAuthn implementation.
+ */
 export const capabilities =
   window?.PublicKeyCredential &&
   (await PublicKeyCredential.getClientCapabilities());
 
 let controller = new AbortController();
 
+/**
+ * Fetch passkey creation options from the server and parse them.
+ * @param {boolean} [non_platform=false] - Whether to request non-platform authenticator.
+ * @returns {Promise<PublicKeyCredentialCreationOptions>} A promise that resolves with the parsed options.
+ */
 export async function preparePublicKeyCreationOptions(
   non_platform = false
 ): Promise<PublicKeyCredentialCreationOptions> {
@@ -47,6 +55,13 @@ export async function preparePublicKeyCreationOptions(
   return PublicKeyCredential.parseCreationOptionsFromJSON(options);
 }
 
+/**
+ * Send the credential creation result to the server for verification.
+ * @param {PublicKeyCredential} cred - The created credential.
+ * @param {string} [rpId=''] - The Relying Party ID.
+ * @param {boolean} conditional - Whether the request was conditional.
+ * @returns {Promise<any>} A promise that resolves with the server response.
+ */
 export async function verifyPublicKeyCreationResult(
   cred: PublicKeyCredential,
   rpId: string = '',
@@ -80,8 +95,13 @@ export async function verifyPublicKeyCreationResult(
   }
 }
 
+/**
+ * Fetch passkey request options from the server and parse them.
+ * @param {CredentialMediationRequirement} [mediation] - The mediation requirement.
+ * @returns {Promise<PublicKeyCredentialRequestOptions>} A promise that resolves with the parsed options.
+ */
 export async function preparePublicKeyRequestOptions(
-  mediation: CredentialMediationRequirement
+  mediation?: CredentialMediationRequirement
 ): Promise<PublicKeyCredentialRequestOptions> {
   // Fetch passkey request options from the server.
   const options: PublicKeyCredentialRequestOptionsJSON = await post(
@@ -99,6 +119,12 @@ export async function preparePublicKeyRequestOptions(
   return decodedOptions;
 }
 
+/**
+ * Send the credential request result to the server for verification.
+ * @param {PublicKeyCredential} cred - The asserted credential.
+ * @param {string} [rpId=''] - The Relying Party ID.
+ * @returns {Promise<any>} A promise that resolves with the server response.
+ */
 export async function verifyPublicKeyRequestResult(
   cred: PublicKeyCredential,
   rpId: string = ''
@@ -165,24 +191,29 @@ export async function registerCredential(
 
 /**
  * Authenticate with a passkey.
- * @param { boolean } mediation Set to `true` if this is for a conditional UI.
- * @returns A promise that resolves with a server response.
+ * @param {Object} [params] - The authentication parameters.
+ * @param {CredentialMediationRequirement} [params.mediation] - The mediation requirement.
+ * @param {CredentialUiMode} [params.ui_mode] - The UI mode for the credential request.
+ * @returns {Promise<any>} A promise that resolves with a server response.
  */
-export async function authenticate(
-  mediation: CredentialMediationRequirement = 'optional'
-): Promise<any> {
+export async function authenticate(params?: {
+  mediation?: CredentialMediationRequirement,
+  // @ts-ignore
+  ui_mode?: CredentialUiMode
+}): Promise<any> {
   // Abort ongoing WebAuthn request
   controller.abort();
   controller = new AbortController();
 
-  const options = await preparePublicKeyRequestOptions(mediation);
+  const options = await preparePublicKeyRequestOptions(params?.mediation);
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({
     publicKey: options,
     signal: controller.signal,
     // Request a conditional UI
-    mediation,
+    ...(params?.mediation && { mediation: params.mediation }),
+    ...(params?.ui_mode && { uiMode: params.ui_mode }),
   })) as AuthenticationCredential;
 
   if (!cred) {
@@ -227,6 +258,10 @@ export async function getAllCredentials(): Promise<
   return credentials;
 }
 
+/**
+ * Signal to the password manager to clear all credentials for the current user.
+ * @returns {Promise<void>} A promise that resolves when the signal is sent.
+ */
 export async function deleteAllCredentials(): Promise<void> {
   const {rpId, userId} = (await post('/webauthn/getKeys')) as {
     rpId: string;
