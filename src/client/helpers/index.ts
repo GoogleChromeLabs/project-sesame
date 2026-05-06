@@ -251,17 +251,17 @@ export class Loading {
 
   start() {
     delete this.progress.value;
-    const inputs = document.querySelectorAll('mdui-text-field');
+    const inputs = document.querySelectorAll('mdui-text-field, input');
     if (inputs) {
-      inputs.forEach(input => (input.disabled = true));
+      inputs.forEach(input => ((<any>input).disabled = true));
     }
   }
 
   stop() {
     this.progress.value = 0;
-    const inputs = document.querySelectorAll('mdui-text-field');
+    const inputs = document.querySelectorAll('mdui-text-field, input');
     if (inputs) {
-      inputs.forEach(input => (input.disabled = false));
+      inputs.forEach(input => ((<any>input).disabled = false));
     }
   }
 }
