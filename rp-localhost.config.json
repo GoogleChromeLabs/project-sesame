@@ -30,7 +30,7 @@
     ],
     "script_src": [
       "https://rp.localhost",
-      "https://idp.localhost",
+      "https://idp.localhost"
     ],
     "style_src_elem": [
       "https://idp.localhost"

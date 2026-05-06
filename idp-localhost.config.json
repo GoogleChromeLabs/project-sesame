@@ -25,8 +25,8 @@
   ],
   "supported_rps": [
     {
-      "origin": "https://rp-localhost",
-      "client_id": "https://rp-localhost",
+      "origin": "https://rp.localhost",
+      "client_id": "https://rp.localhost",
       "name": "Project Sesame",
       "secret": "xxxxx"
     }
