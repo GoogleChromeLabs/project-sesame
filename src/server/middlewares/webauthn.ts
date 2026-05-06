@@ -199,7 +199,7 @@ router.post(
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
     // TODO: Check if the user is authorized to remove the credential.
-    const credId = <Base64URLString>req.query.credId;
+    const credId = req.query.credId as Base64URLString;
 
     await PublicKeyCredentials.remove(credId);
 
@@ -433,7 +433,7 @@ router.post(
 
     // Set expected values.
     const conditional = 'conditional' in req.query;
-    const response = <RegistrationResponseJSON>req.body;
+    const response = req.body as RegistrationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
@@ -472,9 +472,9 @@ router.post(
       } = registrationInfo;
 
       // Base64URL encode ArrayBuffers.
-      const base64PublicKey = <Base64URLString>(
+      const base64PublicKey = (
         isoBase64URL.fromBuffer(credential.publicKey)
-      );
+      ) as Base64URLString;
 
       const aaguid_item = (aaguids as AAGUIDs)[aaguid];
       let _aaguid = aaguid;
@@ -609,8 +609,14 @@ router.post(
         allowCredentials,
       } as GenerateAuthenticationOptionsOpts);
 
-      // Keep the challenge value in a session.
-      new SessionService(req.session).setChallenge(options.challenge);
+      const challenge = new SessionService(req.session).getChallenge();
+      if (!challenge) {
+        // Keep the challenge value in a session.
+        new SessionService(req.session).setChallenge(options.challenge);
+      } else {
+        // Overwrite the challenge value from the existing session.
+        options.challenge = challenge;
+      }
 
       res.json(options);
     } catch (error: any) {
@@ -697,7 +703,7 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     // Set expected values.
-    const response = <AuthenticationResponseJSON>req.body;
+    const response = req.body as AuthenticationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
