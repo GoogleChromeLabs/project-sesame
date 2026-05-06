@@ -32,8 +32,6 @@ import { logger } from '../libs/logger.ts';
 
 const router = Router();
 
-const idp_info = await IdentityProviders.findByOrigin(config.origin);
-
 router.use(
   helmet({
     crossOriginResourcePolicy: {policy: 'cross-origin'},
@@ -238,11 +236,6 @@ router.post(
     } = req.body;
     const {user} = res.locals;
 
-    if (!idp_info) {
-      logger.warn("I am not a registrable IdP: ", config.origin)
-      res.status(400).json({ error: 'I am not a registrable IdP: ' });
-      return;
-    }
     const rp = await RelyingParties.findByClientID(client_id);
 
     // Error when: the RP is not registered.
@@ -286,7 +279,6 @@ router.post(
     }
 
     try {
-
       const _params = JSON.parse(params);
       const { nonce } = _params;
 
@@ -303,7 +295,7 @@ router.post(
           email: user.username,
           picture: user.picture,
         },
-        idp_info.secret
+        rp.secret
       );
 
       res.json({ token });
