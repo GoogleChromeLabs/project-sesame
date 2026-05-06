@@ -16,11 +16,18 @@
  */
 
 import '~project-sesame/client/layout';
-import {redirect, postForm, toast} from '~project-sesame/client/helpers/index';
+import {
+  redirect,
+  postForm,
+  toast,
+  setRedirect
+} from '~project-sesame/client/helpers/index';
 import {
   capabilities,
   registerCredential,
 } from '~project-sesame/client/helpers/publickey';
+
+const r = setRedirect('#passkey-signin');
 
 postForm(
   async () => {
@@ -38,13 +45,13 @@ postForm(
           console.error(error);
         }
       }
-      // @ts-ignore
-      if (window.IdentityProvider) {
-        // @ts-ignore
-        IdentityProvider.close();
-      }
     }
-    await redirect('/home');
+    // @ts-ignore
+    if (window.IdentityProvider) {
+      // @ts-ignore
+      IdentityProvider.close();
+    }
+    await redirect(r || '/home');
   },
   (error: Error) => {
     toast(error.message);

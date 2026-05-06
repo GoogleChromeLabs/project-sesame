@@ -9,7 +9,6 @@
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "https://sesame-identity-provider.appspot.com",
       "https://issuer.sgo.to",
       "https://accounts.google.com/gsi/",
       "https://accounts.sandbox.google.com",

@@ -18,6 +18,9 @@
 import {$, post} from '~project-sesame/client/helpers/index';
 import {saveFederation} from '~project-sesame/client/helpers/federated';
 
+/**
+ * Options for FedCM authentication and delegation.
+ */
 export interface FedCmOptions {
   mode?: 'active' | 'passive';
   loginHint?: string;
@@ -32,21 +35,37 @@ export interface FedCmOptions {
 // This is almost identical to the IdentityProvider class at https://sesame-identity-provider.appspot.com/fedcm.js.
 // Copied here since some integration needs custom implementation on the RP side.
 // ex: unified auth with password, multiple IdPs, etc.
+/**
+ * Helper class for interacting with the Identity Provider (IdP) via FedCM.
+ * This class handles initialization, sign-in, and attribute delegation.
+ */
 export class SesameIdP {
+  /** List of IdP URLs to initialize with. */
   urls: string[] = [];
+
+  /** List of resolved IdP configurations. */
   idps: {
     origin: string;
     configURL: string;
     clientId: string;
   }[] = [];
 
+  /**
+   * Creates an instance of SesameIdP.
+   * @param urls List of IdP URLs to initialize with.
+   */
   constructor(urls: string[] = []) {
     for (const url of urls) {
       this.urls.push(new URL(url).toString());
     }
   }
 
-  async initialize() {
+  /**
+   * Initializes the IdP by fetching configuration options from the server.
+   * Resolves the config URLs and client IDs for each IdP.
+   * @returns A promise that resolves when initialization is complete.
+   */
+  async initialize(): Promise<void> {
     const options = await post('/federation/options', {
       urls: this.urls,
     });
@@ -63,9 +82,13 @@ export class SesameIdP {
       };
       this.idps.push(idp);
     }
-    return options.nonce;
   }
 
+  /**
+   * Performs the FedCM sign-in flow.
+   * @param options Configuration options for the sign-in request.
+   * @returns A promise that resolves to the verified user object or undefined.
+   */
   async signIn(
     options: FedCmOptions = {}
     // @ts-ignore
@@ -91,10 +114,9 @@ export class SesameIdP {
       providers.push({
         configURL: idp.configURL,
         clientId: idp.clientId,
-        nonce,
         loginHint,
         fields,
-        params,
+        params: { nonce, ...params },
       });
     }
 
@@ -121,6 +143,11 @@ export class SesameIdP {
     }
   }
 
+  /**
+   * Performs the FedCM delegation flow (Verifiable Credentials / SD-JWT).
+   * @param options Configuration options for the delegation request.
+   * @returns A promise that resolves to the verified token or undefined.
+   */
   async delegate(options: FedCmOptions = {}): Promise<string | undefined> {
     let {mode = '', nonce, fields, mediation, params = {}} = options;
     if (!nonce) {
@@ -136,9 +163,8 @@ export class SesameIdP {
         format: 'vc+sd-jwt',
         configURL: idp.configURL,
         clientId: idp.clientId,
-        nonce,
         fields,
-        params,
+        params: { nonce, ...params },
       });
     }
 
@@ -151,6 +177,11 @@ export class SesameIdP {
     return await this.verifySdJwt(cred);
   }
 
+  /**
+   * Verifies the ID token with the backend and saves the federation status.
+   * @param cred The IdentityCredential returned by navigator.credentials.get.
+   * @returns The verified user object.
+   */
   // @ts-ignore
   private async verifyIdToken(cred: IdentityCredential): User {
     const idp = this.idps.find(idp => {
@@ -171,6 +202,11 @@ export class SesameIdP {
     return user;
   }
 
+  /**
+   * Verifies the SD-JWT with the backend.
+   * @param cred The IdentityCredential returned by navigator.credentials.get.
+   * @returns The verified user object or token.
+   */
   // @ts-ignore
   private async verifySdJwt(cred: IdentityCredential): User {
     const idp = this.idps.find(idp => {
@@ -189,6 +225,9 @@ export class SesameIdP {
     });
     return user;
   }
+  /**
+   * Signs out the user by preventing silent access.
+   */
   async signOut() {
     if (navigator.credentials && navigator.credentials.preventSilentAccess) {
       await navigator.credentials.preventSilentAccess();

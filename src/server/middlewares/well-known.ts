@@ -101,6 +101,8 @@ router.get('/web-identity', (req: Request, res: Response): void => {
   const web_endpoint = url.toString();
   res.json({
     provider_urls: [web_endpoint],
+    accounts_endpoint: `${config.origin}/fedcm/accounts`,
+    login_url: `${config.origin}${config.idp_login_path}`,
   });
 });
 

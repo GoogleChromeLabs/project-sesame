@@ -274,28 +274,29 @@ export function postForm(callback: Function, errorCallback: Function): void {
   form.addEventListener('submit', async (s: SubmitEvent) => {
     s.preventDefault();
     const form = new FormData(<HTMLFormElement>s.target);
-
-    // If `PasswordCredential` is supported, store it to the password manager.
-    // @ts-ignore
-    if (window.PasswordCredential) {
-      // @ts-ignore
-      const id = form.get('username');
-      const password = form.get('password');
-      // Save only if `id` and `password` combination is being submitted.
-      if (id && password) {
-        await navigator.credentials.create({
-          // @ts-ignore
-          password: {id, password},
-        });
-        console.log('PasswordCredential stored');
-      }
-    }
-
     const cred = {} as {[key: string]: FormDataEntryValue};
     form.forEach((v, k) => (cred[k] = v));
     loading.start();
+
     try {
       const results = await post((<HTMLFormElement>s.target).action, cred);
+
+      // If `PasswordCredential` is supported, store it to the password manager.
+      // @ts-ignore
+      if (window.PasswordCredential) {
+        // @ts-ignore
+        const id = form.get('username');
+        const password = form.get('password');
+        // Save only if `id` and `password` combination is being submitted.
+        if (id && password) {
+          await navigator.credentials.create({
+            // @ts-ignore
+            password: {id, password},
+          });
+          console.log('PasswordCredential stored');
+        }
+      }
+
       callback(results);
     } catch (e: any) {
       loading.stop();
