@@ -85,7 +85,7 @@ router.get(
       client_metadata_endpoint: '/fedcm/metadata',
       id_assertion_endpoint: '/fedcm/idtokens',
       disconnect_endpoint: '/fedcm/disconnect',
-      login_url: '/passkey-form-autofill',
+      login_url: config.idp_login_path,
       branding: {
         background_color: '#6200ee',
         color: '#ffffff',
@@ -229,10 +229,12 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     const {
       client_id,
-      nonce,
       account_id,
       consent_acquired,
       disclosure_text_shown,
+      is_auto_selected,
+      fields,
+      params,
     } = req.body;
     const {user} = res.locals;
 
@@ -283,42 +285,50 @@ router.post(
       logger.info('The user is signing in to the RP.');
     }
 
-    // if (user.status === '') {
-    const token = jwt.sign(
-      {
-        iss: config.origin,
-        sub: user.id,
-        aud: client_id,
-        nonce,
-        exp: getTime(config.id_token_lifetime),
-        iat: getTime(),
-        name: `${user.displayName}`,
-        email: user.username,
-        picture: user.picture,
-      },
-      idp_info.secret
-    );
+    try {
 
-    res.json({ token });
-    // } else {
-    //   let error_code = 401;
-    //   switch (user.status) {
-    //     case 'server_error':
-    //       error_code = 500;
-    //       break;
-    //     case 'temporarily_unavailable':
-    //       error_code = 503;
-    //       break;
-    //     default:
-    //       error_code = 401;
-    //   }
-    //   return res.status(error_code).json({
-    //     error: {
-    //       code: user.status,
-    //       url: `${config.origin}/error.html&type=${user.status}`,
-    //     },
-    //   });
-    // }
+      const _params = JSON.parse(params);
+      const { nonce } = _params;
+
+      // if (user.status === '') {
+      const token = jwt.sign(
+        {
+          iss: config.origin,
+          sub: user.id,
+          aud: client_id,
+          nonce,
+          exp: getTime(config.id_token_lifetime),
+          iat: getTime(),
+          name: `${user.displayName}`,
+          email: user.username,
+          picture: user.picture,
+        },
+        idp_info.secret
+      );
+
+      res.json({ token });
+      // } else {
+      //   let error_code = 401;
+      //   switch (user.status) {
+      //     case 'server_error':
+      //       error_code = 500;
+      //       break;
+      //     case 'temporarily_unavailable':
+      //       error_code = 503;
+      //       break;
+      //     default:
+      //       error_code = 401;
+      //   }
+      //   return res.status(error_code).json({
+      //     error: {
+      //       code: user.status,
+      //       url: `${config.origin}/error.html&type=${user.status}`,
+      //     },
+      //   });
+      // }
+    } catch (error) {
+      res.status(400).json({error: 'Invalid params'});
+    }
   }
 );
 

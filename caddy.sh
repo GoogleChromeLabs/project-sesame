@@ -20,7 +20,7 @@ LOG_FILE="caddy.log"
 
 # --- Startup and Cleanup ---
 echo "Attempting to stop any running Caddy instances..."
-npx caddy stop > /dev/null 2>&1 || sudo killall caddy > /dev/null 2>&1 || true
+sudo ./node_modules/.bin/caddy stop > /dev/null 2>&1 || sudo killall caddy > /dev/null 2>&1 || true
 
 # --- Get Ports ---
 RP_PORT=$(node -p "require('./rp-localhost.config.json').port" | sed 's/\x1b\[[0-9;]*m//g')
@@ -34,7 +34,7 @@ echo "To monitor logs, run: tail -f ${LOG_FILE}"
 # Run Caddy, redirecting all output, and provide a custom failure message.
 # The parentheses group the command and its redirections.
 (
-  RP_PORT=${RP_PORT} IDP_PORT=${IDP_PORT} npx caddy run --config Caddyfile > "${LOG_FILE}" 2>&1
+  sudo -E env RP_PORT=${RP_PORT} IDP_PORT=${IDP_PORT} ./node_modules/.bin/caddy run --config Caddyfile > "${LOG_FILE}" 2>&1
 ) || {
   # This code runs ONLY if the Caddy process exits with a non-zero status (an error).
   echo "Caddy process failed. See ${LOG_FILE} for details." >&2

@@ -40,8 +40,8 @@ if ('IdentityCredential' in window) {
   try {
     const idpURLs = await getIdpUrls();
     const idp = new SesameIdP(idpURLs);
-    const nonce = await idp.initialize();
-    await idp.signIn({mode: 'passive', mediation: 'required', nonce});
+    await idp.initialize();
+    await idp.signIn({ mode: 'passive', mediation: 'required' });
     await redirect('/home');
   } catch (e: any) {
     console.error(e);

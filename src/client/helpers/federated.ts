@@ -16,7 +16,6 @@
  */
 
 import '~project-sesame/client/layout';
-import {html, render} from 'lit';
 import {toast, get} from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 import {User} from '~project-sesame/server/libs/users';
