@@ -709,12 +709,14 @@ router.post(
     const response = req.body as AuthenticationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
+    const expectedTopOrigin = config.csp.frame_ancestors;
     const expectedRPID = config.hostname;
 
     logger.debug('WebAuthn sign-in response', response);
 
     try {
       if (!expectedChallenge) {
+        logger.error('Challenge was undefined.');
         res.status(401).json({ error: 'Invalid challenge.' });
         return;
       }
@@ -722,6 +724,7 @@ router.post(
       // If the matching public key is not found, return an error
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
+        logger.error('Matching credential ID not found.', response.id);
         new SessionService(req.session).deleteChallenge();
         res
           .status(404)
@@ -735,6 +738,7 @@ router.post(
         res.locals.user &&
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
+        logger.error('Passkey user ID does not match the user.', cred.passkeyUserId);
         new SessionService(req.session).deleteChallenge();
         res.status(400).json({ error: 'Wrong sign-in account.' });
         return;
@@ -743,6 +747,7 @@ router.post(
       // Find the matching user from the user ID contained in the credential.
       const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
+        logger.error('Matching passkey user ID not found.', cred.passkeyUserId);
         new SessionService(req.session).deleteChallenge();
         res.status(401).json({ error: 'User not found.' });
         return;
@@ -760,6 +765,7 @@ router.post(
         response,
         expectedChallenge,
         expectedOrigin,
+        expectedTopOrigin,
         expectedRPID,
         credential,
         requireUserVerification: false,
@@ -769,6 +775,7 @@ router.post(
 
       // If the authentication failed, throw.
       if (!verified) {
+        logger.error('Signature verification failed.');
         new SessionService(req.session).deleteChallenge();
         res.status(401).json({ error: 'User verification failed.' });
         return;
@@ -785,6 +792,7 @@ router.post(
 
       res.json(user);
     } catch (error: any) {
+      logger.error(error.message);
       new SessionService(req.session).deleteChallenge();
 
       console.error(error);

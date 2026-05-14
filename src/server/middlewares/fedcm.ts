@@ -325,6 +325,57 @@ router.post(
 );
 
 /**
+ * Generates a JWT for the signed-in user with the provided nonce.
+ * This endpoint is used by the iframe federation flow to issue a token
+ * that can be sent to the parent frame.
+ */
+router.post(
+  '/createToken',
+  apiAclCheck(ApiType.SignedIn),
+  async (req: Request, res: Response): Promise<void> => {
+    const {nonce, rp_origin} = req.body;
+    const {user} = res.locals;
+
+    if (!nonce) {
+      const message = 'Nonce is required.';
+      logger.error(message);
+      res.status(400).json({error: message});
+      return;
+    }
+
+    const rp = config.supported_rps.find((rp: any) => rp.origin === rp_origin);
+    if (!rp) {
+      const message = 'Requesting RP not registered.';
+      logger.error(message, rp_origin);
+      res.status(400).json({error: message});
+      return;
+    }
+
+    try {
+      const token = jwt.sign(
+        {
+          iss: config.origin,
+          sub: user.id,
+          aud: rp.origin,
+          nonce,
+          exp: getTime(config.id_token_lifetime),
+          iat: getTime(),
+          name: `${user.displayName}`,
+          email: user.username,
+          picture: user.picture,
+        },
+        rp.secret
+      );
+
+      res.json({ token });
+    } catch (e: any) {
+      logger.error(e);
+      res.status(500).json({ error: 'Failed to generate token.' });
+    }
+  }
+);
+
+/**
  * Disconnect a client.
  * @swagger
  * /fedcm/disconnect:

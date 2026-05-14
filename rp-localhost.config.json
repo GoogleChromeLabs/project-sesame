@@ -3,7 +3,6 @@
   "port": 8080,
   "rp_name": "Sesame Relying Party (local)",
   "project_name": "project-sesame-426206",
-  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "associated_domains": [
     {
       "package_name": "com.google.credentialmanager.sample",
@@ -28,12 +27,14 @@
       "wss://localhost:3001"
     ]
   },
+  "primary_idp_origin": "https://idp.localhost",
   "supported_idps": [
     {
       "name": "FedCM Local IdP",
       "iconURL": "https://idp.localhost/images/idp-logo-512.png",
       "origin": "https://idp.localhost",
       "configURL": "https://idp.localhost/fedcm/config.json",
+      "clientId": "https://rp.localhost",
       "secret": "xxxxx"
     }
   ]
