@@ -85,7 +85,28 @@ function configureTemplateEngine(app: express.Application) {
 
 configureTemplateEngine(app);
 
-app.use(
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  // For the RP to set Permissions Policy `publickey-credentials-get`
+  let permissionsPolicyDomains = [];
+  if (req.path === '/passkey-iframe') {
+    const policies = [
+      `publickey-credentials-get=(self "${config.primary_idp_origin}")`
+    ];
+    res.setHeader('Permissions-Policy', policies.join(';'))
+  }
+
+  // For the IdP to set CSP `frame_ancestors`
+  let frameAncestors = [];
+  if (req.path === '/iframe-federation') {
+    // Filter localhosts out for production environments.
+    frameAncestors = config.csp.frame_ancestors.filter((src: string) => {
+      if (!config.is_localenv) {
+        return src.indexOf('localhost') === -1
+      }
+      return true;
+    });
+  }
+  frameAncestors = ["'self'", ...frameAncestors];
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -99,6 +120,7 @@ app.use(
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
         frameSrc: ["'self'", ...config.csp.frame_src],
+        frameAncestors,
         styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
         upgradeInsecureRequests: config.debug ? null : [],
@@ -109,8 +131,9 @@ app.use(
     crossOriginOpenerPolicy: {
       policy: 'same-origin-allow-popups',
     },
-  })
-);
+    xFrameOptions: config.debug ? false : { action: 'deny' }
+  })(req, res, next);
+});
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -302,6 +325,18 @@ app.get(
 );
 
 app.get(
+  '/passkey-iframe',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
+    return res.render('passkey-iframe.html', {
+      title: 'Passkey within iframe',
+      nonce,
+    });
+  }
+);
+
+app.get(
   '/passkey-reauth',
   pageAclCheck(PageType.Reauth),
   (req: Request, res: Response): void => {
@@ -323,6 +358,15 @@ app.get(
     });
   }
 );
+
+app.get(
+  '/iframe-federation',
+  (req: Request, res: Response): void => {
+    return res.render('iframe-federation.html', {
+      title: 'Sign-in form within an iframe',
+    });
+  }
+)
 
 app.get(
   '/fedcm-active-mode',

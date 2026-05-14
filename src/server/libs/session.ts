@@ -275,6 +275,7 @@ export function initializeSession() {
       path: '/',
       httpOnly: true,
       sameSite: 'none',
+      partitioned: true,
       secure: !config.is_localhost, // `false` on localhost
       maxAge: config.long_session_duration,
     },

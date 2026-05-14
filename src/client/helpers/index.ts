@@ -250,6 +250,7 @@ export class Loading {
   }
 
   start() {
+    if (!this.progress) return;
     delete this.progress.value;
     const inputs = document.querySelectorAll('mdui-text-field');
     if (inputs) {
@@ -258,6 +259,7 @@ export class Loading {
   }
 
   stop() {
+    if (!this.progress) return;
     this.progress.value = 0;
     const inputs = document.querySelectorAll('mdui-text-field');
     if (inputs) {
@@ -347,15 +349,13 @@ function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
   const drawer: NavigationDrawer | null = $('mdui-navigation-drawer');
-  if (!drawer) {
-    throw new Error('Navigation drawer is not found.');
+  if (drawer) {
+    // Menu button. Listen when it's found.
+    $('#menu-button')?.addEventListener(
+      'click',
+      () => (drawer.open = !drawer.open)
+    );
   }
-
-  // Menu button. Listen when it's found.
-  $('#menu-button')?.addEventListener(
-    'click',
-    () => (drawer.open = !drawer.open)
-  );
 
   // Sign-out button. Listen when it's found.
   $('#signout')?.addEventListener('click', signOut);
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('#help')?.addEventListener('click', dialog.show.bind(dialog));
 
   const mediaQuery = window.matchMedia('(max-width: 768px)');
-  mediaQuery.addEventListener('change', changeLayout);
+  mediaQuery?.addEventListener('change', changeLayout);
 
   // Load markdown contents to the dialog
   const description = $('#help-text .help-description')?.innerText?.trim();
@@ -387,5 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Initialize
-  changeLayout(mediaQuery);
+  if (mediaQuery) {
+    changeLayout(mediaQuery);
+  }
 });
