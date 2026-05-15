@@ -22,7 +22,7 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
-import { logger } from '~project-sesame/server/libs/logger.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
@@ -32,6 +32,8 @@ const is_localhost = process.env.NODE_ENV === 'localhost';
 const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
   process.env.NODE_ENV === 'rp-localhost';
+
+const is_localenv = is_localhost || is_mock_cross_site;
 
 /**
  * During development, the server application only receives requests proxied
@@ -73,7 +75,7 @@ function generateApkKeyHash(sha256hash: string): string {
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (is_localhost || is_mock_cross_site) {
+  if (is_localenv) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -87,7 +89,10 @@ function initializeFirestore() {
 // Load the environment specific config file.
 const env = process.env.NODE_ENV || 'localhost';
 
-const defaultConfigPath = path.join(project_root_file_path, 'default.config.json');
+const defaultConfigPath = path.join(
+  project_root_file_path,
+  'default.config.json'
+);
 const envConfigPath = path.join(project_root_file_path, `${env}.config.json`);
 
 try {
@@ -96,22 +101,30 @@ try {
   throw new Error(`"${env}.config.json" not found.`);
 }
 
-const defaultConfig = (await import(defaultConfigPath, { with: { type: 'json' } })).default;
-const envConfig = (await import(envConfigPath, { with: { type: 'json' } })).default;
+const defaultConfig = (await import(defaultConfigPath, {with: {type: 'json'}}))
+  .default;
+const envConfig = (await import(envConfigPath, {with: {type: 'json'}})).default;
 
 function mergeConfigs(target: any, source: any) {
-  const result = { ...target };
+  const result = {...target};
   for (const key in source) {
     if (Object.prototype.hasOwnProperty.call(source, key)) {
       if (Array.isArray(source[key]) && Array.isArray(target[key])) {
         if (key === 'supported_idps' || key === 'supported_rps') {
           const map = new Map();
-          [...target[key], ...source[key]].forEach(item => map.set(item.origin, item));
+          [...target[key], ...source[key]].forEach(item =>
+            map.set(item.origin, item)
+          );
           result[key] = Array.from(map.values());
         } else {
           result[key] = [...new Set([...target[key], ...source[key]])];
         }
-      } else if (typeof source[key] === 'object' && source[key] !== null && typeof target[key] === 'object' && target[key] !== null) {
+      } else if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        typeof target[key] === 'object' &&
+        target[key] !== null
+      ) {
         result[key] = mergeConfigs(target[key], source[key]);
       } else {
         result[key] = source[key];
@@ -146,11 +159,13 @@ const {
   project_name,
   origin_trials = [],
   csp,
-  // List of supported IdPs as an RP
-  supported_idps = [],
-  // List of supported RPs as an IdP
+  // Primay IdP origin that will be embedded inside a iframe.
+  primary_idp_origin = [],
+  // Supported RPs info
   supported_rps = [],
-  // Allowlist pages to render to prevent experimental features from being exposed
+  // Supported IdP info
+  supported_idps = [],
+  // Optional enabled tenants at the top page
   enabled_pages,
   analytics_id,
 } = mergedConfig;
@@ -159,6 +174,7 @@ const {
   connect_src = [],
   font_src = [],
   frame_src = [],
+  frame_ancestors = [],
   img_src = [],
   script_src = [],
   style_src = [],
@@ -187,15 +203,30 @@ const associated_origins = associated_domains.map((_domain: any) => {
   }
 });
 
+// Apply IdP origins to the CSP
+supported_idps.map((idp: any) => {
+  connect_src.push(idp.origin);
+  frame_src.push(idp.origin);
+  script_src.push(idp.origin);
+  style_src.push(idp.origin);
+  style_src_elem.push(idp.origin);
+});
+
+// Apply RP frame origins to CSP `frame-ancestors`
+supported_rps.map((rp: any) => {
+  frame_ancestors.push(rp.origin);
+});
+
 export const store = initializeFirestore();
 
 export const config = {
   project_name,
-  debug: is_localhost || is_mock_cross_site,
+  debug: is_localenv,
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
   is_localhost,
+  is_localenv,
   port,
   origin,
   hostname,
@@ -203,7 +234,9 @@ export const config = {
   associated_domains,
   associated_origins,
   secret,
-  session_cookie_name,
+  session_cookie_name: is_localhost
+    ? session_cookie_name
+    : `__Secure-${session_cookie_name}`,
   repository_url: packageConfig.repository?.url,
   idp_login_path,
   id_token_lifetime,
@@ -216,11 +249,13 @@ export const config = {
     connect_src,
     font_src,
     frame_src,
+    frame_ancestors,
     img_src,
     script_src,
     style_src,
     style_src_elem,
   },
+  primary_idp_origin,
   supported_idps,
   supported_rps,
   enabled_pages,

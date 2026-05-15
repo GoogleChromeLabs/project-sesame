@@ -89,4 +89,97 @@ export class CustomFirestoreStore extends FirestoreStore {
         }
       });
   };
+
+  destroy = (sid: string, callback?: (err?: any) => void): void => {
+    this.db
+      .collection(this.kind)
+      .doc(sid)
+      .get()
+      .then(doc => {
+        if (!doc.exists) {
+          if (typeof callback === 'function') {
+            callback();
+          }
+          return;
+        }
+        const data = doc.data();
+        const userId = data?.user?.id;
+        if (!userId) {
+          // If there's no user ID associated, just delete this session doc
+          this.db
+            .collection(this.kind)
+            .doc(sid)
+            .delete()
+            .then(() => {
+              if (typeof callback === 'function') {
+                callback();
+              }
+            })
+            .catch(dbErr => {
+              if (typeof callback === 'function') {
+                callback(
+                  dbErr instanceof Error ? dbErr : new Error(String(dbErr))
+                );
+              } else {
+                console.error(
+                  `Firestore delete operation failed for session ID ${sid}:`,
+                  dbErr
+                );
+              }
+            });
+          return;
+        }
+
+        // Query all sessions with the same user ID
+        this.db
+          .collection(this.kind)
+          .where('user.id', '==', userId)
+          .get()
+          .then(snapshot => {
+            const deletePromises = snapshot.docs.map(sessionDoc =>
+              sessionDoc.ref.delete()
+            );
+            Promise.all(deletePromises)
+              .then(() => {
+                if (typeof callback === 'function') {
+                  callback();
+                }
+              })
+              .catch(dbErr => {
+                if (typeof callback === 'function') {
+                  callback(
+                    dbErr instanceof Error ? dbErr : new Error(String(dbErr))
+                  );
+                } else {
+                  console.error(
+                    `Firestore batch delete operation failed for user ID ${userId}:`,
+                    dbErr
+                  );
+                }
+              });
+          })
+          .catch(dbErr => {
+            if (typeof callback === 'function') {
+              callback(
+                dbErr instanceof Error ? dbErr : new Error(String(dbErr))
+              );
+            } else {
+              console.error(
+                `Firestore query failed for user ID ${userId}:`,
+                dbErr
+              );
+            }
+          });
+      })
+      .catch(dbErr => {
+        if (typeof callback === 'function') {
+          callback(dbErr instanceof Error ? dbErr : new Error(String(dbErr)));
+        } else {
+          console.error(
+            `Firestore get operation failed for session ID ${sid}:`,
+            dbErr
+          );
+        }
+      });
+  };
 }

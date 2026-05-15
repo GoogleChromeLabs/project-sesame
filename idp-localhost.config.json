@@ -7,26 +7,25 @@
   "csp": {
     "connect_src": [
       "wss://localhost:3000",
-      "wss://localhost:3001",
-      "https://rp.localhost"
-    ],
-    "script_src": [
-      "https://rp.localhost"
+      "wss://localhost:3001"
     ]
   },
-  "supported_idps": [
-    {
-      "name": "FedCM Local IdP",
-      "iconURL": "https://idp.localhost/images/idp-logo-512.png",
-      "origin": "https://idp.localhost",
-      "configURL": "https://idp.localhost/fedcm/config.json",
-      "secret": "xxxxx"
-    }
-  ],
   "supported_rps": [
     {
       "origin": "https://rp.localhost",
       "client_id": "https://rp.localhost",
+      "name": "Project Sesame",
+      "secret": "xxxxx"
+    },
+    {
+      "origin": "https://project-sesame-426206.appspot.comt",
+      "client_id": "https://project-sesame-426206.appspot.com",
+      "name": "Project Sesame",
+      "secret": "xxxxx"
+    },
+    {
+      "origin": "https://identity.chrome.dev",
+      "client_id": "https://identity.chrome.dev",
       "name": "Project Sesame",
       "secret": "xxxxx"
     }
