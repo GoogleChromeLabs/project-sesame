@@ -30,30 +30,24 @@
             Passkey Management
           </mdui-list-item>
           {{/if}}
-          {{#if (isPageEnabled '/settings/identity-providers')}}
+          <!-- {{#if (isPageEnabled '/settings/identity-providers')}}
           <mdui-list-item type="link" href="/settings/identity-providers" icon="link--outlined">
             Associated IdPs
           </mdui-list-item>
-          {{/if}}
+          {{/if}} -->
           {{#if (isPageEnabled '/settings/delete-account')}}
           <mdui-list-item type="link" href="/settings/delete-account" icon="no_accounts--outlined">
             Delete account
           </mdui-list-item>
           {{/if}}
-        </mdui-list>
-        <mdui-list class="flex-bottom">
           <mdui-list-item type="button" icon="logout--outlined" id="signout">
             SIGN OUT
           </mdui-list-item>
+        </mdui-list>
         {{else}}
         <mdui-list>
           <mdui-list-item>
           </mdui-list-item>
         </mdui-list>
-        <mdui-list class="flex-bottom">
         {{/if}}
-          <mdui-list-item type="button" icon="help--outlined" id="help">
-            WHAT'S IN THIS PAGE?
-          </mdui-list-item>
-        </mdui-list>
       </div>

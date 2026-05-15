@@ -19,16 +19,16 @@
 
 * {
   box-sizing: border-box;
-  --mdui-theme-primary: #FEDBD0;
-  --mdui-theme-secondary: #FEEAE6;
-  --mdui-theme-surface: #FFFBFA;
-  --mdui-theme-background: #FFFFFF;
-  --mdui-theme-error: #C5032B;
-  --mdui-theme-on-primary: #442C2E;
-  --mdui-theme-on-secondary: #442C2E;
-  --mdui-theme-on-surface: #442C2E;
-  --mdui-theme-on-background: #442C2E;
-  --mdui-theme-on-error: #FFFBFA;
+  --mdui-theme-primary: #fedbd0;
+  --mdui-theme-secondary: #feeae6;
+  --mdui-theme-surface: #fffbfa;
+  --mdui-theme-background: #ffffff;
+  --mdui-theme-error: #c5032b;
+  --mdui-theme-on-primary: #442c2e;
+  --mdui-theme-on-secondary: #442c2e;
+  --mdui-theme-on-surface: #442c2e;
+  --mdui-theme-on-background: #442c2e;
+  --mdui-theme-on-error: #fffbfa;
 }
 
 html {
@@ -41,10 +41,6 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-}
-
-#help-text {
-  display: none;
 }
 
 .content {
@@ -67,7 +63,7 @@ main section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  >* {
+  > * {
     margin: 1.5em 0 0 0;
   }
 }
@@ -89,7 +85,7 @@ main section {
     overflow: hidden;
     font-weight: bold;
     white-space: nowrap;
-    text-overflow: ellipsis;    
+    text-overflow: ellipsis;
   }
 }
 
@@ -101,7 +97,7 @@ main section {
   display: flex;
   align-items: center;
   span {
-    color: #5C5C5C;
+    color: #5c5c5c;
   }
 }
 
@@ -118,10 +114,12 @@ mdui-text-field {
   background: #fff;
   border: 1px solid #dadce0;
   border-radius: 24px;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  box-shadow:
+    0 1px 2px 0 rgba(60, 64, 67, 0.3),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
   cursor: pointer;
   font-size: 14px;
-  font-family: "Google Sans Text", "Google Sans", sans-serif;
+  font-family: 'Google Sans Text', 'Google Sans', sans-serif;
   color: #3c4043;
 }
 .sidebar {
@@ -194,7 +192,7 @@ mdui-top-app-bar {
   }
 }
 
-div[slot="appContent"] {
+div[slot='appContent'] {
   background-color: var(--mdc-theme-background);
   height: 100%;
   #list {
@@ -206,4 +204,14 @@ div[slot="appContent"] {
       background-color: var(--mdui-theme-primary);
     }
   }
+}
+
+#dialog {
+  flex-flow: column;
+  justify-content: flex-end;
+  bottom: -70px;
+}
+
+#mdui-bottom-app-bar {
+  --z-index: 900;
 }
