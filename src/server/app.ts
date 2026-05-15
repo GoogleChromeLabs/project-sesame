@@ -141,8 +141,21 @@ app.use(
   express.static(path.join(config.dist_root_file_path, 'client/static'))
 );
 
+async function getHelpContent(layout: string, type: string): Promise<string | null> {
+  try {
+    const targetPath = path.resolve(path.join(config.helps_root_file_path, `${layout}.${type}.md`));
+    const rootPathWithSep = config.helps_root_file_path.endsWith(path.sep) ? config.helps_root_file_path : config.helps_root_file_path + path.sep;
+    if (!targetPath.startsWith(rootPathWithSep)) {
+      return null;
+    }
+    return await fs.readFile(targetPath, 'utf-8');
+  } catch (e) {
+    return null;
+  }
+}
+
 // Set page defaults
-app.use((req: Request, res: Response, next: NextFunction): void => {
+app.use(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const width = req.headers['sec-ch-viewport-width'];
   if (typeof width === 'string') {
     res.locals.open_drawer = parseInt(width) > 768;
@@ -156,6 +169,9 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
   res.locals.layout = res.locals.pagename.slice(1);
   res.locals.analytics_id = config.analytics_id;
+
+  res.locals.usage_help = await getHelpContent(res.locals.layout, 'usage');
+  res.locals.develop_help = await getHelpContent(res.locals.layout, 'dev');
 
   return next();
 });

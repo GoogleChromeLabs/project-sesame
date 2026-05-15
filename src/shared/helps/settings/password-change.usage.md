@@ -1,0 +1,27 @@
+<!--
+ Copyright 2026 Google Inc. All rights reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License
+-->
+
+## Change Password page
+
+In this page, you can change your password.
+
+Enter the same new password twice and click "Change password" to update your
+account's password.
+
+You'll be asked to verify your identity before visiting this page when certain
+duration has passed since your last verification.
+
+Note that the password is not saved to the server as this is a demo service.

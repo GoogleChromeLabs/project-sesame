@@ -214,3 +214,13 @@ div[slot='appContent'] {
     }
   }
 }
+
+#dialog {
+  flex-flow: column;
+  justify-content: flex-end;
+  bottom: -70px;
+}
+
+#mdui-bottom-app-bar {
+  --z-index: 900;
+}
