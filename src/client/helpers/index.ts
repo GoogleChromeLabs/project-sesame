@@ -20,6 +20,7 @@ import {Dialog} from 'mdui/components/dialog';
 import {ButtonIcon} from 'mdui/components/button-icon';
 import {TextField} from 'mdui/components/text-field';
 import {NavigationDrawer} from 'mdui/components/navigation-drawer';
+import {Checkbox, CheckboxEventMap} from 'mdui/components/checkbox';
 import {marked} from 'marked';
 
 export const $: any = document.querySelector.bind(document);
@@ -368,22 +369,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  // Show help dialog.
-  $('#help')?.addEventListener('click', dialog.show.bind(dialog));
-
   const mediaQuery = window.matchMedia('(max-width: 768px)');
   mediaQuery?.addEventListener('change', changeLayout);
 
   // Load markdown contents to the dialog
-  const description = $('#help-text .help-description')?.innerText?.trim();
-  const headline = $('#help-text .help-headline')?.innerText?.trim();
-  if (headline && description) {
-    const serialized = description
-      .split('\n')
-      .map((line: string) => line.trim())
-      .join('\n');
-    const mkDesc = await marked.parse(serialized);
-    dialog.set(headline, mkDesc);
+  const usageHelpBtn = $('#usage-help');
+  const developHelpBtn = $('#develop-help');
+  const helpOnPageLoad = $('#help-on-page-load');
+  const usageContent = $('#usage-help-content')?.textContent?.trim();
+  const developContent = $('#develop-help-content')?.textContent?.trim();
+
+  if (helpOnPageLoad) {
+    helpOnPageLoad.addEventListener('change', () => {
+      localStorage.setItem(
+        'helpOnPageLoad',
+        helpOnPageLoad.checked ? 'true' : 'false'
+      );
+    });
+
+    const isHelpOnPageLoad = localStorage.getItem('helpOnPageLoad');
+    if (isHelpOnPageLoad === null || isHelpOnPageLoad === 'true') {
+      helpOnPageLoad.checked = true;
+      if (isHelpOnPageLoad === null) {
+        localStorage.setItem('helpOnPageLoad', 'true');
+      }
+    }
+  }
+
+  async function displayUsageHelp() {
+    const mkDesc = await marked.parse(usageContent);
+    dialog.set("What's this page?", mkDesc);
+    dialog.show();
+  }
+
+  if (usageHelpBtn && usageContent) {
+    usageHelpBtn.addEventListener('click', displayUsageHelp);
+    if (helpOnPageLoad?.checked) {
+      displayUsageHelp();
+    }
+  }
+
+  if (developHelpBtn && developContent) {
+    developHelpBtn.addEventListener('click', async () => {
+      const mkDesc = await marked.parse(developContent);
+      dialog.set('How does this work?', mkDesc);
+      dialog.show();
+    });
   }
 
   // Initialize
