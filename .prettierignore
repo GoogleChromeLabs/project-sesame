@@ -1,0 +1,11 @@
+# Ignore build and data directories
+dist/
+node_modules/
+.data/
+.cache/
+.npm/
+*.log
+*.lock
+
+# Ignore Handlebars HTML templates as Handlebars syntax inside HTML tags breaks Prettier's HTML parser
+*.html

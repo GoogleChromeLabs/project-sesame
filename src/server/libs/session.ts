@@ -15,16 +15,16 @@
  * limitations under the License
  */
 
-import { Session } from 'express-session';
-import { User, SignUpUser } from '../libs/users.js';
-import { generateRandomString } from '../libs/helpers.js';
-import { getTime } from '../middlewares/common.js';
-import { config, store } from '../config.js';
-import { Request, Response, NextFunction } from 'express';
-import { RequestHandlerParams } from 'express-serve-static-core';
+import {Session} from 'express-session';
+import {User, SignUpUser} from '../libs/users.js';
+import {generateRandomString} from '../libs/helpers.js';
+import {getTime} from '../middlewares/common.js';
+import {config, store} from '../config.js';
+import {Request, Response, NextFunction} from 'express';
+import {RequestHandlerParams} from 'express-serve-static-core';
 import session from 'express-session';
-import { CustomFirestoreStore } from '../libs/custom-firestore-session.js';
-import { logger } from '../libs/logger.js';
+import {CustomFirestoreStore} from '../libs/custom-firestore-session.js';
+import {logger} from '../libs/logger.js';
 
 export enum UserSignInStatus {
   SignedOut = 1,
@@ -58,9 +58,8 @@ export enum ApiType {
   Sensitive = 7, // The user must be recently signed in
 }
 
-
 export class SessionService {
-  constructor(private session: Session) { }
+  constructor(private session: Session) {}
 
   /**
    * Sets the challenge value for the session.
@@ -164,7 +163,7 @@ export class SessionService {
    */
   setSignedOut(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.session.destroy((err) => {
+      this.session.destroy(err => {
         if (err) {
           reject(err);
         } else {
@@ -264,7 +263,9 @@ export function initializeSession() {
     resave: true,
     saveUninitialized: false,
     proxy: true,
-    name: config.is_localhost ? config.session_cookie_name : `__Secure-${config.session_cookie_name}`,
+    name: config.is_localhost
+      ? config.session_cookie_name
+      : `__Secure-${config.session_cookie_name}`,
     store: new CustomFirestoreStore({
       dataset: store,
       kind: 'sessions',
@@ -308,7 +309,10 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
     }
   } else if (status === UserSignInStatus.SigningIn) {
     res.locals.username = req.session.signin_username;
-  } else if (status === UserSignInStatus.SignedIn || status === UserSignInStatus.RecentlySignedIn) {
+  } else if (
+    status === UserSignInStatus.SignedIn ||
+    status === UserSignInStatus.RecentlySignedIn
+  ) {
     res.locals.user = req.session.user;
     res.locals.username = res.locals.user.username;
   }
@@ -318,11 +322,14 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
 
 export function pageAclCheck(pageType: PageType): RequestHandlerParams {
   return (req: Request, res: Response, next: NextFunction): void | any => {
-    if (config.enabled_pages && !config.enabled_pages.includes(req.baseUrl + req.path)) {
+    if (
+      config.enabled_pages &&
+      !config.enabled_pages.includes(req.baseUrl + req.path)
+    ) {
       return res.status(404).send('Not Found');
     }
 
-    const { signin_status } = res.locals;
+    const {signin_status} = res.locals;
 
     const sessionService = new SessionService(req.session);
     if (pageType === PageType.SignUp) {
@@ -385,7 +392,7 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
       if (signin_status < UserSignInStatus.RecentlySignedIn) {
         // Construct the redirect path as `r`
         const url = new URL(sessionService.getEntrancePath(), config.origin);
-        const search = new URLSearchParams({ r: req.originalUrl });
+        const search = new URLSearchParams({r: req.originalUrl});
         url.search = search.toString();
         logger.debug(url.toString());
 
@@ -414,7 +421,7 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
     res: Response,
     next: NextFunction
   ): Promise<any> => {
-    const { signin_status } = res.locals;
+    const {signin_status} = res.locals;
 
     // The user is signing up: `/auth/new-username-password` or `/auth/new-user`
     // if (apiType === ApiType.NoAuth) {
@@ -428,14 +435,14 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
     if (apiType === ApiType.SigningUp) {
       if (signin_status !== UserSignInStatus.SigningUp) {
         // Unless the user is signing up, this is an invalid access
-        logger.debug("The user is already signed in.");
-        return res.status(400).json({ error: 'The user is already signed in.' });
+        logger.debug('The user is already signed in.');
+        return res.status(400).json({error: 'The user is already signed in.'});
       }
       // The user is authenticating or reauthenticating
     } else if (apiType === ApiType.SignIn) {
       if (signin_status !== UserSignInStatus.SignedOut) {
-        logger.debug("Invalid request.");
-        return res.status(400).json({ error: 'Invalid request.' });
+        logger.debug('Invalid request.');
+        return res.status(400).json({error: 'Invalid request.'});
       }
       // The user is signing in and submitting a credential.
     } else if (apiType === ApiType.FirstCredential) {
@@ -443,33 +450,35 @@ export function apiAclCheck(apiType: ApiType): RequestHandlerParams {
         signin_status !== UserSignInStatus.SigningIn &&
         signin_status !== UserSignInStatus.SignedIn
       ) {
-        logger.debug("The user is not signing in.")
-        return res.status(400).json({ error: 'The user is not signing in.' });
+        logger.debug('The user is not signing in.');
+        return res.status(400).json({error: 'The user is not signing in.'});
       }
       // The user must be signed in.
     } else if (apiType === ApiType.SignedIn) {
       if (signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
-        logger.debug("The user is not signed in.")
-        return res.status(401).json({ error: 'The user is not signed in.' });
+        logger.debug('The user is not signed in.');
+        return res.status(401).json({error: 'The user is not signed in.'});
       }
       // The user must be recently signed in.
     } else if (apiType === ApiType.Sensitive) {
       if (signin_status < UserSignInStatus.SignedIn) {
         // If the user is not signed in, return an error.
-        logger.debug("The user is not signed in.")
-        return res.status(401).json({ error: 'The user is not signed in.' });
+        logger.debug('The user is not signed in.');
+        return res.status(401).json({error: 'The user is not signed in.'});
       }
       if (signin_status < UserSignInStatus.RecentlySignedIn) {
         // If the user has not authenticated recently, request a reauth.
-        logger.debug("Insufficient privilege.")
-        return res.status(401).json({ error: 'Insufficient privilege.' });
+        logger.debug('Insufficient privilege.');
+        return res.status(401).json({error: 'Insufficient privilege.'});
       }
       // The user is about to register a new passkey upon sign-up or .
     } else if (apiType === ApiType.PasskeyRegistration) {
       if (signin_status < UserSignInStatus.SigningUp) {
-        logger.debug("Invalid request. User is not signing up.")
-        return res.status(400).json({ error: 'Invalid request. User is not signing up.' });
+        logger.debug('Invalid request. User is not signing up.');
+        return res
+          .status(400)
+          .json({error: 'Invalid request. User is not signing up.'});
       }
     }
     return next();
@@ -491,7 +500,7 @@ export function setSignedIn(user: User, req: Request, res: Response): void {
   delete user.password;
   new SessionService(req.session).setSignedIn(user);
   // Set a login status using the Login Status API
-  logger.debug(`The user logged in as ${user.username}`)
+  logger.debug(`The user logged in as ${user.username}`);
   res.set('Set-Login', 'logged-in');
   return;
 }
@@ -510,7 +519,7 @@ export function setSignedOut(req: Request, res: Response) {
   new SessionService(req.session).setSignedOut();
 
   // Set a login status using the Login Status API
-  logger.debug("The user logged out.")
+  logger.debug('The user logged out.');
   res.set('Set-Login', 'logged-out');
   return;
 }

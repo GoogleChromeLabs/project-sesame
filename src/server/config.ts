@@ -22,7 +22,7 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
-import { logger } from '~project-sesame/server/libs/logger.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
@@ -87,7 +87,10 @@ function initializeFirestore() {
 // Load the environment specific config file.
 const env = process.env.NODE_ENV || 'localhost';
 
-const defaultConfigPath = path.join(project_root_file_path, 'default.config.json');
+const defaultConfigPath = path.join(
+  project_root_file_path,
+  'default.config.json'
+);
 const envConfigPath = path.join(project_root_file_path, `${env}.config.json`);
 
 try {
@@ -96,22 +99,30 @@ try {
   throw new Error(`"${env}.config.json" not found.`);
 }
 
-const defaultConfig = (await import(defaultConfigPath, { with: { type: 'json' } })).default;
-const envConfig = (await import(envConfigPath, { with: { type: 'json' } })).default;
+const defaultConfig = (await import(defaultConfigPath, {with: {type: 'json'}}))
+  .default;
+const envConfig = (await import(envConfigPath, {with: {type: 'json'}})).default;
 
 function mergeConfigs(target: any, source: any) {
-  const result = { ...target };
+  const result = {...target};
   for (const key in source) {
     if (Object.prototype.hasOwnProperty.call(source, key)) {
       if (Array.isArray(source[key]) && Array.isArray(target[key])) {
         if (key === 'supported_idps' || key === 'supported_rps') {
           const map = new Map();
-          [...target[key], ...source[key]].forEach(item => map.set(item.origin, item));
+          [...target[key], ...source[key]].forEach(item =>
+            map.set(item.origin, item)
+          );
           result[key] = Array.from(map.values());
         } else {
           result[key] = [...new Set([...target[key], ...source[key]])];
         }
-      } else if (typeof source[key] === 'object' && source[key] !== null && typeof target[key] === 'object' && target[key] !== null) {
+      } else if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        typeof target[key] === 'object' &&
+        target[key] !== null
+      ) {
         result[key] = mergeConfigs(target[key], source[key]);
       } else {
         result[key] = source[key];

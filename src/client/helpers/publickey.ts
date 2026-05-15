@@ -197,9 +197,9 @@ export async function registerCredential(
  * @returns {Promise<any>} A promise that resolves with a server response.
  */
 export async function authenticate(params?: {
-  mediation?: CredentialMediationRequirement,
+  mediation?: CredentialMediationRequirement;
   // @ts-ignore
-  ui_mode?: CredentialUiMode
+  ui_mode?: CredentialUiMode;
 }): Promise<any> {
   // Abort ongoing WebAuthn request
   controller.abort();
@@ -212,8 +212,8 @@ export async function authenticate(params?: {
     publicKey: options,
     signal: controller.signal,
     // Request a conditional UI
-    ...(params?.mediation && { mediation: params.mediation }),
-    ...(params?.ui_mode && { uiMode: params.ui_mode }),
+    ...(params?.mediation && {mediation: params.mediation}),
+    ...(params?.ui_mode && {uiMode: params.ui_mode}),
   })) as AuthenticationCredential;
 
   if (!cred) {

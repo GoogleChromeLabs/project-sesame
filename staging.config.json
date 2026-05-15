@@ -27,11 +27,7 @@
   ],
   "rp_name": "Project Sesame",
   "project_name": "project-sesame-426206",
-  "allowlisted_accounts": [
-    "agektmr",
-    "chromedemojp@gmail.com",
-    "johnzoeller"
-  ],
+  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "supported_idps": [
     {
       "name": "Google",

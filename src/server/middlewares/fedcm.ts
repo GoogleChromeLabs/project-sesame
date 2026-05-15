@@ -28,7 +28,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import {fedcmCheck, getTime} from '../middlewares/common.ts';
 import {ApiType, apiAclCheck} from '../libs/session.ts';
-import { logger } from '../libs/logger.ts';
+import {logger} from '../libs/logger.ts';
 
 const router = Router();
 
@@ -242,21 +242,21 @@ router.post(
     if (!rp) {
       const message = `RP not registered. Client ID: ${client_id}`;
       logger.error(message);
-      res.status(400).json({ error: message });
+      res.status(400).json({error: message});
       return;
     }
     // Error when: The RP URL matches the requesting origin.
     if (!compareUrls(rp.origin, req.headers.origin)) {
       const message = `RP origin doesn't match: ${rp.origin}`;
       logger.error(message);
-      res.status(400).json({ error: message });
+      res.status(400).json({error: message});
       return;
     }
     // Error when: the account does not match who is currently signed in.
     if (account_id !== user.id) {
       const message = `Account ID doesn't match: ${account_id}`;
       logger.error(message);
-      res.status(400).json({ error: message });
+      res.status(400).json({error: message});
       return;
     }
 
@@ -280,7 +280,7 @@ router.post(
 
     try {
       const _params = JSON.parse(params);
-      const { nonce } = _params;
+      const {nonce} = _params;
 
       // if (user.status === '') {
       const token = jwt.sign(
@@ -298,7 +298,7 @@ router.post(
         rp.secret
       );
 
-      res.json({ token });
+      res.json({token});
       // } else {
       //   let error_code = 401;
       //   switch (user.status) {
@@ -366,7 +366,7 @@ router.post(
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
       logger.error("Account hint doesn't match.");
-      res.status(401).json({ error: "Account hint doesn't match." });
+      res.status(401).json({error: "Account hint doesn't match."});
       return;
     }
 
@@ -378,7 +378,7 @@ router.post(
     // Use .includes() for arrays, not .has()
     if (!user.approved_clients.includes(client_id)) {
       logger.error('The client is not connected.');
-      res.status(400).json({ error: 'The client is not connected.' });
+      res.status(400).json({error: 'The client is not connected.'});
       return;
     }
 
@@ -387,7 +387,7 @@ router.post(
       (_client_id: Base64URLString) => _client_id !== client_id
     );
     Users.update(user);
-    res.json({ account_id: user.id });
+    res.json({account_id: user.id});
   }
 );
 

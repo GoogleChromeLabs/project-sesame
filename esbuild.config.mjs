@@ -32,6 +32,6 @@ try {
     outfile: 'dist/server/app.js',
     sourcemap: true,
   });
-} catch(e) {
+} catch (e) {
   console.error(e);
 }

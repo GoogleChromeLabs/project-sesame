@@ -28,13 +28,8 @@
       "wss://localhost:3001",
       "https://idp.localhost"
     ],
-    "script_src": [
-      "https://rp.localhost",
-      "https://idp.localhost"
-    ],
-    "style_src_elem": [
-      "https://idp.localhost"
-    ]
+    "script_src": ["https://rp.localhost", "https://idp.localhost"],
+    "style_src_elem": ["https://idp.localhost"]
   },
   "supported_idps": [
     {

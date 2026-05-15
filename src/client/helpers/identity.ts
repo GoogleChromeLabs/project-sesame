@@ -116,7 +116,7 @@ export class SesameIdP {
         clientId: idp.clientId,
         loginHint,
         fields,
-        params: { nonce, ...params },
+        params: {nonce, ...params},
       });
     }
 
@@ -164,7 +164,7 @@ export class SesameIdP {
         configURL: idp.configURL,
         clientId: idp.clientId,
         fields,
-        params: { nonce, ...params },
+        params: {nonce, ...params},
       });
     }
 

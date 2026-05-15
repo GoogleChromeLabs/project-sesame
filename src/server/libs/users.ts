@@ -16,18 +16,21 @@
  */
 
 import {Base64URLString} from '@simplewebauthn/server';
-import { Timestamp } from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 
 import {
   generateRandomString,
   getGravatarUrl,
 } from '~project-sesame/server/libs/helpers.ts';
 import {config} from '~project-sesame/server/config.ts';
-import { getTime, ALLOW_LISTED_FOREVER } from '~project-sesame/server/middlewares/common.ts';
+import {
+  getTime,
+  ALLOW_LISTED_FOREVER,
+} from '~project-sesame/server/middlewares/common.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 import {FederationMappings} from './federation-mappings.ts';
-import { logger } from '~project-sesame/server/libs/logger.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 
 export type UserId = Base64URLString;
 export type PasskeyUserId = Base64URLString;
@@ -393,7 +396,9 @@ export class Users {
    */
   static async deleteOldUsers(): Promise<void> {
     logger.info('All users eviction started...');
-    const retentionDuration = new Date(Date.now() - config.account_retention_duration);
+    const retentionDuration = new Date(
+      Date.now() - config.account_retention_duration
+    );
     const users = await store
       .collection(Users.collection)
       .where('registeredAt', '<', Timestamp.fromDate(retentionDuration))

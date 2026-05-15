@@ -15,10 +15,10 @@
  * limitations under the License
  */
 
-import { describe, it } from 'node:test';
+import {describe, it} from 'node:test';
 import assert from 'node:assert';
-import { Users } from './users.js';
-import { store } from '../config.js';
+import {Users} from './users.js';
+import {store} from '../config.js';
 
 describe('Users', () => {
   it('should create a user with number timestamps', async () => {

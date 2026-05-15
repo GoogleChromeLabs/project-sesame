@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { $ } from './index';
+import {$} from './index';
 
 declare global {
   interface Window {
@@ -49,7 +49,7 @@ export function initAnalytics() {
   }
 
   const initCookieBar = () => {
-    const { instance, status: CookieNotificationBarStatus } =
+    const {instance, status: CookieNotificationBarStatus} =
       window.glue.CookieNotificationBar;
 
     if (!instance) {
@@ -83,7 +83,11 @@ export function initAnalytics() {
     updateConsent(instance.status);
   };
 
-  if (window.glue && window.glue.CookieNotificationBar && window.glue.CookieNotificationBar.instance) {
+  if (
+    window.glue &&
+    window.glue.CookieNotificationBar &&
+    window.glue.CookieNotificationBar.instance
+  ) {
     initCookieBar();
   } else {
     window.glueCookieNotificationBarLoaded = initCookieBar;

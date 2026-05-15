@@ -28,7 +28,7 @@ import {
   setSignedIn, // Keeping this for now as it handles headers too
   setSignedOut, // Keeping this for now as it handles headers too
 } from '~project-sesame/server/libs/session.ts';
-import { SessionService } from '~project-sesame/server/libs/session.ts';
+import {SessionService} from '~project-sesame/server/libs/session.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
@@ -81,9 +81,7 @@ router.post(
 
         if (user) {
           // User already exists
-          res
-            .status(400)
-            .send({error: 'The username is already taken.'});
+          res.status(400).send({error: 'The username is already taken.'});
           return;
         }
 
@@ -99,12 +97,12 @@ router.post(
         res.json({});
         return;
       } else {
-        res.status(400).send({ error: 'Invalid username.' });
+        res.status(400).send({error: 'Invalid username.'});
         return;
       }
     } catch (error: any) {
       console.error(error);
-      res.status(400).send({ error: error.message });
+      res.status(400).send({error: error.message});
       return;
     }
   }
@@ -159,7 +157,7 @@ router.post(
       }
     } catch (error: any) {
       console.error(error);
-      res.status(400).send({ error: error.message });
+      res.status(400).send({error: error.message});
       return;
     }
   }
@@ -208,10 +206,10 @@ router.post(
     const {username, displayName, password1, password2} = req.body;
 
     if (!Users.isValidUsername(username)) {
-      res.status(400).json({ error: 'Invalid username' });
+      res.status(400).json({error: 'Invalid username'});
       return;
     } else if (!Users.isValidPassword(password1) || password1 !== password2) {
-      res.status(400).json({ error: 'Invalid password' });
+      res.status(400).json({error: 'Invalid password'});
       return;
     }
 
@@ -219,7 +217,7 @@ router.post(
     const existingUser = await Users.findByUsername(username);
     if (existingUser) {
       // User already exists
-      res.status(400).send({ error: 'The username is already taken.' });
+      res.status(400).send({error: 'The username is already taken.'});
       return;
     }
 
@@ -240,11 +238,11 @@ router.post(
       }
     } catch (e: any) {
       console.error(e);
-      res.status(400).send({ error: e.message });
+      res.status(400).send({error: e.message});
       return;
     }
 
-    res.status(401).json({ error: 'Failed to sign in.' });
+    res.status(401).json({error: 'Failed to sign in.'});
   }
 );
 
@@ -284,13 +282,13 @@ router.post(
     // TODO: Validate entered parameter.
     // TODO: Validate the password format
     if (!Users.isValidPassword(password)) {
-      res.status(401).json({ error: 'Invalid password.' });
+      res.status(401).json({error: 'Invalid password.'});
       return;
     }
 
     if (username) {
       if (!user) {
-        res.status(401).json({ error: 'Failed to sign up.' });
+        res.status(401).json({error: 'Failed to sign up.'});
         return;
       }
       user.password = password;
@@ -305,7 +303,7 @@ router.post(
       }
     }
 
-    res.status(401).json({ error: 'Failed to sign in.' });
+    res.status(401).json({error: 'Failed to sign in.'});
   }
 );
 
@@ -345,7 +343,7 @@ router.post(
 
     // TODO: Validate entered parameter.
     if (!Users.isValidPassword(password)) {
-      res.status(401).json({ error: 'Invalid password.' });
+      res.status(401).json({error: 'Invalid password.'});
       return;
     }
 
@@ -359,7 +357,7 @@ router.post(
         return;
       }
     }
-    res.status(401).json({ error: 'Failed to sign in.' });
+    res.status(401).json({error: 'Failed to sign in.'});
   }
 );
 
@@ -413,7 +411,7 @@ router.post(
       }
     }
 
-    res.status(401).json({ error: 'Failed to sign in.' });
+    res.status(401).json({error: 'Failed to sign in.'});
   }
 );
 
@@ -461,7 +459,7 @@ router.post(
       return;
     }
     if (newPassword1 !== newPassword2) {
-      res.status(400).json({ error: 'New passwords do not match.' });
+      res.status(400).json({error: 'New passwords do not match.'});
       return;
     }
 
@@ -492,7 +490,7 @@ router.post(
   (req: Request, res: Response): void => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
-      res.status(401).json({ error: 'The user needs to be signed in.' });
+      res.status(401).json({error: 'The user needs to be signed in.'});
       return;
     }
     const {user} = res.locals;
@@ -533,7 +531,7 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     if (res.locals.signin_status < UserSignInStatus.SignedIn) {
       // If the user has not signed in, return an error.
-      res.status(401).json({ error: 'The user needs to be signed in.' });
+      res.status(401).json({error: 'The user needs to be signed in.'});
       return;
     }
     const {newName} = req.body;
@@ -570,7 +568,7 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     if (res.locals.signin_status < UserSignInStatus.RecentlySignedIn) {
       // If the user has not signed in recently enough, return an error.
-      res.status(401).json({ error: 'The user needs to reauthenticate.' });
+      res.status(401).json({error: 'The user needs to reauthenticate.'});
       return;
     }
     const {user} = res.locals;

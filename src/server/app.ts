@@ -15,13 +15,13 @@
  * limitations under the License
  */
 
-import express, { Request, Response, NextFunction } from 'express';
-import { create } from 'express-handlebars';
+import express, {Request, Response, NextFunction} from 'express';
+import {create} from 'express-handlebars';
 import useragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import path from 'path';
-import { config } from '~project-sesame/server/config.ts';
+import {config} from '~project-sesame/server/config.ts';
 import {
   PageType,
   UserSignInStatus,
@@ -30,20 +30,20 @@ import {
   pageAclCheck,
   setSignedOut,
 } from '~project-sesame/server/libs/session.ts';
-import { SessionService } from '~project-sesame/server/libs/session.ts';
-import { admin } from '~project-sesame/server/middlewares/admin.ts';
-import { auth } from '~project-sesame/server/middlewares/auth.ts';
-import { fedcm } from '~project-sesame/server/middlewares/fedcm.ts';
-import { federation } from '~project-sesame/server/middlewares/federation.ts';
-import { settings } from '~project-sesame/server/middlewares/settings.ts';
-import { webauthn } from '~project-sesame/server/middlewares/webauthn.ts';
+import {SessionService} from '~project-sesame/server/libs/session.ts';
+import {admin} from '~project-sesame/server/middlewares/admin.ts';
+import {auth} from '~project-sesame/server/middlewares/auth.ts';
+import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
+import {federation} from '~project-sesame/server/middlewares/federation.ts';
+import {settings} from '~project-sesame/server/middlewares/settings.ts';
+import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 
-import { wellKnown } from '~project-sesame/server/middlewares/well-known.ts';
-import { logger } from '~project-sesame/server/libs/logger.ts';
+import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from '~project-sesame/server/swagger.ts';
+import {swaggerSpec} from '~project-sesame/server/swagger.ts';
 import fs from 'node:fs/promises';
-import { marked } from 'marked';
+import {marked} from 'marked';
 
 const app = express();
 
@@ -64,9 +64,7 @@ function configureTemplateEngine(app: express.Application) {
         return config.enabled_pages.includes(path);
       },
       isSignedIn: (options: any) => {
-        return (
-          options.data.root.signin_status >= UserSignInStatus.SignedIn
-        );
+        return options.data.root.signin_status >= UserSignInStatus.SignedIn;
       },
     },
     extname: 'html',
@@ -108,7 +106,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(useragent.express());
 
 app.use(initializeSession());
@@ -156,11 +154,15 @@ app.locals.debug = config.debug;
  *             schema:
  *               type: string
  */
-app.get('/', pageAclCheck(PageType.NoAuth), (req: Request, res: Response): void => {
-  return res.render('index.html', {
-    title: 'Welcome!',
-  });
-});
+app.get(
+  '/',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    return res.render('index.html', {
+      title: 'Welcome!',
+    });
+  }
+);
 
 /**
  * Sign-Up Form Page.
@@ -419,7 +421,7 @@ app.use('/.well-known', wellKnown);
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy: {policy: 'cross-origin'},
   }),
   express.static(path.join(config.dist_root_file_path, 'shared/public'))
 );
@@ -447,7 +449,7 @@ app.get(
   '/docs/guides/:page',
   pageAclCheck(PageType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const { page } = req.params;
+    const {page} = req.params;
     let filePath = '';
 
     if (page === 'readme') {
@@ -502,7 +504,6 @@ app.get(
 app.get('/__health-check', (req: Request, res: Response): void => {
   res.send('OK');
 });
-
 
 app.listen(config.port, (): void => {
   logger.info(`Server listening at ${config.origin}`);

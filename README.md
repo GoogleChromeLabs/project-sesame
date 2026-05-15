@@ -25,9 +25,9 @@ patterns.
 
 ### Prerequisites
 
-* [Node.js 22+](https://nodejs.org/)
-* [gcloud CLI](https://cloud.google.com/sdk/docs/install)
-* [Java JDK 21+](https://jdk.java.net/)
+- [Node.js 22+](https://nodejs.org/)
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+- [Java JDK 21+](https://jdk.java.net/)
 
 ### Install
 
@@ -49,18 +49,18 @@ This command will run the emulator, RP and IdP projects, and Caddy proxy:
 npm run dev:local
 ```
 
-Caddy should proxy from https://rp.localhost to `localhost:8080` and https://idp.localhost to `localhost:8000`, 
+Caddy should proxy from https://rp.localhost to `localhost:8080` and https://idp.localhost to `localhost:8000`,
 or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
 
-> [!NOTE]
-> `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
+> [!NOTE] > `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
 
 ### Useful Chrome flags (optional)
 
 For local testing, you can configure Chrome to ignore warnings and errors related to certificates.
 
-* Launch Chrome with the `--ignore-certificate-errors` command line flag
-* Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` and set its contents to:
+- Launch Chrome with the `--ignore-certificate-errors` command line flag
+- Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` and set its contents to:
+
 ```text
 https://localhost,wss://localhost:3000,https://rp.localhost,wss://rp.localhost,wss://rp.localhost:3000,https://idp.localhost
 ```
@@ -75,14 +75,14 @@ sign-in flow, follow the instructions below.
 3. Add a TypeScript file under `src/client/pages`. e.g. `src/client/pages/sign-in.ts`.
 4. Layout template is `src/client/layout.html`. The partial templates are under `src/shared/views/partials`.
 5. Add a server behavior at `src/server/app.ts`. e.g.
-    ```ts
-    app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
-      res.render('sign-in.html', {
-        title: 'Password',
-        layout: 'password',
-      });
-    });
-    ```
+   ```ts
+   app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
+     res.render('sign-in.html', {
+       title: 'Password',
+       layout: 'password',
+     });
+   });
+   ```
 
 ### Use `pageAclCheck` middleware for pages
 
@@ -131,21 +131,25 @@ For example, if the you want to check a password at `/auth/sign-in`, create the
 endpoint in `src/server/middlewares/auth.ts`.
 
 ```ts
-router.post('/sign-in', apiAclCheck(ApiType.Authentication), async (req: Request, res: Response) => {
-  const {username, password} = req.body;
-  // TODO: Validate entered parameter.
-  if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
-    return res.status(401).json({error: 'Enter at least one random letter.'});
-  }
+router.post(
+  '/sign-in',
+  apiAclCheck(ApiType.Authentication),
+  async (req: Request, res: Response) => {
+    const {username, password} = req.body;
+    // TODO: Validate entered parameter.
+    if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
+      return res.status(401).json({error: 'Enter at least one random letter.'});
+    }
 
-  const user = await Users.validatePassword(username, password);
-  if (user) {
-    // Set the user as a signed in status
-    new SessionService(req.session).setSessionUser(user);
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      new SessionService(req.session).setSessionUser(user);
 
-    return res.json(user);
-  } else {
-    return res.status(401).json({error: 'Failed to sign in.'});
+      return res.json(user);
+    } else {
+      return res.status(401).json({error: 'Failed to sign in.'});
+    }
   }
-});
+);
 ```

@@ -40,14 +40,17 @@ export class Logger {
   ];
 
   private replacer(key: string, value: any): any {
-    if (Logger.REDACTED_KEYS.some((k) => key.toLowerCase() === k.toLowerCase())) {
+    if (Logger.REDACTED_KEYS.some(k => key.toLowerCase() === k.toLowerCase())) {
       return '[REDACTED]';
     }
     return value;
   }
 
   private log(severity: LogSeverity, message: string, data?: any) {
-    if (process.env.NODE_ENV === 'production' && severity === LogSeverity.DEBUG) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      severity === LogSeverity.DEBUG
+    ) {
       return;
     }
 
@@ -74,7 +77,7 @@ export class Logger {
       }
     }
 
-    console.log(JSON.stringify(entry, this.replacer, "  "));
+    console.log(JSON.stringify(entry, this.replacer, '  '));
   }
 
   debug(message: string, data?: any) {

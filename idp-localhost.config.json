@@ -10,9 +10,7 @@
       "wss://localhost:3001",
       "https://rp.localhost"
     ],
-    "script_src": [
-      "https://rp.localhost"
-    ]
+    "script_src": ["https://rp.localhost"]
   },
   "supported_idps": [
     {

@@ -24,11 +24,9 @@ brought back to where they sign in from.
   <ul>
     {{#if (isPageEnabled '/signup-form')}}
     <li><a href="/signup-form">Sign-up Form</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/passkey-signup')}}
+    {{/if}} {{#if (isPageEnabled '/passkey-signup')}}
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/fedcm-delegate')}}
+    {{/if}} {{#if (isPageEnabled '/fedcm-delegate')}}
     <li><a href="/fedcm-delegate">FedCM delegation flow</a></li>
     {{/if}}
   </ul>
@@ -36,20 +34,15 @@ brought back to where they sign in from.
   <ul>
     {{#if (isPageEnabled '/signin-form')}}
     <li><a href="/signin-form">Sign-in Form</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/passkey-form-autofill')}}
+    {{/if}} {{#if (isPageEnabled '/passkey-form-autofill')}}
     <li><a href="/passkey-form-autofill">Passkey form autofill</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/passkey-one-button')}}
+    {{/if}} {{#if (isPageEnabled '/passkey-one-button')}}
     <li><a href="/passkey-one-button">Passkey one button</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/fedcm-active-mode')}}
+    {{/if}} {{#if (isPageEnabled '/fedcm-active-mode')}}
     <li><a href="/fedcm-active-mode">FedCM active mode</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/fedcm-passive-mode')}}
+    {{/if}} {{#if (isPageEnabled '/fedcm-passive-mode')}}
     <li><a href="/fedcm-passive-mode">FedCM passive mode</a></li>
-    {{/if}}
-    {{#if (isPageEnabled '/fedcm-form-autofill')}}
+    {{/if}} {{#if (isPageEnabled '/fedcm-form-autofill')}}
     <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
     {{/if}}
     <!-- <li><a href="/legacy-credman">Legacy Credential Management</a></li> -->
