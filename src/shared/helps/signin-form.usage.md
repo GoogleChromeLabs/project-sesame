@@ -13,12 +13,15 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## Password based sign-in form
+
 In this page, you can experience a form based sign-in flow and passkey automatic
 upgrades. **Automatic passkey upgrades** help your users adopt passkeys.
 
 ## Prerequisites
 
-* Automatic passkey upgrades require Chrome or Safari.
+- Automatic passkey upgrades require Chrome or Safari.
 
 Last updated: 2025/05/18
 
@@ -28,5 +31,5 @@ enter a username and a password to proceed.
 After a successful password verification, the password manager creates a new
 passkey automatically.
 
-*Use the password saved to your password manager to perform automatic passkey
-upgrades (Save a password to the password manager in advance).*
+_Use the password saved to your password manager to perform automatic passkey
+upgrades (Save a password to the password manager in advance)._

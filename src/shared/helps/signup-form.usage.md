@@ -13,10 +13,13 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## Password based sign-up form
+
 In this page, you can experience account creation through a form based sign-up
 flow using a username and a password.
 
 Simply enter a username and a password twice to create an account.
 
-*The password won't be saved to the server on this website. You don't need to
-create an account before signing in.*
+_The password won't be saved to the server on this website. You don't need to
+create an account before signing in._

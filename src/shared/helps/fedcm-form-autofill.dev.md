@@ -13,6 +13,9 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## How to integrate FedCM form autofill
+
 You can enable **FedCM form autofill** by appending `mediation: "conditional"`
 to the `navigator.credentials.get()` call to an ordinary FedCM authentication
 invocation. Also, the `input` element must contain `webidentity` within its
@@ -20,5 +23,5 @@ invocation. Also, the `input` element must contain `webidentity` within its
 
 ### Learning resources
 
-* [Implement an identity solution with FedCM on the Relying Party
-side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
+- [Implement an identity solution with FedCM on the Relying Party
+  side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)

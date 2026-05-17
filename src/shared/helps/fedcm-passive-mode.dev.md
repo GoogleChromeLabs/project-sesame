@@ -13,7 +13,10 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## How to integrate FedCM passive mode
+
 Learn how to implement FedCM on a relying party:
 
-* [Implement an identity solution with FedCM on the Relying Party
-side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
+- [Implement an identity solution with FedCM on the Relying Party
+  side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)

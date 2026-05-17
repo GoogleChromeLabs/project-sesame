@@ -13,25 +13,28 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## How to integrate passkey management
+
 Here's the checklist of a good passkey management page:
 
-* Allow users to manage passkeys in a [passkey management
-page](https://web.dev/articles/passkey-management).  
-* Support [registering multiple
-passkeys](https://web.dev/articles/passkey-management#manage_multiple_passkeys).  
-* Allow users to [add new and flexible types of
-passkeys](https://web.dev/articles/passkey-management#allow_creation_of_new_passkeys)
-on the management page.  
-* Display the [passkey
-name](https://web.dev/articles/passkey-management#display_a_list_of_registered_passkeys).  
-* Indicate whether a passkey is [syncable or
-non-syncable](https://web.dev/articles/passkey-management#display_a_list_of_registered_passkeys).  
-* Allow users to [remove a public
-key](https://web.dev/articles/passkey-management#deleting-a-passkey) from the
-server.  
-* Signal the list of passkeys when an associated public key is removed from the
-server.  
+- Allow users to manage passkeys in a [passkey management
+  page](https://web.dev/articles/passkey-management).
+- Support [registering multiple
+  passkeys](https://web.dev/articles/passkey-management#manage_multiple_passkeys).
+- Allow users to [add new and flexible types of
+  passkeys](https://web.dev/articles/passkey-management#allow_creation_of_new_passkeys)
+  on the management page.
+- Display the [passkey
+  name](https://web.dev/articles/passkey-management#display_a_list_of_registered_passkeys).
+- Indicate whether a passkey is [syncable or
+  non-syncable](https://web.dev/articles/passkey-management#display_a_list_of_registered_passkeys).
+- Allow users to [remove a public
+  key](https://web.dev/articles/passkey-management#deleting-a-passkey) from the
+  server.
+- Signal the list of passkeys when an associated public key is removed from the
+  server.
 
 ### Learning resources
 
-* [Help users manage passkeys effectively](https://web.dev/articles/passkey-management)
+- [Help users manage passkeys effectively](https://web.dev/articles/passkey-management)

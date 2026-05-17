@@ -13,12 +13,15 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## FedCM form autofill
+
 In this page, you can experience authentication through a form that can
 accommodate passkeys, passwords and identity federation.
 
 ## Prerequisites
 
-* Chrome desktop 137 or later with `chrome://flags#fedcm-autofill` enabled.
+- Chrome desktop 137 or later with `chrome://flags#fedcm-autofill` enabled.
 
 Put your cursor on the input field (it may take a few seconds to get the
 identity federation option to appear).

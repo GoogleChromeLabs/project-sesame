@@ -22,6 +22,8 @@ an account displayed in a dedicated browser native dialog that unifies all
 credential types (currently passwords and passkeys) saved to the password
 manager.
 
+Unlike passkey dialog, immediate UI mode doesn't show a QR code dialog even after the user cancels the biometric prompt.
+
 To try out this feature, you need to have a password and a passkey saved to the
 password manager. If you don't have any yet, please go [passkey form
 autofill](/passkey-form-autofill) and save a password, then create a new

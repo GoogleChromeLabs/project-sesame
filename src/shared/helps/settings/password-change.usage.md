@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Change Password page
+## Password change
 
 In this page, you can change your password.
 

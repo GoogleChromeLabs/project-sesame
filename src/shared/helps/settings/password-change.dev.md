@@ -19,6 +19,8 @@
 <input type="password" name="password2" autocomplete="new-password">
 ``` -->
 
+## How to integrate password change
+
 TBD
 
 [Help users change passwords easily by adding a well-known URL for changing
