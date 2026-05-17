@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Reauthenticate with a passkey
+## How to integrate reauthentication with a passkey
 
 Require reauthentication after a certain duration has passed since the last
 user verification.

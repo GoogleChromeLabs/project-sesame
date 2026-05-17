@@ -13,6 +13,9 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## Sign-up with a passkey
+
 In this page, you can experience and learn sign-up flow using passkeys. Ideally,
 sign-up with a passkey should involve identity verification process such as
 email address verification, but in this demo, we skip that and directly create a

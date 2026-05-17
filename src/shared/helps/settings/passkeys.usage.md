@@ -13,12 +13,15 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## Passkey management
+
 In this page, you can experience a passkey management page.
 
 In the passkey management page, can do the following things:
 
-* Register a new passkey.
-* Delete the registered credential.
-* Rename the registered credential.
-* Find the name, creation date, last used date, provider of the passkey and sync
-state of the passkey associated with the credential.
+- Register a new passkey.
+- Delete the registered credential.
+- Rename the registered credential.
+- Find the name, creation date, last used date, provider of the passkey and sync
+  state of the passkey associated with the credential.

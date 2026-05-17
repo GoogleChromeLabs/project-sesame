@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Immediate UI mode
+## How to integrate immediate UI mode
 
 Immediate UI mode is suitable for sign-ins without a page transition. There are
 a few benefits to use this API:

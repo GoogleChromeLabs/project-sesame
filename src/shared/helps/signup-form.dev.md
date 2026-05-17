@@ -13,6 +13,9 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## How to integrate password based sign-up form
+
 Use `input` tag for a `username` field and `password` fields.
 
 Append `autocomplete="username"` attribute for `username` field. Append
@@ -20,4 +23,4 @@ Append `autocomplete="username"` attribute for `username` field. Append
 
 ### Learning resources
 
-* [Sign-up form best practices](https://web.dev/articles/sign-up-form-best-practices)
+- [Sign-up form best practices](https://web.dev/articles/sign-up-form-best-practices)

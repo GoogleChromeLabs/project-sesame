@@ -13,7 +13,10 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## How to integrate FedCM active mode
+
 Use `mode: "active"` to indicate that a FedCM invocation should be initiated by
 user interaction. Learn more:
 
-* [Implement an identity solution with FedCM on the Relying Party side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)
+- [Implement an identity solution with FedCM on the Relying Party side](https://privacysandbox.google.com/cookies/fedcm/implement/relying-party)

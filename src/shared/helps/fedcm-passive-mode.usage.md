@@ -13,16 +13,19 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
+## FedCM passive mode
+
 In this page, you can experience and learn FedCM passive mode.
 
 FedCM has two modes: "passive" and "active".
 
-* "active": FedCM prompt must be initiated by user interaction (such as clicking a button).
-* "passive": FedCM prompt will be initiated without direct user interaction. 
+- "active": FedCM prompt must be initiated by user interaction (such as clicking a button).
+- "passive": FedCM prompt will be initiated without direct user interaction.
 
 ## Prerequisites
 
-* Google Chrome
+- Google Chrome
 
 Last updated: 2025/05/18
 
