@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import { ALLOW_LISTED_FOREVER, getTime } from '../middlewares/common.ts';
+import {ALLOW_LISTED_FOREVER, getTime} from '../middlewares/common.ts';
 import {SessionData} from 'express-session';
 import {config} from '../config.ts';
 import {FirestoreStore, StoreOptions} from '@google-cloud/connect-firestore';
@@ -39,26 +39,25 @@ export class CustomFirestoreStore extends FirestoreStore {
       .collection(this.kind)
       .doc(sid)
       .get()
-      .then((doc) => {
+      .then(doc => {
         if (!doc.exists) {
           return callback();
         }
         return callback(null, doc.data() as SessionData);
       })
-      .catch((err) => {
+      .catch(err => {
         return callback(err);
       });
   };
 
-  set = (
-    sid: string,
-    sess: any,
-    callback?: (err?: any) => void
-  ): void => {
+  set = (sid: string, sess: any, callback?: (err?: any) => void): void => {
     // Correctly calculate the expiration Date object.
     // config.long_session_duration is expected to be in milliseconds.
     let expiresAt: number;
-    if (sess?.user?.username && config.allowlisted_accounts.includes(sess.user.username)) {
+    if (
+      sess?.user?.username &&
+      config.allowlisted_accounts.includes(sess.user.username)
+    ) {
       expiresAt = getTime(ALLOW_LISTED_FOREVER);
     } else {
       expiresAt = getTime(config.long_session_duration);
@@ -67,17 +66,19 @@ export class CustomFirestoreStore extends FirestoreStore {
     this.db
       .collection(this.kind)
       .doc(sid)
-      .set({
-        ...sess,
-        expiresAt,
-      }, {merge: true}
+      .set(
+        {
+          ...sess,
+          expiresAt,
+        },
+        {merge: true}
       )
       .then(() => {
         if (typeof callback === 'function') {
           callback();
         }
       })
-      .catch((dbErr) => {
+      .catch(dbErr => {
         if (typeof callback === 'function') {
           callback(dbErr instanceof Error ? dbErr : new Error(String(dbErr)));
         } else {

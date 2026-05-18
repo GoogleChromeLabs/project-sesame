@@ -23,7 +23,7 @@ import {
   toast,
 } from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
-import { getIdpUrls } from '../helpers/federated';
+import {getIdpUrls} from '../helpers/federated';
 
 postForm(
   async () => {
@@ -41,7 +41,7 @@ if ('IdentityCredential' in window) {
     const idpURLs = await getIdpUrls();
     const idp = new SesameIdP(idpURLs);
     await idp.initialize();
-    await idp.signIn({ mode: 'passive', mediation: 'required' });
+    await idp.signIn({mode: 'passive', mediation: 'required'});
     await redirect('/home');
   } catch (e: any) {
     console.error(e);

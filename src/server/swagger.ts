@@ -24,7 +24,8 @@ const options: swaggerJsdoc.Options = {
     info: {
       title: 'Project Sesame API',
       version: '1.0.0',
-      description: 'API documentation for Project Sesame authentication and identity services.',
+      description:
+        'API documentation for Project Sesame authentication and identity services.',
     },
     servers: [
       {

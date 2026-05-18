@@ -34,7 +34,7 @@ export class IdentityProviders {
 
   static async findByOrigin(
     url: string
-  ): Promise<IdentityProvider | undefined> {    
+  ): Promise<IdentityProvider | undefined> {
     const idp = IdentityProviders.idps.find(idp => {
       return idp.origin === new URL(url).origin;
     });

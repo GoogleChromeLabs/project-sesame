@@ -31,7 +31,7 @@ await google.initialize();
 
 const signIn = async (idp: SesameIdP) => {
   try {
-    await idp.signIn({ mode: 'active' });
+    await idp.signIn({mode: 'active'});
     await redirect('/home');
   } catch (e: any) {
     console.error(e);

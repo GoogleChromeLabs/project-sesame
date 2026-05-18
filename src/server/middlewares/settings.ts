@@ -16,10 +16,7 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {
-  PageType,
-  pageAclCheck,
-} from '~project-sesame/server/libs/session.ts';
+import {PageType, pageAclCheck} from '~project-sesame/server/libs/session.ts';
 
 const router = Router();
 

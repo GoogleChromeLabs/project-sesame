@@ -15,25 +15,21 @@
  * limitations under the License
  */
 
-import { Router, Request, Response } from 'express';
+import {Router, Request, Response} from 'express';
 import jwt from 'jsonwebtoken';
 import {
   FederationMap,
   FederationMappings,
 } from '../libs/federation-mappings.ts';
-import { config } from '../config.ts';
-import { IdentityProviders } from '../libs/identity-providers.ts';
-import { OAuth2Client } from 'google-auth-library';
-import { Users } from '../libs/users.ts';
-import { csrfCheck, getTime } from '../middlewares/common.ts';
-import {
-  apiAclCheck,
-  ApiType,
-  setSignedIn,
-} from '../libs/session.ts';
-import { SessionService } from '~project-sesame/server/libs/session.ts';
-import { RelyingParties } from '../libs/relying-parties.ts';
-import { logger } from '../libs/logger.ts';
+import {config} from '../config.ts';
+import {IdentityProviders} from '../libs/identity-providers.ts';
+import {OAuth2Client} from 'google-auth-library';
+import {Users} from '../libs/users.ts';
+import {csrfCheck, getTime} from '../middlewares/common.ts';
+import {apiAclCheck, ApiType, setSignedIn} from '../libs/session.ts';
+import {SessionService} from '~project-sesame/server/libs/session.ts';
+import {RelyingParties} from '../libs/relying-parties.ts';
+import {logger} from '../libs/logger.ts';
 
 const router = Router();
 const googleClient = new OAuth2Client();
@@ -77,15 +73,13 @@ router.post(
       idps: [] as IdentityProviders[],
     };
     const idps = [];
-    const { urls } = req.body;
+    const {urls} = req.body;
     try {
       for (const _url of urls) {
         const url = new URL(_url);
         const idp = await IdentityProviders.findByOrigin(url.toString());
         if (!idp) {
-          res
-            .status(404)
-            .json({ error: 'No matching identity provider found.' });
+          res.status(404).json({error: 'No matching identity provider found.'});
           return;
         }
         idp.secret = '';
@@ -95,7 +89,7 @@ router.post(
       res.json(options);
     } catch (e: any) {
       logger.error(e);
-      res.status(400).json({ error: e.message });
+      res.status(400).json({error: e.message});
     }
   }
 );
@@ -131,13 +125,13 @@ router.get(
   '/mappings',
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<void> => {
-    const { user } = res.locals;
+    const {user} = res.locals;
     try {
       const maps = await FederationMappings.findByUserId(user.id);
       res.json(maps);
     } catch (e: any) {
       logger.error(e);
-      res.status(400).json({ error: e.message });
+      res.status(400).json({error: e.message});
     }
   }
 );
@@ -199,7 +193,7 @@ router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response): Promise<void> => {
-    const { token: raw_token, url } = req.body;
+    const {token: raw_token, url} = req.body;
 
     try {
       const expected_nonce = new SessionService(req.session).getChallenge();
@@ -222,16 +216,13 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
-        logger.debug(
-          'Verifying ID Token',
-          {
-            token: raw_token,
-            secret: idp.secret,
-            origin: idp.origin,
-            nonce: expected_nonce,
-            clientId: idp.clientId
-          }
-        );
+        logger.debug('Verifying ID Token', {
+          token: raw_token,
+          secret: idp.secret,
+          origin: idp.origin,
+          nonce: expected_nonce,
+          clientId: idp.clientId,
+        });
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
@@ -287,7 +278,7 @@ router.post(
       res.status(200).json(user);
     } catch (error: any) {
       logger.error(error.message);
-      res.status(401).json({ error: 'ID token verification failed.' });
+      res.status(401).json({error: 'ID token verification failed.'});
     }
   }
 );
@@ -374,4 +365,4 @@ router.get(
   }
 );
 
-export { router as federation };
+export {router as federation};

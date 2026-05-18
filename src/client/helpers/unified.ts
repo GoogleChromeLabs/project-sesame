@@ -38,9 +38,9 @@ let controller = new AbortController();
  * @returns {Promise<PasswordCredential | string | undefined>}
  */
 export async function authenticate(params?: {
-  mediation?: CredentialMediationRequirement,
+  mediation?: CredentialMediationRequirement;
   // @ts-ignore
-  ui_mode?: CredentialUiMode
+  ui_mode?: CredentialUiMode;
   // @ts-ignore
 }): Promise<PasswordCredential | string | undefined> {
   controller.abort();
@@ -58,8 +58,8 @@ export async function authenticate(params?: {
       // },
       // temporary experiment for unified auth
       publicKey: options,
-      ...(params?.mediation && { mediation: params.mediation }),
-      ...(params?.ui_mode && { uiMode: params.ui_mode }),
+      ...(params?.mediation && {mediation: params.mediation}),
+      ...(params?.ui_mode && {uiMode: params.ui_mode}),
     });
     if (cred?.type === 'password') {
       // @ts-ignore

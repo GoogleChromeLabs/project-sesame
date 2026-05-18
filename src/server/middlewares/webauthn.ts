@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import { Router, Request, Response } from 'express';
+import {Router, Request, Response} from 'express';
 const router = Router();
 // import crypto from 'crypto';
 import {
@@ -31,14 +31,14 @@ import {
   verifyRegistrationResponse,
   WebAuthnCredential,
 } from '@simplewebauthn/server';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
-import { config } from '~project-sesame/server/config.ts';
+import {isoBase64URL} from '@simplewebauthn/server/helpers';
+import {config} from '~project-sesame/server/config.ts';
 import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import { Users } from '~project-sesame/server/libs/users.ts';
-import { csrfCheck, getTime } from '~project-sesame/server/middlewares/common.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
+import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
@@ -46,7 +46,7 @@ import {
   setSignedIn,
 } from '~project-sesame/server/libs/session.ts';
 
-import { SessionService } from '~project-sesame/server/libs/session.ts';
+import {SessionService} from '~project-sesame/server/libs/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
@@ -98,7 +98,7 @@ router.post(
   '/getKeys',
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<void> => {
-    const { user } = res.locals;
+    const {user} = res.locals;
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(
       user.passkeyUserId
     );
@@ -112,7 +112,7 @@ router.post(
         credential.providerIcon = entry.icon_light;
       }
     }
-    res.json({ rpId, userId, credentials });
+    res.json({rpId, userId, credentials});
   }
 );
 
@@ -157,15 +157,15 @@ router.post(
   '/renameKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    const { credId, newName } = req.body;
-    const { user } = res.locals;
+    const {credId, newName} = req.body;
+    const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
     if (
       !user ||
       !credential ||
       user.passkeyUserId !== credential?.passkeyUserId
     ) {
-      res.status(401).json({ error: 'User not authorized.' });
+      res.status(401).json({error: 'User not authorized.'});
       return;
     }
     credential.name = newName;
@@ -270,7 +270,7 @@ router.post(
       displayName = signup_user?.displayName || username;
       passkeyUserId = signup_user.passkeyUserId;
     } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
-      const { user } = res.locals;
+      const {user} = res.locals;
       passkeyUserId = user.passkeyUserId;
       username = user.username;
       displayName = user.displayName;
@@ -322,7 +322,7 @@ router.post(
       res.json(options);
     } catch (error: any) {
       console.error(error);
-      res.status(400).json({ error: error.message });
+      res.status(400).json({error: error.message});
     }
   }
 );
@@ -415,8 +415,8 @@ router.post(
   apiAclCheck(ApiType.PasskeyRegistration),
   async (req: Request, res: Response): Promise<void> => {
     let user, passkeyUserId;
-    const { type } = req.query;
-    const { username, signin_status } = res.locals;
+    const {type} = req.query;
+    const {username, signin_status} = res.locals;
     const signup_user = new SessionService(req.session).getSigningUp();
     if (signin_status === UserSignInStatus.SigningUp) {
       if (!signup_user) {
@@ -440,7 +440,7 @@ router.post(
 
     try {
       if (!expectedChallenge) {
-        res.status(400).send({ error: 'Invalid challenge' });
+        res.status(400).send({error: 'Invalid challenge'});
         return;
       }
 
@@ -454,7 +454,7 @@ router.post(
         requireUserVerification: false,
       });
 
-      const { verified, registrationInfo } = verification;
+      const {verified, registrationInfo} = verification;
 
       // If the verification failed, throw.
       if (!verified || !registrationInfo) {
@@ -462,7 +462,7 @@ router.post(
         throw new Error('User verification failed.');
       }
 
-      const { credential } = registrationInfo;
+      const {credential} = registrationInfo;
       const {
         aaguid,
         credentialType,
@@ -472,8 +472,8 @@ router.post(
       } = registrationInfo;
 
       // Base64URL encode ArrayBuffers.
-      const base64PublicKey = (
-        isoBase64URL.fromBuffer(credential.publicKey)
+      const base64PublicKey = isoBase64URL.fromBuffer(
+        credential.publicKey
       ) as Base64URLString;
 
       const aaguid_item = (aaguids as AAGUIDs)[aaguid];
@@ -538,7 +538,7 @@ router.post(
       new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      res.status(400).send({ error: error.message });
+      res.status(400).send({error: error.message});
     }
   }
 );
@@ -588,9 +588,7 @@ router.post(
         res.locals.user.passkeyUserId
       );
       if (!credentials?.length) {
-        res
-          .status(404)
-          .json({ error: 'No credentials found to sign in with.' });
+        res.status(404).json({error: 'No credentials found to sign in with.'});
         return;
       }
 
@@ -622,7 +620,7 @@ router.post(
     } catch (error: any) {
       console.error(error);
 
-      res.status(500).json({ error: error.message });
+      res.status(500).json({error: error.message});
     }
   }
 );
@@ -710,7 +708,7 @@ router.post(
 
     try {
       if (!expectedChallenge) {
-        res.status(401).json({ error: 'Invalid challenge.' });
+        res.status(401).json({error: 'Invalid challenge.'});
         return;
       }
 
@@ -720,7 +718,7 @@ router.post(
         new SessionService(req.session).deleteChallenge();
         res
           .status(404)
-          .json({ error: 'Matching credential not found on the server.' });
+          .json({error: 'Matching credential not found on the server.'});
         return;
       }
 
@@ -731,7 +729,7 @@ router.post(
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
         new SessionService(req.session).deleteChallenge();
-        res.status(400).json({ error: 'Wrong sign-in account.' });
+        res.status(400).json({error: 'Wrong sign-in account.'});
         return;
       }
 
@@ -739,7 +737,7 @@ router.post(
       const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
         new SessionService(req.session).deleteChallenge();
-        res.status(401).json({ error: 'User not found.' });
+        res.status(401).json({error: 'User not found.'});
         return;
       }
 
@@ -760,12 +758,12 @@ router.post(
         requireUserVerification: false,
       } as VerifyAuthenticationResponseOpts);
 
-      const { verified, authenticationInfo } = verification;
+      const {verified, authenticationInfo} = verification;
 
       // If the authentication failed, throw.
       if (!verified) {
         new SessionService(req.session).deleteChallenge();
-        res.status(401).json({ error: 'User verification failed.' });
+        res.status(401).json({error: 'User verification failed.'});
         return;
       }
 
@@ -783,9 +781,9 @@ router.post(
       new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({error: error.message});
     }
   }
 );
 
-export { router as webauthn };
+export {router as webauthn};

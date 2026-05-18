@@ -20,7 +20,7 @@ import {
   redirect,
   postForm,
   toast,
-  setRedirect
+  setRedirect,
 } from '~project-sesame/client/helpers/index';
 import {
   capabilities,

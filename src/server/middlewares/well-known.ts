@@ -131,7 +131,7 @@ router.get('/passkey-endpoints', (req: Request, res: Response): void => {
   const url = new URL(config.origin);
   url.pathname = '/settings/passkeys';
   const web_endpoint = url.toString();
-  res.json({ enroll: web_endpoint, manage: web_endpoint });
+  res.json({enroll: web_endpoint, manage: web_endpoint});
 });
 
 /**
