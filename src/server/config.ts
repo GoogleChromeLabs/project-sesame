@@ -114,6 +114,13 @@ function mergeConfigs(target: any, source: any) {
             map.set(item.origin, item)
           );
           result[key] = Array.from(map.values());
+        } else if (key === 'associated_domains') {
+          const map = new Map();
+          [...target[key], ...source[key]].forEach(item => {
+            const id = item.site || item.package_name;
+            map.set(id, item);
+          });
+          result[key] = Array.from(map.values());
         } else {
           result[key] = [...new Set([...target[key], ...source[key]])];
         }
@@ -132,7 +139,24 @@ function mergeConfigs(target: any, source: any) {
   return result;
 }
 
-const mergedConfig = mergeConfigs(defaultConfig, envConfig);
+let mergedConfig = mergeConfigs({}, defaultConfig);
+
+if (is_mock_cross_site && env !== 'localhost') {
+  const localhostConfigPath = path.join(
+    project_root_file_path,
+    'localhost.config.json'
+  );
+  try {
+    const localhostConfig = (
+      await import(localhostConfigPath, {with: {type: 'json'}})
+    ).default;
+    mergedConfig = mergeConfigs(mergedConfig, localhostConfig);
+  } catch (e) {
+    // Ignore if localhost.config.json is missing
+  }
+}
+
+mergedConfig = mergeConfigs(mergedConfig, envConfig);
 
 const {
   hostname,
