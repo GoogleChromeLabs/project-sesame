@@ -36,7 +36,7 @@
     "google-auth-library": "^10.6.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "9.0.3",
-    "marked": "^18.0.3",
+    "marked": "^18.0.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "wait-on": "^9.0.10"
@@ -65,7 +65,7 @@
     "@types/express-session": "1.19.0",
     "@types/express-useragent": "1.0.5",
     "@types/jsonwebtoken": "9.0.10",
-    "@types/node": "25.8.0"
+    "@types/node": "25.9.0"
   },
   "scripts": {
     "clean": "rimraf ./dist",
