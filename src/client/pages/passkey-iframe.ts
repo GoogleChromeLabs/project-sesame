@@ -25,19 +25,12 @@ import {
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 
 try {
-  const origin = 'https://idp.localhost';
+  const iframe_url = new URL($('#iframe iframe').src);
+  const origin = iframe_url.origin;
+  const nonce = iframe_url.searchParams.get('nonce');
   const idp = new SesameIdP([origin]);
   await idp.initialize();
-  const nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
   if (!nonce) throw new Error('nonce is not defined');
-
-  const iframeElem = document.createElement('iframe');
-  const url = new URL('/iframe-federation', origin);
-  url.searchParams.append('nonce', nonce);
-  url.searchParams.append('origin', location.origin);
-  iframeElem.src = url.toString();
-  iframeElem.allow = 'publickey-credentials-get';
-  $('#iframe').appendChild(iframeElem);
 
   await idp.iframe({nonce});
   await redirect('/home');

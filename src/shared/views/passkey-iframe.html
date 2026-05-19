@@ -10,7 +10,12 @@ Passkey iframe
 </div>
 <main class="content center">
   <h2>Welcome back!</h2>
-  <div id="iframe"></div>
+  <div id="iframe">
+    <iframe
+      src="{{iframe_origin}}/iframe-federation?nonce={{nonce}}&origin={{parent_origin}}"
+      allow="publickey-credentials-get"
+    ></iframe>
+  </div>
   <p class="instructions">
     This is a demo website. Please don't use a real email address or a real
     password.

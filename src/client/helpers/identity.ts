@@ -65,7 +65,7 @@ export class SesameIdP {
    * Resolves the config URLs and client IDs for each IdP.
    * @returns A promise that resolves when initialization is complete.
    */
-  async initialize(): Promise<string> {
+  async initialize(): Promise<void> {
     const options = await post('/federation/options', {
       urls: this.urls,
     });
@@ -82,8 +82,6 @@ export class SesameIdP {
       };
       this.idps.push(idp);
     }
-
-    return options.nonce;
   }
 
   /**
@@ -181,7 +179,7 @@ export class SesameIdP {
 
   async iframe(options: FedCmOptions = {}): Promise<void> {
     return new Promise((resolve, reject) => {
-      let { nonce } = options;
+      let {nonce} = options;
       // TODO: Does `nonce` detection need to be here? Can this be moved to `initialize()`?
       if (!nonce) {
         nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;

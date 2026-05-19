@@ -329,9 +329,13 @@ app.get(
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {
     const nonce = new SessionService(req.session).setChallenge();
+    const iframe_origin = config.primary_idp_origin;
+    const parent_origin = encodeURIComponent(config.origin);
     return res.render('passkey-iframe.html', {
       title: 'Passkey within iframe',
       nonce,
+      iframe_origin,
+      parent_origin,
     });
   }
 );

@@ -199,7 +199,7 @@ router.post(
       const expected_nonce = new SessionService(req.session).getChallenge();
 
       if (!expected_nonce || typeof expected_nonce !== 'string') {
-        logger.error('Invalid nonce:', expected_nonce)
+        logger.error('Invalid nonce:', expected_nonce);
         throw new Error('Invalid nonce.');
       }
 
