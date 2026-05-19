@@ -367,10 +367,10 @@ router.post(
         rp.secret
       );
 
-      res.json({ token });
+      res.json({token});
     } catch (e: any) {
       logger.error(e);
-      res.status(500).json({ error: 'Failed to generate token.' });
+      res.status(500).json({error: 'Failed to generate token.'});
     }
   }
 );

@@ -90,9 +90,9 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   let permissionsPolicyDomains = [];
   if (req.path === '/passkey-iframe') {
     const policies = [
-      `publickey-credentials-get=(self "${config.primary_idp_origin}")`
+      `publickey-credentials-get=(self "${config.primary_idp_origin}")`,
     ];
-    res.setHeader('Permissions-Policy', policies.join(';'))
+    res.setHeader('Permissions-Policy', policies.join(';'));
   }
 
   // For the IdP to set CSP `frame_ancestors`
@@ -101,7 +101,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
     // Filter localhosts out for production environments.
     frameAncestors = config.csp.frame_ancestors.filter((src: string) => {
       if (!config.is_localenv) {
-        return src.indexOf('localhost') === -1
+        return src.indexOf('localhost') === -1;
       }
       return true;
     });
@@ -131,7 +131,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
     crossOriginOpenerPolicy: {
       policy: 'same-origin-allow-popups',
     },
-    xFrameOptions: config.debug ? false : { action: 'deny' }
+    xFrameOptions: config.debug ? false : {action: 'deny'},
   })(req, res, next);
 });
 
@@ -359,14 +359,23 @@ app.get(
   }
 );
 
-app.get(
-  '/iframe-federation',
-  (req: Request, res: Response): void => {
-    return res.render('iframe-federation.html', {
-      title: 'Sign-in form within an iframe',
-    });
-  }
-)
+app.get('/iframe-federation', (req: Request, res: Response): void => {
+  return res.render('iframe-federation.html', {
+    title: 'Sign-in form within an iframe',
+  });
+});
+
+app.get('/iframe-federation', (req: Request, res: Response): void => {
+  return res.render('iframe-federation.html', {
+    title: 'Sign-in form within an iframe',
+  });
+});
+
+app.get('/iframe-federation', (req: Request, res: Response): void => {
+  return res.render('iframe-federation.html', {
+    title: 'Sign-in form within an iframe',
+  });
+});
 
 app.get(
   '/fedcm-active-mode',
