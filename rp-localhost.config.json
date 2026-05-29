@@ -24,8 +24,7 @@
   "project_name": "project-sesame-426206",
   "csp": {
     "connect_src": [
-      "wss://localhost:3000",
-      "wss://localhost:3001",
+      "wss://rp.localhost",
       "https://idp.localhost"
     ],
     "script_src": ["https://rp.localhost", "https://idp.localhost"],

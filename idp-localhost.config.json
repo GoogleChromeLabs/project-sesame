@@ -6,8 +6,7 @@
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "csp": {
     "connect_src": [
-      "wss://localhost:3000",
-      "wss://localhost:3001",
+      "wss://idp.localhost",
       "https://rp.localhost"
     ],
     "script_src": ["https://rp.localhost"]
