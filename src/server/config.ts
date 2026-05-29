@@ -141,7 +141,7 @@ function mergeConfigs(target: any, source: any) {
 
 let mergedConfig = mergeConfigs({}, defaultConfig);
 
-if (is_mock_cross_site && env !== 'localhost') {
+if (is_mock_cross_site) {
   const localhostConfigPath = path.join(
     project_root_file_path,
     'localhost.config.json'
