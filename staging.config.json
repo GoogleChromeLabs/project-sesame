@@ -45,6 +45,13 @@
       "secret": "xxxxx"
     },
     {
+      "name": "Google",
+      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
+      "origin": "https://accounts.sandbox.google.com",
+      "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
+      "secret": "*****"
+    },
+    {
       "name": "Google Sandbox",
       "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
       "origin": "https://accounts.sandbox.google.com",

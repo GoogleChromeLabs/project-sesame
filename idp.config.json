@@ -9,20 +9,14 @@
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "supported_rps": [
     {
-      "origin": "https://rp.localhost",
-      "client_id": "https://rp.localhost",
+      "origin": "https://identity.chrome.dev",
+      "client_id": "https://identity.chrome.dev",
       "name": "Project Sesame",
       "secret": "xxxxx"
     },
     {
       "origin": "https://project-sesame-426206.appspot.comt",
       "client_id": "https://project-sesame-426206.appspot.com",
-      "name": "Project Sesame",
-      "secret": "xxxxx"
-    },
-    {
-      "origin": "https://identity.chrome.dev",
-      "client_id": "https://identity.chrome.dev",
       "name": "Project Sesame",
       "secret": "xxxxx"
     }
