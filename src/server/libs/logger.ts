@@ -94,7 +94,7 @@ export class Logger {
       }
     }
 
-    if (config.is_localenv) {
+    if (config.debug) {
       console.log(`${entry.severity}: [${entry.path}]`);
       console.log(`${entry.message}`, data);
     } else {

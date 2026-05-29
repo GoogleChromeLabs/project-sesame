@@ -34,8 +34,6 @@ const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
   process.env.NODE_ENV === 'rp-localhost';
 
-const is_localenv = is_localhost || is_mock_cross_site;
-
 /**
  * During development, the server application only receives requests proxied
  * from the frontend tooling (e.g. Vite). This is because the frontend tooling
@@ -76,7 +74,7 @@ function generateApkKeyHash(sha256hash: string): string {
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (is_localenv) {
+  if (is_localhost || is_mock_cross_site) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -249,12 +247,11 @@ export const store = initializeFirestore();
 
 export const config = {
   project_name,
-  debug: is_localenv,
+  debug: is_localhost || is_mock_cross_site,
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
   is_localhost,
-  is_localenv,
   port,
   origin,
   hostname,

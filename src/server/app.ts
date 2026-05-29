@@ -95,18 +95,12 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
     res.setHeader('Permissions-Policy', policies.join(';'));
   }
 
-  // For the IdP to set CSP `frame_ancestors`
-  let frameAncestors = [];
-  if (req.path === '/iframe-federation') {
-    // Filter localhosts out for production environments.
-    frameAncestors = config.csp.frame_ancestors.filter((src: string) => {
-      if (!config.is_localenv) {
-        return src.indexOf('localhost') === -1;
-      }
-      return true;
-    });
-  }
-  frameAncestors = ["'self'", ...frameAncestors];
+  // For the IdP to set CSP `frame_ancestors` when the path is `/iframe-federation`
+  const frameAncestors =
+    req.path === '/iframe-federation'
+      ? ["'self'", ...config.csp.frame_ancestors]
+      : [];
+
   helmet({
     contentSecurityPolicy: {
       directives: {
