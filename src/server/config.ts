@@ -188,7 +188,7 @@ const {
   origin_trials = [],
   csp,
   // Primay IdP origin that will be embedded inside a iframe.
-  primary_idp_origin = [],
+  primary_idp_origin,
   // Supported RPs info
   supported_rps = [],
   // Supported IdP info
