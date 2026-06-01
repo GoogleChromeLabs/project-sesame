@@ -24,7 +24,7 @@
     "@google-cloud/connect-firestore": "3.0.0",
     "@radically-straightforward/caddy": "^2.0.10",
     "@simplewebauthn/server": "^13.3.1",
-    "concurrently": "^10.0.0",
+    "concurrently": "^10.0.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "17.4.2",
@@ -42,8 +42,8 @@
     "wait-on": "^9.0.10"
   },
   "devDependencies": {
-    "@rsbuild/core": "2.0.8",
-    "@rsbuild/plugin-sass": "^1.5.2",
+    "@rsbuild/core": "2.0.9",
+    "@rsbuild/plugin-sass": "^1.5.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/swagger-jsdoc": "^6.0.4",
@@ -97,6 +97,6 @@
     "@scarf/scarf@1.4.0": true,
     "esbuild@0.28.0": true,
     "re2@1.24.1": true,
-    "protobufjs@7.6.1": true
+    "protobufjs@7.6.2": true
   }
 }
