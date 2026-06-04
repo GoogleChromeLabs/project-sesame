@@ -2,35 +2,40 @@
   "hostname": "sesame-identity-provider.appspot.com",
   "associated_domains": [],
   "origin_trials": [
-    "ArnAatvOjJzy3vmMz6ntQRRWQovLuwyf8qLn6mlFwWjSH0pH8eKQJvVfBPcZMF5TiIcmfY8EVh0pNeCcIvnDZAsAAAB7eyJvcmlnaW4iOiJodHRwczovL3Nlc2FtZS1pZGVudGl0eS1wcm92aWRlci5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQXV0aGVudGljYXRpb25JbW1lZGlhdGVHZXQiLCJleHBpcnkiOjE3NjU4NDMyMDB9"
+    "AraOWXqZAqlJ0jOsAer5NDWht06ICPmZegcZLjMBBAWZAnbX9r6kQAcGxNZPHZoBb34MpMncdNQ3dKry2kQ+CQEAAAB7eyJvcmlnaW4iOiJodHRwczovL3Nlc2FtZS1pZGVudGl0eS1wcm92aWRlci5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQXV0aGVudGljYXRpb25JbW1lZGlhdGVHZXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9"
   ],
   "rp_name": "Sesame Identity Provider",
   "project_name": "sesame-identity-provider",
   "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
-  "csp": {
-    "connect_src": [
-      "https://sesame-identity-provider.appspot.com",
-      "https://issuer.sgo.to",
-      "https://accounts.google.com/gsi/",
-      "https://accounts.sandbox.google.com"
-    ],
-    "font_src": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
-    "frame_src": ["https://accounts.google.com/gsi/"],
-    "img_src": [
-      "https://www.gravatar.com",
-      "https://gravatar.com",
-      "https://accounts.google.com/gsi-static",
-      "https://cdn.glitch.global",
-      "https://lh3.googleusercontent.com"
-    ],
-    "script_src": [
-      "https://sesame-identity-provider.appspot.com",
-      "https://accounts.google.com/gsi/client"
-    ],
-    "style_src": [
-      "https://accounts.google.com/gsi/style",
-      "https://fonts.googleapis.com/icon"
-    ],
-    "style_src_elem": ["https://fonts.googleapis.com/icon"]
-  }
+  "supported_idps": [
+    {
+      "name": "FedCM Demo IdP",
+      "iconURL": "https://sesame-identity-provider.appspot.com/images/idp-logo-512.png",
+      "origin": "https://sesame-identity-provider.appspot.com",
+      "configURL": "https://sesame-identity-provider.appspot.com/fedcm/config.json",
+      "secret": "xxxxx"
+    },
+    {
+      "name": "SGO",
+      "origin": "https://issuer.sgo.to",
+      "configURL": "https://issuer.sgo.to/fedcm.json",
+      "clientId": "1234",
+      "secret": "xxxxx"
+    },
+    {
+      "name": "Google",
+      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
+      "origin": "https://accounts.google.com",
+      "configURL": "https://accounts.google.com/gsi/fedcm.json",
+      "clientId": "493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com",
+      "secret": "*****"
+    },
+    {
+      "name": "Google Sandbox",
+      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
+      "origin": "https://accounts.sandbox.google.com",
+      "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
+      "secret": "*****"
+    }
+  ]
 }

@@ -16,7 +16,6 @@
  */
 
 import '~project-sesame/client/layout';
-import {html, render} from 'lit';
 import {toast, get} from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 import {User} from '~project-sesame/server/libs/users';
@@ -86,4 +85,11 @@ export async function saveFederation(
 
 export async function getAllIdentityProviders(): Promise<any> {
   return get('/federation/mappings');
+}
+
+/**
+ * Returns a list of IdP URLs based on the environment.
+ */
+export async function getIdpUrls(): Promise<string[]> {
+  return get('/federation/idp-list');
 }

@@ -22,10 +22,16 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
+import {logger} from '~project-sesame/server/libs/logger.ts';
+
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
 const is_localhost = process.env.NODE_ENV === 'localhost';
+
+const is_mock_cross_site =
+  process.env.NODE_ENV === 'idp-localhost' ||
+  process.env.NODE_ENV === 'rp-localhost';
 
 /**
  * During development, the server application only receives requests proxied
@@ -42,9 +48,6 @@ const project_root_file_path = path.join(
   '..'
 );
 const dist_root_file_path = path.join(project_root_file_path, 'dist');
-
-// console.log('Reading config from', path.join(project_root_file_path, '/.env'));
-// dotenv.config({path: path.join(project_root_file_path, '/.env')});
 
 function generateApkKeyHash(sha256hash: string): string {
   const hexString = sha256hash.replace(/:/g, '');
@@ -70,7 +73,7 @@ function generateApkKeyHash(sha256hash: string): string {
  * @returns {Firestore}
  */
 function initializeFirestore() {
-  if (is_localhost) {
+  if (is_localhost || is_mock_cross_site) {
     process.env.FIRESTORE_EMULATOR_HOST = `${firebaseConfig.emulators.firestore.host}:${firebaseConfig.emulators.firestore.port}`;
   }
 
@@ -83,15 +86,83 @@ function initializeFirestore() {
 
 // Load the environment specific config file.
 const env = process.env.NODE_ENV || 'localhost';
+
+const defaultConfigPath = path.join(
+  project_root_file_path,
+  'default.config.json'
+);
+const envConfigPath = path.join(project_root_file_path, `${env}.config.json`);
+
 try {
-  await fs.access(path.join(project_root_file_path, `${env}.config.json`));
+  await fs.access(envConfigPath);
 } catch (e) {
   throw new Error(`"${env}.config.json" not found.`);
 }
+
+const defaultConfig = (await import(defaultConfigPath, {with: {type: 'json'}}))
+  .default;
+const envConfig = (await import(envConfigPath, {with: {type: 'json'}})).default;
+
+function mergeConfigs(target: any, source: any) {
+  const result = {...target};
+  for (const key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+        if (key === 'supported_idps' || key === 'supported_rps') {
+          const map = new Map();
+          [...target[key], ...source[key]].forEach(item =>
+            map.set(item.origin, item)
+          );
+          result[key] = Array.from(map.values());
+        } else if (key === 'associated_domains') {
+          const map = new Map();
+          [...target[key], ...source[key]].forEach(item => {
+            const id = item.site || item.package_name;
+            map.set(id, item);
+          });
+          result[key] = Array.from(map.values());
+        } else {
+          result[key] = [...new Set([...target[key], ...source[key]])];
+        }
+      } else if (
+        typeof source[key] === 'object' &&
+        source[key] !== null &&
+        typeof target[key] === 'object' &&
+        target[key] !== null
+      ) {
+        result[key] = mergeConfigs(target[key], source[key]);
+      } else {
+        result[key] = source[key];
+      }
+    }
+  }
+  return result;
+}
+
+let mergedConfig = mergeConfigs({}, defaultConfig);
+
+if (is_mock_cross_site) {
+  const localhostConfigPath = path.join(
+    project_root_file_path,
+    'localhost.config.json'
+  );
+  try {
+    const localhostConfig = (
+      await import(localhostConfigPath, {with: {type: 'json'}})
+    ).default;
+    mergedConfig = mergeConfigs(mergedConfig, localhostConfig);
+  } catch (e) {
+    // Ignore if localhost.config.json is missing
+  }
+}
+
+mergedConfig = mergeConfigs(mergedConfig, envConfig);
+
 const {
   hostname,
   // Set the port number 8081 for AppEngine
   port = is_localhost ? 8080 : 8081,
+  // Associate domains and apps with Digital Asset Links
   associated_domains = [],
   // ID token: 24 hours
   id_token_lifetime = 1000 * 60 * 60 * 24 * 1,
@@ -101,18 +172,23 @@ const {
   long_session_duration = 1000 * 60 * 60 * 24 * 2,
   // Account retention: 48 hours
   account_retention_duration = 1000 * 60 * 60 * 24 * 2,
+  // Exempt accounts from auto deletion
   allowlisted_accounts = [],
   secret = 'set your own secret in the config file',
   session_cookie_name = 'SESAME_SESSION_COOKIE',
+  idp_login_path = '/passkey-form-autofill',
   rp_name,
   project_name,
   origin_trials = [],
   csp,
-} = (
-  await import(path.join(project_root_file_path, `${env}.config.json`), {
-    with: {type: 'json'},
-  })
-).default;
+  // List of supported IdPs as an RP
+  supported_idps = [],
+  // List of supported RPs as an IdP
+  supported_rps = [],
+  // Allowlist pages to render to prevent experimental features from being exposed
+  enabled_pages,
+  analytics_id,
+} = mergedConfig;
 
 const {
   connect_src = [],
@@ -129,8 +205,8 @@ if (!project_name || !rp_name || !hostname) {
 }
 
 process.env.GOOGLE_CLOUD_PROJECT = project_name;
-
-const domain = port !== 8081 ? `${hostname}:${port}` : hostname;
+const domain =
+  port === 8081 || is_mock_cross_site ? hostname : `${hostname}:${port}`;
 const origin = is_localhost ? `http://${domain}` : `https://${domain}`;
 
 associated_domains.push({
@@ -150,7 +226,7 @@ export const store = initializeFirestore();
 
 export const config = {
   project_name,
-  debug: is_localhost,
+  debug: is_localhost || is_mock_cross_site,
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
@@ -164,6 +240,7 @@ export const config = {
   secret,
   session_cookie_name,
   repository_url: packageConfig.repository?.url,
+  idp_login_path,
   id_token_lifetime,
   short_session_duration,
   long_session_duration,
@@ -179,5 +256,9 @@ export const config = {
     style_src,
     style_src_elem,
   },
+  supported_idps,
+  supported_rps,
+  enabled_pages,
+  analytics_id,
 };
-console.log(config);
+logger.info('Project Sesame configuration', config);

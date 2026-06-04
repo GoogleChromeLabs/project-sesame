@@ -51,4 +51,4 @@ export function getTime(offset = 0): number {
   return new Date().getTime() + offset;
 }
 
-export const FOREVER: number = 1000 * 60 * 60 * 24 * 400;
+export const ALLOW_LISTED_FOREVER: number = 1000 * 60 * 60 * 24 * 400;

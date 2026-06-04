@@ -37,23 +37,16 @@ import {
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
-import {
-  generatePasskeyUserId,
-  Users,
-} from '~project-sesame/server/libs/users.ts';
+import {Users} from '~project-sesame/server/libs/users.ts';
 import {csrfCheck, getTime} from '~project-sesame/server/middlewares/common.ts';
 import {
   apiAclCheck,
   ApiType,
   UserSignInStatus,
-  deleteChallenge,
-  deleteEpehemeralPasskeyUserId,
-  getChallenge,
-  getEphemeralPasskeyUserId,
-  setChallenge,
-  setEphemeralPasskeyUserId,
   setSignedIn,
-} from '~project-sesame/server/middlewares/session.ts';
+} from '~project-sesame/server/libs/session.ts';
+
+import {SessionService} from '~project-sesame/server/libs/session.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
@@ -67,11 +60,44 @@ router.use(csrfCheck);
 
 /**
  * Respond with a list of stored credentials.
+ * @swagger
+ * /webauthn/getKeys:
+ *   post:
+ *     summary: Get Credentials
+ *     description: Returns a list of registered passkeys for the signed-in user.
+ *     tags: [WebAuthn]
+ *     responses:
+ *       200:
+ *         description: List of credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 rpId:
+ *                   type: string
+ *                 userId:
+ *                   type: string
+ *                 credentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                       transports:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       providerIcon:
+ *                         type: string
  */
 router.post(
   '/getKeys',
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {user} = res.locals;
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(
       user.passkeyUserId
@@ -86,17 +112,51 @@ router.post(
         credential.providerIcon = entry.icon_light;
       }
     }
-    return res.json({rpId, userId, credentials});
+    res.json({rpId, userId, credentials});
   }
 );
 
 /**
  * Update the name of a passkey.
+ * @swagger
+ * /webauthn/renameKey:
+ *   post:
+ *     summary: Rename Passkey
+ *     description: Updates the name of an existing passkey.
+ *     tags: [WebAuthn]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credId
+ *               - newName
+ *             properties:
+ *               credId:
+ *                 type: string
+ *               newName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Passkey renamed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/renameKey',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {credId, newName} = req.body;
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
@@ -105,45 +165,110 @@ router.post(
       !credential ||
       user.passkeyUserId !== credential?.passkeyUserId
     ) {
-      return res.status(401).json({error: 'User not authorized.'});
+      res.status(401).json({error: 'User not authorized.'});
+      return;
     }
     credential.name = newName;
     await PublicKeyCredentials.update(credential);
-    return res.json(credential);
+    res.json(credential);
   }
 );
 
 /**
  * Removes a credential id attached to the user.
  * Responds with empty JSON `{}`.
- **/
+ * @swagger
+ * /webauthn/removeKey:
+ *   post:
+ *     summary: Remove Passkey
+ *     description: Deletes a specific passkey by its credential ID.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: credId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Credential ID to remove
+ *     responses:
+ *       200:
+ *         description: Passkey removed
+ */
 router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // TODO: Check if the user is authorized to remove the credential.
-    const credId = <Base64URLString>req.query.credId;
+    const credId = req.query.credId as Base64URLString;
 
     await PublicKeyCredentials.remove(credId);
 
-    return res.json({});
+    res.json({});
   }
 );
 
 /**
  * Start creating a new passkey by serving registration options.
+ * @swagger
+ * /webauthn/registerRequest:
+ *   post:
+ *     summary: Start Passkey Registration
+ *     description: Generates registration options for creating a new passkey.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: non_platform
+ *         schema:
+ *           type: boolean
+ *         description: Allow cross-platform authenticators
+ *     responses:
+ *       200:
+ *         description: Registration options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 challenge:
+ *                   type: string
+ *                 rp:
+ *                   type: object
+ *                 user:
+ *                   type: object
+ *                 pubKeyCredParams:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 timeout:
+ *                   type: integer
+ *                 attestation:
+ *                   type: string
+ *                 excludeCredentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 authenticatorSelection:
+ *                   type: object
+ *       400:
+ *         description: Session error
  */
 router.post(
   '/registerRequest',
   apiAclCheck(ApiType.PasskeyRegistration),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     let passkeyUserId, username, displayName;
-    const non_platform = req.query.hasOwnProperty('non_platform');
+    const non_platform = 'non_platform' in req.query;
     if (res.locals.signin_status === UserSignInStatus.SigningUp) {
       username = res.locals.username;
-      displayName = username;
-      passkeyUserId = generatePasskeyUserId();
-      setEphemeralPasskeyUserId(passkeyUserId, req, res);
+      const signup_user = new SessionService(req.session).getSigningUp();
+      if (!signup_user) {
+        res.status(400).send({
+          error: "Sign-up session doesn't contain a `signup_user` object",
+        });
+        return;
+      }
+      displayName = signup_user?.displayName || username;
+      passkeyUserId = signup_user.passkeyUserId;
     } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
       const {user} = res.locals;
       passkeyUserId = user.passkeyUserId;
@@ -191,44 +316,132 @@ router.post(
       });
 
       // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      new SessionService(req.session).setChallenge(options.challenge);
 
       // Respond with the registration options.
-      return res.json(options);
+      res.json(options);
     } catch (error: any) {
       console.error(error);
-      return res.status(400).json({error: error.message});
+      res.status(400).json({error: error.message});
     }
   }
 );
 
 /**
- *
+ * Verify passkey registration response.
+ * @swagger
+ * /webauthn/registerResponse:
+ *   post:
+ *     summary: Finish Passkey Registration
+ *     description: Verifies the registration response and creates the passkey.
+ *     tags: [WebAuthn]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *         description: Type of credential (e.g., 'rc')
+ *       - in: query
+ *         name: conditional
+ *         schema:
+ *           type: boolean
+ *         description: If true, user presence is not required (conditional UI)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - rawId
+ *               - response
+ *               - type
+ *               - clientExtensionResults
+ *             properties:
+ *               id:
+ *                 type: string
+ *               rawId:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [public-key]
+ *               authenticatorAttachment:
+ *                 type: string
+ *                 enum: [platform, cross-platform]
+ *               response:
+ *                 type: object
+ *                 required:
+ *                   - clientDataJSON
+ *                   - attestationObject
+ *                 properties:
+ *                   clientDataJSON:
+ *                     type: string
+ *                   attestationObject:
+ *                     type: string
+ *                   transports:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   authenticatorData:
+ *                     type: string
+ *                   publicKeyAlgorithm:
+ *                     type: integer
+ *                   publicKey:
+ *                     type: string
+ *               clientExtensionResults:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Passkey registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 picture:
+ *                   type: string
+ *       400:
+ *         description: Verification failed
  */
 router.post(
   '/registerResponse',
   apiAclCheck(ApiType.PasskeyRegistration),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     let user, passkeyUserId;
     const {type} = req.query;
-    const username = res.locals.username;
-    if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-      passkeyUserId = getEphemeralPasskeyUserId(req, res);
-    } else if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+    const {username, signin_status} = res.locals;
+    const signup_user = new SessionService(req.session).getSigningUp();
+    if (signin_status === UserSignInStatus.SigningUp) {
+      if (!signup_user) {
+        res.status(400).send({
+          error: "Sign-up session doesn't contain a `signup_user` object",
+        });
+        return;
+      }
+      passkeyUserId = signup_user.passkeyUserId;
+    } else if (signin_status >= UserSignInStatus.SignedIn) {
       user = res.locals.user;
       passkeyUserId = user.passkeyUserId;
     }
 
     // Set expected values.
-    const conditional = req.query.hasOwnProperty('conditional');
-    const response = <RegistrationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const conditional = 'conditional' in req.query;
+    const response = req.body as RegistrationResponseJSON;
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {
       if (!expectedChallenge) {
-        return res.status(400).send({error: 'Invalid challenge'});
+        res.status(400).send({error: 'Invalid challenge'});
+        return;
       }
 
       // Use SimpleWebAuthn's handy function to verify the registration request.
@@ -245,7 +458,7 @@ router.post(
 
       // If the verification failed, throw.
       if (!verified || !registrationInfo) {
-        deleteChallenge(req, res);
+        new SessionService(req.session).deleteChallenge();
         throw new Error('User verification failed.');
       }
 
@@ -259,9 +472,9 @@ router.post(
       } = registrationInfo;
 
       // Base64URL encode ArrayBuffers.
-      const base64PublicKey = <Base64URLString>(
-        isoBase64URL.fromBuffer(credential.publicKey)
-      );
+      const base64PublicKey = isoBase64URL.fromBuffer(
+        credential.publicKey
+      ) as Base64URLString;
 
       const aaguid_item = (aaguids as AAGUIDs)[aaguid];
       let _aaguid = aaguid;
@@ -311,32 +524,62 @@ router.post(
       } as SesamePublicKeyCredential);
 
       // Delete the challenge from the session.
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       // If this is a sign-up, create a new user
-      if (res.locals.signin_status === UserSignInStatus.SigningUp) {
-        user = await Users.create(username, {passkeyUserId});
+      if (signin_status === UserSignInStatus.SigningUp) {
+        user = await Users.create(username, signup_user);
         setSignedIn(user, req, res);
       }
 
       // Respond with the user information.
-      return res.json(user);
+      res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      return res.status(400).send({error: error.message});
+      res.status(400).send({error: error.message});
     }
   }
 );
 
 /**
  * Start authenticating the user.
+ * @swagger
+ * /webauthn/signinRequest:
+ *   post:
+ *     summary: Start Sign-in
+ *     description: Generates authentication options for signing in a user.
+ *     tags: [WebAuthn]
+ *     responses:
+ *       200:
+ *         description: Authentication options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 challenge:
+ *                   type: string
+ *                 timeout:
+ *                   type: integer
+ *                 rpId:
+ *                   type: string
+ *                 allowCredentials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 userVerification:
+ *                   type: string
+ *       404:
+ *         description: No credentials found
+ *       500:
+ *         description: Server error
  */
 router.post(
   '/signinRequest',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const allowCredentials: PublicKeyCredentialDescriptorJSON[] = [];
 
     // For reauthentication
@@ -345,9 +588,8 @@ router.post(
         res.locals.user.passkeyUserId
       );
       if (!credentials?.length) {
-        return res
-          .status(404)
-          .json({error: 'No credentials found to sign in with.'});
+        res.status(404).json({error: 'No credentials found to sign in with.'});
+        return;
       }
 
       for (let cred of credentials) {
@@ -365,43 +607,119 @@ router.post(
         allowCredentials,
       } as GenerateAuthenticationOptionsOpts);
 
-      // Keep the challenge value in a session.
-      setChallenge(req, res, options.challenge);
+      const challenge = new SessionService(req.session).getChallenge();
+      if (!challenge) {
+        // Keep the challenge value in a session.
+        new SessionService(req.session).setChallenge(options.challenge);
+      } else {
+        // Overwrite the challenge value from the existing session.
+        options.challenge = challenge;
+      }
 
-      return res.json(options);
+      res.json(options);
     } catch (error: any) {
       console.error(error);
 
-      return res.status(500).json({error: error.message});
+      res.status(500).json({error: error.message});
     }
   }
 );
 
 /**
  * Verify the authentication request.
+ * @swagger
+ * /webauthn/signinResponse:
+ *   post:
+ *     summary: Finish Sign-in
+ *     description: Verifies the authentication response and signs the user in.
+ *     tags: [WebAuthn]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - rawId
+ *               - response
+ *               - type
+ *               - clientExtensionResults
+ *             properties:
+ *               id:
+ *                 type: string
+ *               rawId:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [public-key]
+ *               authenticatorAttachment:
+ *                 type: string
+ *                 enum: [platform, cross-platform]
+ *               response:
+ *                 type: object
+ *                 required:
+ *                   - clientDataJSON
+ *                   - authenticatorData
+ *                   - signature
+ *                 properties:
+ *                   clientDataJSON:
+ *                     type: string
+ *                   authenticatorData:
+ *                     type: string
+ *                   signature:
+ *                     type: string
+ *                   userHandle:
+ *                     type: string
+ *               clientExtensionResults:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Signed in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 picture:
+ *                   type: string
+ *       401:
+ *         description: Verification failed
+ *       404:
+ *         description: Credential not found
+ *       500:
+ *         description: Server error
  */
 router.post(
   '/signinResponse',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // Set expected values.
-    const response = <AuthenticationResponseJSON>req.body;
-    const expectedChallenge = getChallenge(req, res);
+    const response = req.body as AuthenticationResponseJSON;
+    const expectedChallenge = new SessionService(req.session).getChallenge();
     const expectedOrigin = config.associated_origins;
     const expectedRPID = config.hostname;
 
     try {
       if (!expectedChallenge) {
-        return res.status(401).json({error: 'Invalid challenge.'});
+        res.status(401).json({error: 'Invalid challenge.'});
+        return;
       }
 
       // If the matching public key is not found, return an error
       const cred = await PublicKeyCredentials.findById(response.id);
       if (!cred) {
-        deleteChallenge(req, res);
-        return res
+        new SessionService(req.session).deleteChallenge();
+        res
           .status(404)
           .json({error: 'Matching credential not found on the server.'});
+        return;
       }
 
       // If the user is already signed in and passkey user ID doesn't match,
@@ -410,15 +728,17 @@ router.post(
         res.locals.user &&
         res.locals.user.passkeyUserId !== cred.passkeyUserId
       ) {
-        deleteChallenge(req, res);
-        return res.status(400).json({error: 'Wrong sign-in account.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).json({error: 'Wrong sign-in account.'});
+        return;
       }
 
       // Find the matching user from the user ID contained in the credential.
       const user = await Users.findByPasskeyUserId(cred.passkeyUserId);
       if (!user) {
-        deleteChallenge(req, res);
-        return res.status(401).json({error: 'User not found.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(401).json({error: 'User not found.'});
+        return;
       }
 
       // Decode ArrayBuffers and construct a credential.
@@ -442,8 +762,9 @@ router.post(
 
       // If the authentication failed, throw.
       if (!verified) {
-        deleteChallenge(req, res);
-        return res.status(401).json({error: 'User verification failed.'});
+        new SessionService(req.session).deleteChallenge();
+        res.status(401).json({error: 'User verification failed.'});
+        return;
       }
 
       // TODO: Use the `uv` flag as the risk signal.
@@ -455,12 +776,12 @@ router.post(
       // Set the user as a signed in status
       setSignedIn(user, req, res);
 
-      return res.json(user);
+      res.json(user);
     } catch (error: any) {
-      deleteChallenge(req, res);
+      new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      return res.status(500).json({error: error.message});
+      res.status(500).json({error: error.message});
     }
   }
 );

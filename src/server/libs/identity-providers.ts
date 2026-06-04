@@ -27,42 +27,10 @@ export interface IdentityProvider {
 }
 
 export class IdentityProviders {
-  static idps: IdentityProvider[] = [
-    {
-      name: 'FedCM Demo IdP',
-      iconURL:
-        'https://sesame-identity-provider.appspot.com/images/idp-logo-512.png',
-      origin: 'https://sesame-identity-provider.appspot.com',
-      configURL:
-        'https://sesame-identity-provider.appspot.com/fedcm/config.json',
-      clientId: config.origin,
-      secret: 'xxxxx',
-    },
-    {
-      name: 'SGO',
-      origin: 'https://issuer.sgo.to',
-      configURL: 'https://issuer.sgo.to/fedcm.json',
-      clientId: '1234',
-      secret: 'xxxxx',
-    },
-    {
-      name: 'Google',
-      iconURL: 'https://accounts.google.com/gsi-static/google-logo.png',
-      origin: 'https://accounts.google.com',
-      configURL: 'https://accounts.google.com/gsi/fedcm.json',
-      clientId:
-        '493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com',
-      secret: '*****',
-    },
-    {
-      name: 'Google Sandbox',
-      iconURL: 'https://accounts.google.com/gsi-static/google-logo.png',
-      origin: 'https://accounts.sandbox.google.com',
-      configURL: 'https://accounts.sandbox.google.com/gsi/vc.json',
-      clientId: config.origin,
-      secret: '*****',
-    },
-  ];
+  static idps: IdentityProvider[] = config.supported_idps.map((idp: any) => ({
+    ...idp,
+    clientId: idp.clientId || config.origin,
+  }));
 
   static async findByOrigin(
     url: string
@@ -71,5 +39,9 @@ export class IdentityProviders {
       return idp.origin === new URL(url).origin;
     });
     return Promise.resolve(structuredClone(idp));
+  }
+
+  static getOrigins(): string[] {
+    return this.idps.map(idp => idp.origin);
   }
 }

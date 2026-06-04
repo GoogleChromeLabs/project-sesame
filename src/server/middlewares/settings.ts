@@ -16,32 +16,61 @@
  */
 import {Router, Request, Response} from 'express';
 
-import {
-  PageType,
-  pageAclCheck,
-} from '~project-sesame/server/middlewares/session.ts';
+import {PageType, pageAclCheck} from '~project-sesame/server/libs/session.ts';
 
 const router = Router();
 
 // There's nothing here.
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response): void => {
   return res.redirect(307, '/home');
 });
 
+/**
+ * Passkey Settings Page.
+ * @swagger
+ * /settings/passkeys:
+ *   get:
+ *     summary: Passkey Settings
+ *     description: Renders the passkey management page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/passkeys',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/passkeys.html', {
       title: 'Passkey Management',
     });
   }
 );
 
+/**
+ * Password Change Page.
+ * @swagger
+ * /settings/password-change:
+ *   get:
+ *     summary: Password Change
+ *     description: Renders the password change page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/password-change',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     const username = res.locals.username;
     return res.render('settings/password-change.html', {
       title: 'Password Change',
@@ -50,20 +79,52 @@ router.get(
   }
 );
 
+/**
+ * Identity Providers Settings Page.
+ * @swagger
+ * /settings/identity-providers:
+ *   get:
+ *     summary: Identity Providers
+ *     description: Renders the identity providers settings page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/identity-providers',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/identity-providers.html', {
       title: 'Associated Identity Providers',
     });
   }
 );
 
+/**
+ * Delete Account Page.
+ * @swagger
+ * /settings/delete-account:
+ *   get:
+ *     summary: Delete Account
+ *     description: Renders the delete account page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
 router.get(
   '/delete-account',
   pageAclCheck(PageType.Sensitive),
-  (req: Request, res: Response) => {
+  (req: Request, res: Response): void => {
     return res.render('settings/delete-account.html', {
       title: 'Delete account',
     });

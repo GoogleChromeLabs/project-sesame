@@ -26,14 +26,10 @@ import {IdentityProviders} from '../libs/identity-providers.ts';
 import {OAuth2Client} from 'google-auth-library';
 import {Users} from '../libs/users.ts';
 import {csrfCheck, getTime} from '../middlewares/common.ts';
-import {
-  apiAclCheck,
-  ApiType,
-  setChallenge,
-  getChallenge,
-  setSignedIn,
-} from '../middlewares/session.ts';
+import {apiAclCheck, ApiType, setSignedIn} from '../libs/session.ts';
+import {SessionService} from '~project-sesame/server/libs/session.ts';
 import {RelyingParties} from '../libs/relying-parties.ts';
+import {logger} from '../libs/logger.ts';
 
 const router = Router();
 const googleClient = new OAuth2Client();
@@ -41,14 +37,40 @@ const googleClient = new OAuth2Client();
 router.use(csrfCheck);
 
 /**
+ * Get Identity Provider options.
+ * @swagger
+ * /federation/options:
+ *   post:
+ *     summary: Get IdP Options
+ *     description: Returns a list of identity providers based on the provided URLs and a challenge nonce.
+ *     tags: [Federation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - urls
+ *             properties:
+ *               urls:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: IdP options and nonce
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: No matching identity provider found
  */
 router.post(
   '/options',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const options = {
       idps: [] as IdentityProviders[],
-      nonce: '' as string | undefined,
     };
     const idps = [];
     const {urls} = req.body;
@@ -57,19 +79,17 @@ router.post(
         const url = new URL(_url);
         const idp = await IdentityProviders.findByOrigin(url.toString());
         if (!idp) {
-          return res
-            .status(404)
-            .json({error: 'No matching identity provider found.'});
+          res.status(404).json({error: 'No matching identity provider found.'});
+          return;
         }
         idp.secret = '';
         idps.push(idp);
       }
       options.idps = idps;
-      options.nonce = setChallenge(req, res);
-      return res.json(options);
+      res.json(options);
     } catch (e: any) {
-      console.error(e);
-      return res.status(400).json({error: e.message});
+      logger.error(e);
+      res.status(400).json({error: e.message});
     }
   }
 );
@@ -80,6 +100,23 @@ router.post(
  * the currently signed-in user. It returns an array of federation mapping
  * objects, each containing details about the federated identity and its
  * association with the user.
+ * @swagger
+ * /federation/mappings:
+ *   get:
+ *     summary: Get Federation Mappings
+ *     description: Returns a list of federation mappings for the currently signed-in user.
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: List of federation mappings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       400:
+ *         description: Error fetching mappings
  * @param req The Express Request object.
  * @param res The Express Response object, used to send the list of federation mappings.
  * @returns A Promise that resolves to the Express Response object containing the list of federation mappings.
@@ -87,51 +124,17 @@ router.post(
 router.get(
   '/mappings',
   apiAclCheck(ApiType.SignedIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {user} = res.locals;
     try {
       const maps = await FederationMappings.findByUserId(user.id);
-      return res.json(maps);
+      res.json(maps);
     } catch (e: any) {
-      console.error(e);
-      return res.status(400).json({error: e.message});
+      logger.error(e);
+      res.status(400).json({error: e.message});
     }
   }
 );
-
-// router.post(
-//   '/issueIdToken',
-//   apiAclCheck(ApiType.SignedIn),
-//   async (req: Request, res: Response) => {
-//     const {client_id, nonce} = req.body;
-//     const {user} = res.locals;
-
-//     const rp = await RelyingParties.findByClientID(client_id);
-//     if (!rp) {
-//       return res.status(400).json({error: 'Invalid client_id.'});
-//     }
-
-//     const token = jwt.sign(
-//       {
-//         iss: process.env.ORIGIN,
-//         sub: user.id,
-//         aud: client_id,
-//         nonce,
-//         exp: getTime(config.id_token_lifetime),
-//         iat: getTime(),
-//         name: `${user.given_name} ${user.family_name}`,
-//         email: user.username,
-//         given_name: user.given_name,
-//         family_name: user.family_name,
-//         picture: user.picture,
-//       },
-//       'xxxxx'
-//     );
-
-//     console.log(`/token returns "token": "${token}"`);
-//     return res.json({token});
-//   }
-// );
 
 /**
  * Verifies the ID token received from an identity provider.
@@ -156,6 +159,31 @@ router.get(
  * 10. Responds with the user object upon successful verification and sign-in.
  * 11. Catches any errors during the process and responds with a 401 status
  *     and an error message.
+ * @swagger
+ * /federation/verifyIdToken:
+ *   post:
+ *     summary: Verify ID Token
+ *     description: Verifies an ID token from a federated identity provider and signs the user in.
+ *     tags: [Federation]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - url
+ *             properties:
+ *               token:
+ *                 type: string
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User signed in successfully
+ *       401:
+ *         description: ID token verification failed
  * @param req The Express Request object. The body is expected to contain `token` (the raw ID token string)
  *            and `url` (the URL string of the Identity Provider).
  * @param res The Express Response object, used to send the user object or an error.
@@ -164,12 +192,11 @@ router.get(
 router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     const {token: raw_token, url} = req.body;
-    // console.error(raw_token);
 
     try {
-      const expected_nonce = getChallenge(req, res);
+      const expected_nonce = new SessionService(req.session).getChallenge();
 
       if (!expected_nonce || typeof expected_nonce !== 'string') {
         throw new Error('Invalid nonce.');
@@ -189,14 +216,13 @@ router.post(
         });
         payload = ticket.getPayload();
       } else {
-        console.log(
-          'verify',
-          raw_token,
-          idp.secret,
-          idp.origin,
-          expected_nonce,
-          idp.clientId
-        );
+        logger.debug('Verifying ID Token', {
+          token: raw_token,
+          secret: idp.secret,
+          origin: idp.origin,
+          nonce: expected_nonce,
+          clientId: idp.clientId,
+        });
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
           issuer: idp.origin,
           nonce: expected_nonce,
@@ -234,7 +260,7 @@ router.post(
           await FederationMappings.create(user.id, payload);
         } else {
           // TODO: Think about how each IdP provided properties match against RP's.
-          console.log('More than 1 federation mappings found:', maps);
+          logger.warn('More than 1 federation mappings found:', maps);
         }
       } else {
         // If the user does not exist yet, create a new user.
@@ -249,18 +275,30 @@ router.post(
       // Set the user as a signed in status
       setSignedIn(user, req, res);
 
-      return res.status(200).json(user);
+      res.status(200).json(user);
     } catch (error: any) {
-      console.error(error.message);
-      return res.status(401).json({error: 'ID token verification failed.'});
+      logger.error(error.message);
+      res.status(401).json({error: 'ID token verification failed.'});
     }
   }
 );
 
+/**
+ * Verify SD-JWT.
+ * @swagger
+ * /federation/verifySdJwt:
+ *   post:
+ *     summary: Verify SD-JWT
+ *     description: Verifies an SD-JWT (mock implementation).
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: Verified successfully
+ */
 router.post(
   '/verifySdJwt',
   apiAclCheck(ApiType.SignIn),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     // Respond with static result for now.
     // TODO: Implement SD-JWT parser
     const payload = {
@@ -281,7 +319,7 @@ router.post(
         await FederationMappings.create(user.id, payload);
       } else {
         // TODO: Think about how each IdP provided properties match against RP's.
-        console.log('More than 1 federation mappings found:', maps);
+        logger.warn('More than 1 federation mappings found:', maps);
       }
     } else {
       // If the user does not exist yet, create a new user.
@@ -295,7 +333,35 @@ router.post(
 
     // Set the user as a signed in status
     setSignedIn(user, req, res);
-    return res.json({});
+    res.json({});
+  }
+);
+
+/**
+ * Returns a list of IdP URLs based on the environment.
+ * @swagger
+ * /federation/idp-list:
+ *   get:
+ *     summary: List IdPs
+ *     description: Returns a list of available Identity Provider URLs.
+ *     tags: [Federation]
+ *     responses:
+ *       200:
+ *         description: List of IdP URLs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
+router.get(
+  '/idp-list',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response): void => {
+    const idpUrls = IdentityProviders.getOrigins();
+
+    res.json(idpUrls);
   }
 );
 

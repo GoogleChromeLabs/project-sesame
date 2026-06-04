@@ -15,36 +15,24 @@
  * limitations under the License
  */
 
+import {config} from '../config.ts';
 import {Base64URLString} from '@simplewebauthn/server';
 
 export interface RelyingParty {
   origin: string;
   client_id: Base64URLString;
   name: string;
+  secret: string;
 }
 
 export class RelyingParties {
-  static rps = [
-    {
-      origin: 'https://project-sesame-426206.appspot.com',
-      client_id: 'https://project-sesame-426206.appspot.com',
-      name: 'Project Sesame',
-    } as RelyingParty,
-  ];
+  static rps: RelyingParty[] = config.supported_rps;
 
   static async findByClientID(
     client_id: Base64URLString
   ): Promise<RelyingParty | undefined> {
-    // const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
-    // const clone = structuredClone(rp);
-    // return Promise.resolve(clone);
-
-    // Allow any RPs to register themselves temporarily.
-    const rp = {
-      origin: client_id,
-      client_id,
-      name: 'Relying Party',
-    } as RelyingParty;
-    return Promise.resolve(rp);
+    const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
+    const clone = structuredClone(rp);
+    return Promise.resolve(clone);
   }
 }

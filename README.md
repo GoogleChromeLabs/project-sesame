@@ -1,6 +1,22 @@
+<!--
+Copyright 2025 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 # Project Sesame
 
-Project Sesame is an open-source demo web application built with node.js,
+Project Sesame is an open-source demo web application built with Node.js,
 designed to provide a hands-on environment for web developers to explore,
 experiment and learn a wide range of identity and authentication features and
 patterns.
@@ -9,9 +25,9 @@ patterns.
 
 ### Prerequisites
 
-* [Node.js 20+](https://nodejs.org/)
-* [gcloud CLI](https://cloud.google.com/sdk/docs/install)
-* [Java JDK 11+](https://jdk.java.net/)
+- [Node.js 22+](https://nodejs.org/)
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+- [Java JDK 21+](https://jdk.java.net/)
 
 ### Install
 
@@ -19,7 +35,7 @@ patterns.
 npm ci
 ```
 
-### Bulid
+### Build
 
 ```shell
 npm run build
@@ -27,58 +43,50 @@ npm run build
 
 ### Run
 
+This command will run the emulator, RP and IdP projects, and Caddy proxy:
+
 ```shell
-npm run emulator & npm run dev
+npm run dev:local
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Caddy should proxy from https://rp.localhost to `localhost:8080` and https://idp.localhost to `localhost:8000`,
+or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
+
+> [!NOTE] > `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
+
+### Useful Chrome flags (optional)
+
+For local testing, you can configure Chrome to ignore warnings and errors related to certificates.
+
+- Launch Chrome with the `--ignore-certificate-errors` command line flag
+- Enable `chrome://flags/#unsafely-treat-insecure-origin-as-secure` and set its contents to:
+
+```text
+https://localhost,wss://localhost:3000,https://rp.localhost,wss://rp.localhost,wss://rp.localhost:3000,https://idp.localhost
+```
 
 ## Adding a new sign-in flow
 
 You can use this code base to try and experiment with new ideas. To add a new
 sign-in flow, follow the instructions below.
 
-### Determine the path
+1. Determine the path. e.g. `/sign-in`
+2. Add a new HTML template under `src/shared/views`. e.g. `src/shared/views/sign-in.html`
+3. Add a TypeScript file under `src/client/pages`. e.g. `src/client/pages/sign-in.ts`.
+4. Layout template is `src/client/layout.html`. The partial templates are under `src/shared/views/partials`.
+5. Add a server behavior at `src/server/app.ts`. e.g.
+   ```ts
+   app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
+     res.render('sign-in.html', {
+       title: 'Password',
+       layout: 'password',
+     });
+   });
+   ```
 
-For example, `/sign-in`.
+### Use `pageAclCheck` middleware for pages
 
-### Add a new HTML template
-
-To add a new HTML template, create a file under `src/shared/views`.
-
-For example, `src/shared/views/sign-in.html`.
-
-### Add a TypeScript file
-
-To add a TypeScript file that runs on the HTML template, create a file under
-`src/client/pages`.
-
-For example, `src/client/pages/sign-in.ts`.
-
-### Where to find layout templates
-
-The layout template is at `src/client/layout.html`. The partial templates are
-under `src/shared/views/partials`.
-
-### Add a server behavior
-
-To access the HTML on the browser, you need to add a path to the server as well.
-Add a server behavior in `src/server/app.ts`.
-
-For example, to add a behavior for `/sign-in`, add a code like so:
-
-```ts
-app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
-  res.render('password.html', {
-    title: 'Password',
-    layout: 'password',
-  });
-});
-```
-
-#### `pageAclCheck`
-
-Define the type of the page from the following list with `pageAclCheck`.
+Unless this is a public page, use the `pageAclCheck` middleware to specify ACL.
 
 ```ts
 export enum PageType {
@@ -93,11 +101,11 @@ export enum PageType {
 }
 ```
 
-The `pageAclCheck` middleware automatically redirects users in a wrong sign-in status.
+The `pageAclCheck` middleware automatically redirects the user if they need to be signed in to access this page etc.
 
-#### `apiAclCheck`
+### Use `apiAclCheck` middleware for APIs
 
-Define the type of the API from the following list with `apiAclCheck`.
+Unless this is a public API, use the `apiAclCheck` middleware to specify ACL.
 
 ```ts
 export enum ApiType {
@@ -112,32 +120,36 @@ export enum ApiType {
 }
 ```
 
-The `apiAclCheck` middleware automatically blocks users in a wrong sign-in status.
+The `apiAclCheck` middleware automatically blocks requests with insuffcient privilege.
 
-#### Start a session
+### Start a session
 
-You can start a session for the user by verifying the authentication credential.
+Start a session after the user successfully signed in.
 Create or use a middleware under `src/server/middlewares`.
 
 For example, if the you want to check a password at `/auth/sign-in`, create the
 endpoint in `src/server/middlewares/auth.ts`.
 
 ```ts
-router.post('/sign-in', apiAclCheck(ApiType.Authentication), async (req: Request, res: Response) => {
-  const {username, password} = req.body;
-  // TODO: Validate entered parameter.
-  if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
-    return res.status(401).json({error: 'Enter at least one random letter.'});
-  }
+router.post(
+  '/sign-in',
+  apiAclCheck(ApiType.Authentication),
+  async (req: Request, res: Response) => {
+    const {username, password} = req.body;
+    // TODO: Validate entered parameter.
+    if (!Users.isValidUsername(username) || !Users.isValidPassword(password)) {
+      return res.status(401).json({error: 'Enter at least one random letter.'});
+    }
 
-  const user = await Users.validatePassword(username, password);
-  if (user) {
-    // Set the user as a signed in status
-    setSessionUser(user, req, res);
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      new SessionService(req.session).setSessionUser(user);
 
-    return res.json(user);
-  } else {
-    return res.status(401).json({error: 'Failed to sign in.'});
+      return res.json(user);
+    } else {
+      return res.status(401).json({error: 'Failed to sign in.'});
+    }
   }
-});
+);
 ```

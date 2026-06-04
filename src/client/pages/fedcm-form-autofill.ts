@@ -43,7 +43,7 @@ async function passkey() {
   if (capabilities?.conditionalGet) {
     try {
       // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-      const user = await authenticate('conditional');
+      const user = await authenticate({mediation: 'conditional'});
       if (user) {
         // When the user is signed in, redirect to the home page.
         $('#username').value = user.username;
@@ -71,13 +71,13 @@ async function fedcm() {
       const idp = new SesameIdP([
         'https://accounts.google.com',
         'https://sesame-identity-provider.appspot.com',
+        'https://idp.localhost',
         'https://issuer.sgo.to',
       ]);
-      const nonce = await idp.initialize();
+      await idp.initialize();
       await idp.signIn({
         // @ts-ignore
         mediation: 'conditional',
-        nonce,
       });
       await redirect('/home');
     } catch (error: any) {

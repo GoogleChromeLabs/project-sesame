@@ -25,7 +25,25 @@ router.use(
   })
 );
 
-router.get('/assetlinks.json', (req: Request, res: Response) => {
+/**
+ * Android Asset Links.
+ * @swagger
+ * /.well-known/assetlinks.json:
+ *   get:
+ *     summary: Asset Links
+ *     description: Returns the Digital Asset Links JSON for verifying native app associations.
+ *     tags: [Well-Known]
+ *     responses:
+ *       200:
+ *         description: Asset links JSON
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ */
+router.get('/assetlinks.json', (req: Request, res: Response): void => {
   const assetlinks = [];
   for (const domain of config.associated_domains) {
     if (domain.sha256_cert_fingerprints) {
@@ -53,27 +71,83 @@ router.get('/assetlinks.json', (req: Request, res: Response) => {
       });
     }
   }
-  return res.json(assetlinks);
+  res.json(assetlinks);
 });
 
-router.get('/web-identity', (req: Request, res: Response) => {
+/**
+ * Web Identity (FedCM).
+ * @swagger
+ * /.well-known/web-identity:
+ *   get:
+ *     summary: Web Identity
+ *     description: Returns the URL of the FedCM configuration file.
+ *     tags: [Well-Known]
+ *     responses:
+ *       200:
+ *         description: Web identity configuration
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 provider_urls:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+router.get('/web-identity', (req: Request, res: Response): void => {
   const url = new URL(config.origin);
   url.pathname = '/fedcm/config.json';
   const web_endpoint = url.toString();
-  return res.json({
+  res.json({
     provider_urls: [web_endpoint],
+    accounts_endpoint: `${config.origin}/fedcm/accounts`,
+    login_url: `${config.origin}${config.idp_login_path}`,
   });
 });
 
-router.get('/passkey-endpoints', (req: Request, res: Response) => {
+/**
+ * Passkey Endpoints.
+ * @swagger
+ * /.well-known/passkey-endpoints:
+ *   get:
+ *     summary: Passkey Endpoints
+ *     description: Returns URLs for enrolling and managing passkeys.
+ *     tags: [Well-Known]
+ *     responses:
+ *       200:
+ *         description: Passkey endpoints
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 enroll:
+ *                   type: string
+ *                 manage:
+ *                   type: string
+ */
+router.get('/passkey-endpoints', (req: Request, res: Response): void => {
   const url = new URL(config.origin);
   url.pathname = '/settings/passkeys';
   const web_endpoint = url.toString();
-  return res.json({enroll: web_endpoint, manage: web_endpoint});
+  res.json({enroll: web_endpoint, manage: web_endpoint});
 });
 
-router.get('/change-password', (req: Request, res: Response) => {
-  return res.redirect(302, '/settings/password-change');
+/**
+ * Change Password URL.
+ * @swagger
+ * /.well-known/change-password:
+ *   get:
+ *     summary: Change Password
+ *     description: Redirects to the change password page.
+ *     tags: [Well-Known]
+ *     responses:
+ *       302:
+ *         description: Redirects to /settings/password-change
+ */
+router.get('/change-password', (req: Request, res: Response): void => {
+  res.redirect(302, '/settings/password-change');
 });
 
 export {router as wellKnown};

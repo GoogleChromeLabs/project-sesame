@@ -13,9 +13,9 @@
 # limitations under the License.
 runtime: nodejs22
 env_variables:
-  NODE_ENV: dev
+  NODE_ENV: staging
 handlers:
-- url: /.*
-  secure: always
-  redirect_http_response_code: 301
-  script: auto
+  - url: /.*
+    secure: always
+    redirect_http_response_code: 301
+    script: auto

@@ -17,7 +17,6 @@
 
 import '~project-sesame/client/layout';
 import {
-  $,
   redirect,
   postForm,
   toast,

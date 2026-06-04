@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "~project-sesame/client/*": ["client/*"],
+      "~project-sesame/server/*": ["server/*"],
+      "~project-sesame/shared/*": ["shared/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext"
+  },
+  "include": ["src/**/*.ts"]
+}

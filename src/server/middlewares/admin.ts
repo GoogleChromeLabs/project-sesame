@@ -23,12 +23,9 @@ const router = Router();
 
 router.get(
   '/delete-all-users',
-  async (
-    req: Request,
-    res: Response
-  ): Promise<Response<any, Record<string, any>>> => {
+  async (req: Request, res: Response): Promise<void> => {
     await Users.deleteOldUsers();
-    return res.sendStatus(200);
+    res.sendStatus(200);
   }
 );
 
