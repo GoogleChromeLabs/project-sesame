@@ -57,11 +57,19 @@ if (capabilities?.conditionalGet) {
       throw new Error('User not found.');
     }
   } catch (error: any) {
-    loading.stop();
     console.error(error);
     // `NotAllowedError` indicates a user cancellation.
     if (error.name !== 'NotAllowedError') {
       toast(error.message);
     }
   }
+}
+
+// Explicitly focus the username field to trigger the passkey picker.
+// We use a small delay to ensure MDUI components have finished their initial focus management.
+const usernameField = $('#username');
+if (usernameField) {
+  setTimeout(() => {
+    usernameField.focus();
+  }, 100);
 }
