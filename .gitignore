@@ -7,5 +7,6 @@ node_modules/
 .cache
 dist/
 .data/
+coverage/
 service-account.json
 firebase-export-*

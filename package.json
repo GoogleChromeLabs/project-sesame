@@ -48,6 +48,7 @@
     "@types/cors": "^2.8.19",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.8",
     "esbuild": "0.28.0",
     "firebase-tools": "^15.19.0",
     "gts": "7.0.0",
@@ -58,6 +59,7 @@
     "rimraf": "6.1.3",
     "typedoc": "^0.28.19",
     "ua-parser-js": "^2.0.10",
+    "vitest": "^4.1.8",
     "webauthn-polyfills": "^0.1.7"
   },
   "optionalDependencies": {
@@ -89,7 +91,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:build": "typedoc",
-    "docs:serve": "http-server dist/docs"
+    "docs:serve": "http-server dist/docs",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "allowScripts": {
     "@firebase/util@1.15.1": true,
