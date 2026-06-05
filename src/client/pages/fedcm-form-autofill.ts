@@ -84,7 +84,11 @@ async function fedcm() {
       loading.stop();
       console.error(error);
       // `NotAllowedError` indicates a user cancellation.
-      if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+      if (
+        error.name !== 'NotAllowedError' &&
+        error.name !== 'AbortError' &&
+        error.name !== 'NotSupportedError'
+      ) {
         toast(error.message);
       }
     }
@@ -93,3 +97,20 @@ async function fedcm() {
 
 passkey();
 fedcm();
+
+// Explicitly focus the username field to trigger the passkey picker.
+// We use a small delay to ensure MDUI components have finished their initial focus management.
+const focusField = () => {
+  setTimeout(() => {
+    const usernameField = $('#username');
+    if (usernameField) {
+      usernameField.focus();
+    }
+  }, 1000);
+};
+
+if (document.readyState === 'complete') {
+  focusField();
+} else {
+  window.addEventListener('load', focusField, { once: true });
+}
