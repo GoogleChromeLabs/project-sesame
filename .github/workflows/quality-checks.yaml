@@ -23,6 +23,11 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
 jobs:
   quality-check:
     runs-on: ubuntu-latest
@@ -48,3 +53,7 @@ jobs:
 
       - name: Run Quality Check Suite
         run: npm run check
+
+      - name: Report Coverage
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
