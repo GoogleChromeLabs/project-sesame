@@ -65,13 +65,9 @@ For local testing, you can configure Chrome to ignore warnings and errors relate
 https://localhost,wss://localhost:3000,https://rp.localhost,wss://rp.localhost,wss://rp.localhost:3000,https://idp.localhost
 ```
 
-## Testing & Code Quality
-
-We maintain high code quality through an integrated toolchain consisting of Prettier, ESLint, and Vitest.
-
 ### Run all verification checks
 
-Before submitting any code changes or raising a pull request, you should run the comprehensive verification task. This runs formatting checks, ESLint analysis, Vitest tests with coverage, and production builds:
+Before submitting any code changes or raising a pull request, you should run the bundled quality checks task. This runs formatting checks, ESLint analysis, Vitest tests with coverage, and production builds:
 
 ```shell
 npm run check
