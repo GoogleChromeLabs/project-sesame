@@ -65,6 +65,40 @@ For local testing, you can configure Chrome to ignore warnings and errors relate
 https://localhost,wss://localhost:3000,https://rp.localhost,wss://rp.localhost,wss://rp.localhost:3000,https://idp.localhost
 ```
 
+## Testing & Code Quality
+
+We maintain high code quality through an integrated toolchain consisting of Prettier, ESLint, and Vitest.
+
+### Run all verification checks
+
+Before submitting any code changes or raising a pull request, you should run the comprehensive verification task. This runs formatting checks, ESLint analysis, Vitest tests with coverage, and production builds:
+
+```shell
+npm run check
+```
+
+### Running Tests
+
+Unit and integration tests are powered by **Vitest**. The test suite automatically manages the Firestore emulator lifecycle so you do not need to boot it up manually:
+
+- Run tests once: `npm run test:run`
+- Run tests in watch mode for development: `npm run test`
+- Run tests with coverage summary: `npm run test:coverage`
+
+### Code Linting
+
+We use **ESLint** with modern Flat Configuration to perform static and security analysis:
+
+- Check for lint errors: `npm run lint`
+- Auto-fix simple issues: `npm run lint:fix`
+
+### Code Formatting
+
+We use **Prettier** to maintain consistent code layout and structure:
+
+- Check formatting status: `npm run format:check`
+- Auto-format code: `npm run format`
+
 ## Adding a new sign-in flow
 
 You can use this code base to try and experiment with new ideas. To add a new

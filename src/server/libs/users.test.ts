@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {describe, it} from 'node:test';
+import {describe, it} from 'vitest';
 import assert from 'node:assert';
 import {Users} from './users.js';
 import {store} from '../config.js';

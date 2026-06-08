@@ -23,16 +23,36 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     passWithNoTests: true,
+    include: ['src/**/*.test.ts'],
+    reporters: process.env.GITHUB_ACTIONS
+      ? ['default', 'github-actions', 'junit']
+      : ['default'],
+    outputFile: {
+      junit: './junit.xml',
+    },
     alias: {
       '~project-sesame/client': path.resolve('src/client'),
       '~project-sesame/server': path.resolve('src/server'),
       '~project-sesame/shared': path.resolve('src/shared'),
     },
     coverage: {
+      enabled: true,
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      reportsDirectory: './coverage',
+      reportOnFailure: true,
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/types.d.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/types.d.ts',
+        'src/client/helpers/analytics.ts', // Exclude pure third-party integration if needed, or keep all
+      ],
+      thresholds: {
+        statements: 10,
+        branches: 10,
+        functions: 20,
+        lines: 10,
+      },
     },
   },
 });
