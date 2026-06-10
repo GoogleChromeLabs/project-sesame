@@ -52,6 +52,11 @@ rp.localhost {
 	# Proxy Rsbuild HMR WebSocket
 	reverse_proxy /rsbuild-hmr http://localhost:3000
 
+	# Proxy Rsbuild static assets and hot updates
+	reverse_proxy /static/* http://localhost:3000
+	reverse_proxy /*.hot-update.json http://localhost:3000
+	reverse_proxy /*.hot-update.js http://localhost:3000
+
 	# Reverse proxy to the RP app running on localhost:8080.
 	reverse_proxy http://localhost:{$RP_PORT} {
 		# Preserve original Host header.
