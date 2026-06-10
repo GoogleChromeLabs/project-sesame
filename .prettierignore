@@ -6,6 +6,8 @@ node_modules/
 .npm/
 *.log
 *.lock
+coverage/
+firebase-export-*/
 
 # Ignore Handlebars HTML templates as Handlebars syntax inside HTML tags breaks Prettier's HTML parser
 *.html

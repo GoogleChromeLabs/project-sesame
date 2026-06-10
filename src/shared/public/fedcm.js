@@ -15,8 +15,6 @@
  * limitations under the License
  */
 
-/* eslint-disable no-undef */
-
 export class IdentityProvider {
   constructor(options) {
     const {configURL} = options;

@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {test, describe, it, beforeEach} from 'node:test';
+import {test, describe, it, beforeEach} from 'vitest';
 import assert from 'node:assert';
 import {SessionService, UserSignInStatus} from './session.js';
 import {Session} from 'express-session';
