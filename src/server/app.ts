@@ -363,17 +363,6 @@ app.get('/iframe-federation', (req: Request, res: Response): void => {
   });
 });
 
-app.get('/iframe-federation', (req: Request, res: Response): void => {
-  return res.render('iframe-federation.html', {
-    title: 'Sign-in form within an iframe',
-  });
-});
-
-app.get('/iframe-federation', (req: Request, res: Response): void => {
-  return res.render('iframe-federation.html', {
-    title: 'Sign-in form within an iframe',
-  });
-});
 
 app.get(
   '/fedcm-active-mode',
