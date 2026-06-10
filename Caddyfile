@@ -35,7 +35,7 @@ idp.localhost {
 		# Pass client IP.
 		header_up X-Real-IP {remote_host}
 		# Append client IP to X-Forwarded-For.
-		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-For {proxy_add_x_forwarded_for}
 		# Indicate original protocol was HTTPS.
 		header_up X-Forwarded-Proto {scheme}
 	}
