@@ -26,6 +26,10 @@ declare global {
 }
 
 export function initAnalytics() {
+  if (window.self !== window.top) {
+    return;
+  }
+
   window.dataLayer = window.dataLayer || [];
 
   function gtag(...args: any[]) {
