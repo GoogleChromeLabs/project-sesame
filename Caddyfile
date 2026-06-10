@@ -21,7 +21,12 @@
 # Identity Provider (IdP) Demo
 idp.localhost {
 	# Proxy Rsbuild HMR WebSocket
-	reverse_proxy /rsbuild-hmr http://localhost:3001
+	reverse_proxy /rsbuild-hmr http://localhost:3000
+
+	# Proxy Rsbuild static assets and hot updates
+	reverse_proxy /static/* http://localhost:3000
+	reverse_proxy /*.hot-update.json http://localhost:3000
+	reverse_proxy /*.hot-update.js http://localhost:3000
 
 	# Reverse proxy to the IdP app running on localhost:8000.
 	reverse_proxy http://localhost:{$IDP_PORT} {
