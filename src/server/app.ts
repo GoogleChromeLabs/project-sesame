@@ -95,6 +95,7 @@ app.use(
         frameSrc: ["'self'", ...config.csp.frame_src],
         styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
+        upgradeInsecureRequests: config.debug ? null : [],
       },
       // CSP is report-only if the app is running in debug mode.
       reportOnly: config.debug,
