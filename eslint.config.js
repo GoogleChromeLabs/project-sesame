@@ -69,6 +69,8 @@ export default tseslint.config(
       'no-prototype-builtins': 'off',
       'prefer-const': 'off',
       'security/detect-non-literal-fs-filename': 'off',
+      'preserve-caught-error': 'off',
+      'no-useless-assignment': 'off',
     },
   }
 );
