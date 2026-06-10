@@ -27,7 +27,8 @@ import {logger} from '~project-sesame/server/libs/logger.ts';
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost =
+  process.env.NODE_ENV === 'localhost' || process.env.NODE_ENV === 'test';
 
 const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
@@ -85,7 +86,10 @@ function initializeFirestore() {
 }
 
 // Load the environment specific config file.
-const env = process.env.NODE_ENV || 'localhost';
+let env = process.env.NODE_ENV || 'localhost';
+if (env === 'test') {
+  env = 'localhost';
+}
 
 const defaultConfigPath = path.join(
   project_root_file_path,

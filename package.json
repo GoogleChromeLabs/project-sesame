@@ -2,16 +2,6 @@
   "name": "project-sesame",
   "version": "1.0.0",
   "description": "Project Sesame",
-  "main": "./dist/server.js",
-  "exports": "./dist/server.js",
-  "type": "module",
-  "engines": {
-    "node": ">=22.x"
-  },
-  "repository": {
-    "url": "https://github.com/GoogleChromeLabs/project-sesame"
-  },
-  "license": "Apache-2.0",
   "keywords": [
     "node",
     "express",
@@ -20,9 +10,45 @@
     "passkey",
     "fedcm"
   ],
+  "repository": {
+    "url": "https://github.com/GoogleChromeLabs/project-sesame"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": "./dist/server.js",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "npm run clean && npm run build:client && npm run build:server && npm run docs:build",
+    "build:client": "npx rsbuild build",
+    "build:server": "node esbuild.config.mjs",
+    "check": "npm run format:check && npm run lint && npm run test:coverage && npm run build",
+    "clean": "rimraf ./dist",
+    "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",
+    "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
+    "deploy:prod": "CLOUDSDK_CORE_PROJECT=identity-sesame gcloud app deploy prod.yaml",
+    "dev": "concurrently -k -n \"EMU,CLIENT,SERVER\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:client\" \"wait-on tcp:4000 && NODE_ENV=localhost npm run dev:server\"",
+    "dev:client": "npx rsbuild dev",
+    "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
+    "dev:local": "concurrently -k -n \"EMU,RP,IDP,CADDY\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:rp\" \"wait-on tcp:4000 && npm run dev:idp\" \"wait-on tcp:8080 tcp:8000 && ./caddy.sh\"",
+    "dev:rp": "npm run dev:client & NODE_ENV=rp-localhost npm run dev:server",
+    "dev:server": "nodemon --watch 'src/server/*' -e ts,html --exec 'node esbuild.config.mjs && PROXY=true node --enable-source-maps dist/server/app.js'",
+    "docs:build": "typedoc",
+    "docs:serve": "http-server dist/docs",
+    "emulator": "firebase emulators:start --only firestore --project=project-sesame-426206 --import=./.data --export-on-exit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "indexes": "firebase deploy --only firestore:indexes",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "logs": "gcloud app logs tail --project=project-sesame-426206",
+    "start": "node --enable-source-maps dist/server/app.js",
+    "test": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest\"",
+    "test:coverage": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run --coverage\"",
+    "test:run": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run\""
+  },
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
-    "@radically-straightforward/caddy": "^2.0.10",
+    "@radically-straightforward/caddy": "^2.0.12",
     "@simplewebauthn/server": "^13.3.1",
     "concurrently": "^10.0.3",
     "cookie-parser": "^1.4.7",
@@ -32,7 +58,7 @@
     "express-handlebars": "9.0.1",
     "express-session": "1.19.0",
     "express-useragent": "2.2.0",
-    "firebase-admin": "^13.10.0",
+    "firebase-admin": "^14.0.0",
     "google-auth-library": "^10.7.0",
     "helmet": "^8.2.0",
     "jsonwebtoken": "9.0.3",
@@ -42,22 +68,33 @@
     "wait-on": "^9.0.10"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@rsbuild/core": "2.0.11",
     "@rsbuild/plugin-sass": "^1.5.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.8",
     "esbuild": "0.28.0",
+    "eslint": "^10.4.1",
+    "eslint-plugin-no-unsanitized": "^4.1.5",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.3",
     "firebase-tools": "^15.19.1",
+    "globals": "^17.6.0",
     "gts": "7.0.0",
     "lit": "3.3.3",
     "mdui": "^2.1.4",
     "nodemon": "3.1.14",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
+    "prettier-plugin-packagejson": "^3.0.2",
     "rimraf": "6.1.3",
     "typedoc": "^0.28.19",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0",
     "ua-parser-js": "^2.0.10",
+    "vitest": "^4.1.8",
     "webauthn-polyfills": "^0.1.7"
   },
   "optionalDependencies": {
@@ -65,38 +102,18 @@
     "@types/express-session": "1.19.0",
     "@types/express-useragent": "1.0.5",
     "@types/jsonwebtoken": "9.0.10",
-    "@types/node": "25.9.1"
+    "@types/node": "25.9.2"
   },
-  "scripts": {
-    "clean": "rimraf ./dist",
-    "build:client": "npx rsbuild build",
-    "build:server": "node esbuild.config.mjs",
-    "build": "npm run clean && npm run build:client && npm run build:server && npm run docs:build",
-    "dev:server": "nodemon --watch 'src/server/*' -e ts,html --exec 'node esbuild.config.mjs && PROXY=true node --enable-source-maps dist/server/app.js'",
-    "dev:client": "npx rsbuild dev",
-    "dev": "concurrently -k -n \"EMU,CLIENT,SERVER\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:client\" \"wait-on tcp:4000 && NODE_ENV=localhost npm run dev:server\"",
-    "dev:rp": "npm run dev:client & NODE_ENV=rp-localhost npm run dev:server",
-    "dev:idp": "npm run dev:client & NODE_ENV=idp-localhost npm run dev:server",
-    "dev:local": "concurrently -k -n \"EMU,RP,IDP,CADDY\" \"npm:emulator\" \"wait-on tcp:4000 && npm run dev:rp\" \"wait-on tcp:4000 && npm run dev:idp\" \"wait-on tcp:8080 tcp:8000 && ./caddy.sh\"",
-    "start": "node --enable-source-maps dist/server/app.js",
-    "indexes": "firebase deploy --only firestore:indexes",
-    "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",
-    "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
-    "deploy:prod": "CLOUDSDK_CORE_PROJECT=identity-sesame gcloud app deploy prod.yaml",
-    "logs": "gcloud app logs tail --project=project-sesame-426206",
-    "emulator": "firebase emulators:start --only firestore --project=project-sesame-426206 --import=./.data --export-on-exit",
-    "lint:fix": "eslint -c .eslintrc --fix ./src",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "docs:build": "typedoc",
-    "docs:serve": "http-server dist/docs"
+  "engines": {
+    "node": ">=22.x"
   },
   "allowScripts": {
     "@firebase/util@1.15.1": true,
-    "@radically-straightforward/caddy@2.0.10": true,
     "@scarf/scarf@1.4.0": true,
     "esbuild@0.28.0": true,
     "re2@1.24.1": true,
-    "protobufjs@7.6.2": true
+    "@parcel/watcher@2.5.6": true,
+    "@radically-straightforward/caddy@2.0.12": true,
+    "protobufjs@7.6.3": true
   }
 }
