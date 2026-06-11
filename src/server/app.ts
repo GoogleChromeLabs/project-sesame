@@ -39,13 +39,19 @@ import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
-import {logger} from '~project-sesame/server/libs/logger.ts';
+import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import {swaggerSpec} from '~project-sesame/server/swagger.ts';
 import fs from 'node:fs/promises';
 import {marked} from 'marked';
 
 const app = express();
+
+app.use((req, res, next) => {
+  logContextStorage.run({path: req.path}, () => {
+    next();
+  });
+});
 
 /**
  * Authentication often needs to add server-side data to the rendered HTML. In order
@@ -79,7 +85,22 @@ function configureTemplateEngine(app: express.Application) {
 
 configureTemplateEngine(app);
 
-app.use(
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  // For the RP to set Permissions Policy `publickey-credentials-get`
+  let permissionsPolicyDomains = [];
+  if (req.path === '/passkey-iframe') {
+    const policies = [
+      `publickey-credentials-get=(self "${config.primary_idp_origin}")`,
+    ];
+    res.setHeader('Permissions-Policy', policies.join(';'));
+  }
+
+  // For the IdP to set CSP `frame_ancestors` when the path is `/iframe-federation`
+  const frameAncestors =
+    req.path === '/iframe-federation'
+      ? ["'self'", ...config.csp.frame_ancestors]
+      : [];
+
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -93,6 +114,7 @@ app.use(
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
         frameSrc: ["'self'", ...config.csp.frame_src],
+        frameAncestors,
         styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
         upgradeInsecureRequests: config.debug ? null : [],
@@ -103,8 +125,9 @@ app.use(
     crossOriginOpenerPolicy: {
       policy: 'same-origin-allow-popups',
     },
-  })
-);
+    xFrameOptions: config.debug ? false : {action: 'deny'},
+  })(req, res, next);
+});
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -296,6 +319,22 @@ app.get(
 );
 
 app.get(
+  '/passkey-iframe',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
+    const iframe_origin = config.primary_idp_origin;
+    const parent_origin = encodeURIComponent(config.origin);
+    return res.render('passkey-iframe.html', {
+      title: 'Passkey within iframe',
+      nonce,
+      iframe_origin,
+      parent_origin,
+    });
+  }
+);
+
+app.get(
   '/passkey-reauth',
   pageAclCheck(PageType.Reauth),
   (req: Request, res: Response): void => {
@@ -317,6 +356,12 @@ app.get(
     });
   }
 );
+
+app.get('/iframe-federation', (req: Request, res: Response): void => {
+  return res.render('iframe-federation.html', {
+    title: 'Sign-in form within an iframe',
+  });
+});
 
 app.get(
   '/fedcm-active-mode',
@@ -403,10 +448,10 @@ app.get(
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response): void => {
+  async (req: Request, res: Response): Promise<void> => {
     const entrancePath = new SessionService(req.session).getEntrancePath();
 
-    setSignedOut(req, res);
+    await setSignedOut(req, res);
 
     res.redirect(307, entrancePath);
   }

@@ -15,6 +15,11 @@
  * limitations under the License
  */
 
+import {config} from '../config.ts';
+import {AsyncLocalStorage} from 'node:async_hooks';
+
+export const logContextStorage = new AsyncLocalStorage<{path: string}>();
+
 export enum LogSeverity {
   DEBUG = 'DEBUG',
   INFO = 'INFO',
@@ -40,7 +45,10 @@ export class Logger {
   ];
 
   private replacer(key: string, value: any): any {
-    if (Logger.REDACTED_KEYS.some(k => key.toLowerCase() === k.toLowerCase())) {
+    if (
+      !config.debug &&
+      Logger.REDACTED_KEYS.some(k => key.toLowerCase() === k.toLowerCase())
+    ) {
       return '[REDACTED]';
     }
     return value;
@@ -58,6 +66,15 @@ export class Logger {
       severity,
       message,
     };
+
+    const context = logContextStorage.getStore();
+    if (context?.path) {
+      entry.path = context.path;
+    }
+
+    if (entry.path === '/rsbuild-hmr') {
+      return;
+    }
 
     if (data) {
       // Merge data into the entry, but be careful not to overwrite priority fields
@@ -77,7 +94,12 @@ export class Logger {
       }
     }
 
-    console.log(JSON.stringify(entry, this.replacer, '  '));
+    if (config.debug) {
+      console.log(`${entry.severity}: [${entry.path}]`);
+      console.log(`${entry.message}`, data);
+    } else {
+      console.log(JSON.stringify(entry, this.replacer, '  '));
+    }
   }
 
   debug(message: string, data?: any) {

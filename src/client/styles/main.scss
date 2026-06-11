@@ -43,6 +43,11 @@ body {
   height: 100%;
 }
 
+iframe {
+  border: none;
+  width: 500px;
+  height: 400px;
+}
 #help-text {
   display: none;
 }

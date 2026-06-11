@@ -199,13 +199,16 @@ router.post(
       const expected_nonce = new SessionService(req.session).getChallenge();
 
       if (!expected_nonce || typeof expected_nonce !== 'string') {
+        logger.error('Invalid nonce:', expected_nonce);
         throw new Error('Invalid nonce.');
       }
 
       const idp = await IdentityProviders.findByOrigin(url);
 
       if (!idp) {
-        throw new Error('Identity provider not found.');
+        const message = 'Identity provider not found.';
+        logger.error(message);
+        throw new Error(message);
       }
 
       let payload;
@@ -247,7 +250,9 @@ router.post(
       }
 
       if (!payload?.email) {
-        throw new Error('`email` is missing in the ID token.');
+        const message = '`email` is missing in the ID token.';
+        logger.error(message);
+        throw new Error(message);
       }
 
       // Find a matching user by querying with the email address
