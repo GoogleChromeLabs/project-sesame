@@ -286,4 +286,4 @@ export const config = {
   enabled_pages,
   analytics_id,
 };
-logger.info('Project Sesame configuration', config);
+logger?.info('Project Sesame configuration', config);
