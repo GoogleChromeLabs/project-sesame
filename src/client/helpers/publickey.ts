@@ -208,7 +208,8 @@ export async function authenticate(params?: {
   const options = await preparePublicKeyRequestOptions(params?.mediation);
   options.extensions = {};
   // @ts-ignore
-  options.extensions['crossDeviceFallbackUrl'] = 'https://rp.localhost/passkey-form-autofill';
+  options.extensions['crossDeviceFallbackUrl'] =
+    'https://rp.localhost/passkey-form-autofill';
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({

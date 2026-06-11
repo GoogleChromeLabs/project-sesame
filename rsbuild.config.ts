@@ -68,7 +68,7 @@ export default defineConfig({
     entry,
   },
   html: {
-    template({ entryName }) {
+    template({entryName}) {
       // Specify which entries should use the iframe layout
       const iframeEntries = ['iframe-federation'];
 

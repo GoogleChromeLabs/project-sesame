@@ -363,7 +363,6 @@ app.get('/iframe-federation', (req: Request, res: Response): void => {
   });
 });
 
-
 app.get(
   '/fedcm-active-mode',
   pageAclCheck(PageType.SignIn),

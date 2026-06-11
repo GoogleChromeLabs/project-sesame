@@ -23,7 +23,7 @@ import {store, config} from '../config.js';
 import {ALLOW_LISTED_FOREVER} from '../middlewares/common.js';
 
 const checkEmulatorReady = (): Promise<boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const hostPort = process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8081';
     const [host, portStr] = hostPort.split(':');
     const port = parseInt(portStr, 10);
@@ -50,11 +50,19 @@ describe('CustomFirestoreStore', () => {
   before(async () => {
     const ready = await checkEmulatorReady();
     if (!ready) {
-      console.error('\n================================================================');
+      console.error(
+        '\n================================================================'
+      );
       console.error('ERROR: Firebase Firestore Emulator is not running!');
-      console.error('Please start the emulator (e.g., by running \'npm run dev:local\')');
-      console.error(`and ensure it is listening on ${process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8081'}.`);
-      console.error('================================================================\n');
+      console.error(
+        "Please start the emulator (e.g., by running 'npm run dev:local')"
+      );
+      console.error(
+        `and ensure it is listening on ${process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8081'}.`
+      );
+      console.error(
+        '================================================================\n'
+      );
       process.exit(1);
     }
   });
