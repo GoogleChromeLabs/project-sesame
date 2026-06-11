@@ -57,6 +57,7 @@
     "/password-reauth",
     "/passkey-reauth",
     "/passkey-form-autofill",
+    "/passkey-iframe",
     "/passkey-one-button",
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
