@@ -53,6 +53,7 @@ export default tseslint.config(
       'sonarjs/hashing': 'off',
       'sonarjs/slow-regex': 'off',
       'sonarjs/assertions-in-tests': 'off', // Node standard assert library is used
+      'sonarjs/constructor-for-side-effects': 'off',
 
       // Unsanitized (relax for dynamic imports)
       'no-unsanitized/method': 'off',
