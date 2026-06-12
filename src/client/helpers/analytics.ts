@@ -28,7 +28,7 @@ declare global {
 export function initAnalytics() {
   if (window.self !== window.top) {
     return;
-  } else {
+  } else if (window.glue.CookieNotificationBar) {
     new window.glue.CookieNotificationBar();
   }
 
