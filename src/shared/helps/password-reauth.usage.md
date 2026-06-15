@@ -13,6 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
 In this page, you can experience and learn password-based reauthentication.
 
 You are redirected here because you tried to access a sensitive page that
@@ -20,5 +21,5 @@ requires reauthentication. Simply enter your password to proceed.
 
 After a password verification, you'll be signed in.
 
-*Since this demo doesn't save the password to the server, you can sign in with a
-random text as your password.*
+_Since this demo doesn't save the password to the server, you can sign in with a
+random text as your password._
