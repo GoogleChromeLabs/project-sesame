@@ -16,11 +16,9 @@
  */
 
 import {LinearProgress} from 'mdui/components/linear-progress';
-import {Dialog} from 'mdui/components/dialog';
 import {ButtonIcon} from 'mdui/components/button-icon';
 import {TextField} from 'mdui/components/text-field';
 import {NavigationDrawer} from 'mdui/components/navigation-drawer';
-import {Checkbox, CheckboxEventMap} from 'mdui/components/checkbox';
 import {marked} from 'marked';
 
 export const $: any = document.querySelector.bind(document);
@@ -215,26 +213,53 @@ export async function post(
  * Dialog controller
  */
 export class SesameDialog {
-  dialog: Dialog;
+  dialog: HTMLDialogElement;
 
   constructor() {
-    this.dialog = $('#dialog');
+    this.dialog = $('#dialog') as HTMLDialogElement;
+
+    // Close on overlay click (fallback for browsers without closedby support)
+    // @ts-ignore
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      this.dialog.addEventListener('click', event => {
+        if (event.target !== this.dialog) return;
+
+        const rect = this.dialog.getBoundingClientRect();
+        const isDialogContent =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+
+        if (isDialogContent) return;
+
+        this.close();
+      });
+    }
+
+    // Close button event listener
+    const closeBtn = $('#dialog-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.close();
+      });
+    }
   }
 
   set(headline: string, description = ''): void {
-    const headlineElement = $('#dialog span[slot="headline"]');
+    const headlineElement = $('#dialog-headline');
     if (headlineElement) headlineElement.innerText = headline;
 
-    const descriptionElement = $('#dialog span[slot="description"]');
+    const descriptionElement = $('#dialog-content');
     if (descriptionElement) descriptionElement.innerHTML = description;
   }
 
   show(): void {
-    this.dialog.open = true;
+    this.dialog.showModal();
   }
 
   close(): void {
-    this.dialog.open = false;
+    this.dialog.close();
   }
 }
 
