@@ -13,21 +13,22 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
 In this page, you can experience and learn FedCM and its "delegation flow". With
 FedCM delegation flow, you can sign up to the website with a verified email
 address.
 
-*The SD JWT is not verified at the moment. The resulting account is static to be
-`me@sgo.to` with name 'Sam Goto'.*
+_The SD JWT is not verified at the moment. The resulting account is static to be
+`me@sgo.to` with name 'Sam Goto'._
 
 ## Prerequisites
 
-* Chrome desktop 137 or later with the following flags:
-  * "FedCM with delegation support" flag: `chrome://flags/#fedcm-delegation`  
-  * "FedCmWithoutWellKnownEnforcement" flag: `chrome://flags/#fedcm-without-well-known-enforcement`  
-  * "FedCmMultiIdP" flag: `chrome://flags/#fedcm-multi-idp`  
-  * "FedCM with IdP Registration support" flag: `chrome://flags/#fedcm-idp-registration`  
-  * "FedCMAutofill" flag: `chrome://flags/#fedcm-autofill`
+- Chrome desktop 137 or later with the following flags:
+  - "FedCM with delegation support" flag: `chrome://flags/#fedcm-delegation`
+  - "FedCmWithoutWellKnownEnforcement" flag: `chrome://flags/#fedcm-without-well-known-enforcement`
+  - "FedCmMultiIdP" flag: `chrome://flags/#fedcm-multi-idp`
+  - "FedCM with IdP Registration support" flag: `chrome://flags/#fedcm-idp-registration`
+  - "FedCMAutofill" flag: `chrome://flags/#fedcm-autofill`
 
 Last updated: 2025/05/18
 

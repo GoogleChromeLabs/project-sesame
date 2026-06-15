@@ -13,7 +13,8 @@
  See the License for the specific language governing permissions and
  limitations under the License
 -->
+
 This feature is still under development and details are to be determined, but it
 will be built upon the foundation of FedCM.
 
-* [FedCM overview](https://privacysandbox.google.com/cookies/fedcm)
+- [FedCM overview](https://privacysandbox.google.com/cookies/fedcm)
