@@ -17,7 +17,8 @@
     ],
     "script_src": [
       "https://accounts.google.com/gsi/client",
-      "https://www.gstatic.com/glue/"
+      "https://www.gstatic.com/glue/",
+      "https://www.googletagmanager.com"
     ],
     "script_src_elem": ["https://www.gstatic.com/glue/"],
     "style_src": [
