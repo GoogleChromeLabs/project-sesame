@@ -63,7 +63,7 @@ function generateApkKeyHash(sha256hash: string): string {
   const base64url = btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/=+$/, '');
+    .replace(/={1,2}$/, '');
 
   return `android:apk-key-hash:${base64url}`;
 }
