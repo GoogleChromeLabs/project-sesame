@@ -28,6 +28,8 @@ declare global {
 export function initAnalytics() {
   if (window.self !== window.top) {
     return;
+  } else if (window.glue.CookieNotificationBar) {
+    new window.glue.CookieNotificationBar();
   }
 
   window.dataLayer = window.dataLayer || [];
