@@ -14,34 +14,38 @@
  limitations under the License
 -->
 
-## How to integrate passkey sign-in button
+## Integrating a Passkey Sign-In Button
 
-Use [WebAuthn](https://www.w3.org/TR/webauthn/) to build a passkey one button
-experience by invoking `navigator.credentials.get()` with a public key option.
+To build a dedicated, one-button passkey sign-in experience (the "one button"
+flow), you can invoke the [WebAuthn API](https://www.w3.org/TR/webauthn/) by
+calling `navigator.credentials.get()` with the appropriate public key request
+options. Unlike conditional UI, this is typically triggered directly by a user
+clicking a "**Sign in with a passkey**" button.
 
-There are a lot of tricks you can perform to make the passkey authentication
-experience better. Here's a checklist:
+### Best Practices & Advanced UX Checklist
 
-- Signal when a passkey's matching credential is not found on the backend with
-  [`PublicKeyCredential.signalUnknownCredential()`](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-that-a-credential-does-not-exist).
-- Prompt users to manually create a passkey if the user hasn't created one after
-  a sign-in.
-- [Automatically create a passkey (conditional
-  create)](https://developer.chrome.com/docs/identity/webauthn-conditional-create)
-  after the user signs in with a password (and a second factor).
-- Prompt for local passkey creation [if the user has signed in with a
-  cross-device
-  passkey](https://web.dev/articles/passkey-form-autofill#encourage_creating_a_new_passkey_after_a_cross-device_authentication).
-- [Signal the list of available
+To deliver a top-tier passkey experience, consider implementing these advanced
+patterns and API integrations:
+
+- **Orphaned Credential Cleanup:** Use the WebAuthn Signal API's
+  [`PublicKeyCredential.signalUnknownCredential()`](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-that-a-credential-does-not-exist)
+  to notify the browser when a passkey's matching public key is not found on the
+  server, allowing the browser to delete the invalid credential.
+- **Encourage Local Passkeys:** If a user signs in using a cross-device passkey
+  (e.g., scanning a QR code with their phone), [prompt them to create a local
+  passkey](https://web.dev/articles/passkey-form-autofill#encourage_creating_a_new_passkey_after_a_cross-device_authentication)
+  on their current device for faster future logins.
+- **Synchronize Credential State:** Use the WebAuthn Signal API to [signal the
+  list of active
   passkeys](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-a-list-of-saved-credentials)
-  and [updated user details (username, display
-  name)](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-updated-username-and-display-name)
-  to the provider after sign-in
+  in the browser's credential manager after a successful sign-in.
 
-### Learning resources
+### Developer Resources
 
-- [Sign in with a passkey through form
-  autofill](https://web.dev/articles/passkey-form-autofill)
-- [Server-side passkey
+- **Guide:** [Sign in with a passkey through form
+  autofill](https://web.dev/articles/passkey-form-autofill) (web.dev)
+- **Guide:** [Server-side passkey
   authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication)
-- [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab)
+  (Google Developers)
+- **Codelab:** [Implement passkeys with form autofill in a web
+  app](https://goo.gle/passkeys-codelab) (Hands-on tutorial)
