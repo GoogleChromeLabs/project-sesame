@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (developHelpBtn && developContent) {
     developHelpBtn.addEventListener('click', async () => {
       const mkDesc = await marked.parse(developContent);
-      dialog.set('How does this work?', mkDesc);
+      dialog.set('How do I integrate?', mkDesc);
       dialog.show();
     });
   }
