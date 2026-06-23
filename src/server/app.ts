@@ -155,6 +155,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
   res.locals.layout = res.locals.pagename.slice(1);
+  res.locals.analytics_id = config.analytics_id;
 
   return next();
 });
