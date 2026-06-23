@@ -46,32 +46,41 @@ This skill provides guidelines and patterns for rewriting, rephrasing, and polis
 ## Example Pattern: Before & After
 
 ### Before
+
 > ## How to integrate passkey form autofill
+>
 > Use [WebAuthn](https://www.w3.org/TR/webauthn/) to build a passkey experience.
-> 
+>
 > You can enable **passkey form autofill** by appending `mediation: "conditional"` to the `navigator.credentials.get()` call to an ordinary passkey authentication invocation. Also, the `input` element must contain `webauthn` within its `autocomplete` attribute.
-> 
+>
 > There are a lot of tricks you can perform to make the passkey authentication experience better. Here's a checklist:
+>
 > - Allow users to [sign in with a passkey through form autofill](https://web.dev/articles/passkey-form-autofill).
 > - Signal when a passkey's matching credential is not found on the backend with [`PublicKeyCredential.signalUnknownCredential()`](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-that-a-credential-does-not-exist).
 > - Prompt users to manually create a passkey if the user hasn't created one after a sign-in.
-> 
+>
 > ### Learning resources
+>
 > - [Sign in with a passkey through form autofill](https://web.dev/articles/passkey-form-autofill)
 > - [Server-side passkey authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication)
 
 ### After
+
 > ## Integrating Passkey Form Autofill
+>
 > To build a seamless sign-in experience, you can integrate **passkey form autofill** (also known as Conditional UI) using the [WebAuthn API](https://www.w3.org/TR/webauthn/).
-> 
+>
 > You can enable this by passing `mediation: 'conditional'` as an option to the `navigator.credentials.get()` call when initiating passkey authentication. Additionally, the corresponding username/password `<input>` element must include `webauthn` in its `autocomplete` attribute (e.g., `autocomplete="username webauthn"`).
-> 
+>
 > ### Best Practices & Advanced UX Checklist
+>
 > To deliver a top-tier passkey experience, consider implementing these advanced patterns and API integrations:
+>
 > - **Seamless Sign-In:** Enable users to [sign in with a passkey directly via form autofill](https://web.dev/articles/passkey-form-autofill) to reduce friction.
 > - **Orphaned Credential Cleanup:** Use the WebAuthn Signal API's [`PublicKeyCredential.signalUnknownCredential()`](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-that-a-credential-does-not-exist) to notify the browser when a passkey's matching public key is not found on the server, allowing the browser to delete the invalid credential.
 > - **Proactive Passkey Creation:** Prompt users to create a passkey immediately after they successfully sign in using a traditional password.
-> 
+>
 > ### Developer Resources
+>
 > - **Guide:** [Sign in with a passkey through form autofill](https://web.dev/articles/passkey-form-autofill) (web.dev)
 > - **Guide:** [Server-side passkey authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication) (Google Developers)
