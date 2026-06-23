@@ -14,23 +14,39 @@
  limitations under the License
 -->
 
-## How to integrate reauthentication with a passkey
+## Integrating Passkey Reauthentication
 
-Require reauthentication after a certain duration has passed since the last
-user verification.
+To secure high-risk actions (such as updating account details or initiating
+sensitive transactions), you can implement **passkey reauthentication** (also
+known as step-up authentication) using the [WebAuthn
+API](https://www.w3.org/TR/webauthn/).
 
-### Fill in `allowCredentials`
+While the implementation is similar to a standard passkey sign-in flow,
+reauthentication requires strict constraints to ensure that the currently
+signed-in user is verifying themselves, rather than another user signing in.
 
-Use [WebAuthn](https://www.w3.org/TR/webauthn/) to build a passkey
-reauthentication. It's very similar to [passkey one button](/passkey-one-button)
-experience, except that it limits the passkey the user can use, to prevent
-signing in as a different user.
+### Implementation Best Practices Checklist
 
-To do so, pass the list of credential IDs saved to the user account in
-`allowCredentials`.
+To implement a secure and robust passkey reauthentication flow, follow these
+critical guidelines:
 
-### Verify the passkey owner matches the signed-in user
+- **Restrict Eligible Credentials:** Populate the
+  [`allowCredentials`](https://web.dev/articles/webauthn-discoverable-credentials#allow-credentials)
+  array in the `PublicKeyCredentialRequestOptions` passed to
+  `navigator.credentials.get()`. This array must contain only the credential IDs
+  associated with the currently signed-in user's account, preventing them from
+  accidentally or maliciously verifying with a different user's passkey.
+- **Match Server-Side Session:** On the server, strictly verify that the
+  credential ID and user ID returned in the WebAuthn assertion match the
+  credentials registered to the currently authenticated session user. This
+  prevents token injection or credential substitution attacks.
+- **Manage Reauth Expiry:** Store a timestamp of the successful reauthentication
+  in the user's session. Treat the reauthenticated state as valid only for a
+  short window (e.g., 5 to 15 minutes) before requiring another verification for
+  subsequent sensitive actions.
 
-Also, don't forget to verify that the owner of the passkey matches the signed-in
-user on the server side. If an attacker can inject an assertion for another
-user, they may be able to do nasty things.
+### Developer Resources
+
+- **Codelab:** [Build your first WebAuthn
+  app](https://developers.google.com/codelabs/webauthn-reauth) (Google
+  Developers)

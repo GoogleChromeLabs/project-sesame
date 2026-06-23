@@ -14,12 +14,26 @@
  limitations under the License
 -->
 
-## Reauthenticate with a passkey
+## Reauthentication with a Passkey
 
-In this page, you can reauthenticate with a passkey.
+On this page, you can experience how passkeys simplify and secure the
+reauthentication process (often called "step-up authentication").
 
-Reauthenticate is requested when a user is trying to access a page that treats
-sensitive information such as password, email, or personal information. You can
-reauthenticate just by verifying with a passkey.
+Reauthentication is typically required when a user attempts to perform
+high-risk actions or access sensitive sections of their account, such as:
 
-After a passkey verification, you'll be access the sensitive page.
+- Changing their email address or password.
+- Managing security settings or linked accounts.
+- Accessing highly personal or financial information.
+
+Instead of forcing users to re-enter a complex password, passkeys allow them to
+securely verify their identity in seconds using their device's biometric sensor
+(like fingerprint or facial recognition) or screen lock PIN.
+
+### How to test it:
+
+1. **Click the "Reauthenticate" button** on the page.
+2. When prompted by the browser, **verify your identity** using your passkey
+   (e.g., via Touch ID, Face ID, or your device's PIN/pattern).
+3. Once the verification is successful, you will be seamlessly redirected to the
+   sensitive page or action.

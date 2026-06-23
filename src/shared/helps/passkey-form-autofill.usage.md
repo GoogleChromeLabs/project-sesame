@@ -14,27 +14,31 @@
  limitations under the License
 -->
 
-## Passkey form autofill
+## Passkey Form Autofill
 
-In this page, you can experience authentication through a form that can
-accommodate passkeys and passwords. We call it "passkey form autofill" flow. In
-addition, WebAuthn Signal API deletes a passkey when it's unusable.
+On this page, you can experience a sign-in flow that seamlessly accommodates
+both passkeys and passwords in a single form—a feature known as "passkey form
+autofill" (or conditional UI). This page also demonstrates how the WebAuthn
+[Signal API](https://developer.chrome.com/docs/identity/webauthn-signal-api) can
+be used to clean up invalid or orphaned passkeys.
 
-Put your cursor on the username field and form autofill suggestions should
-appear. The list contains passkeys and passwords that are stored to the password
-manager, so you can select one to proceed signing in.
+### How to test it:
 
-If you haven't created a passkey on this website yet, you can enter an arbitrary
-username and continue. You can enter a random password in the next page to
-create an account. The password will be ignored.
+1. **Click or tap the username field** to trigger the browser's autofill suggestions.
+2. If you have credentials saved in your password manager for this site:
+   - **Selecting a saved password**: The username will be filled in
+     automatically. Click **Continue** to proceed to the password step.
+   - **Selecting a saved passkey**: A browser verification prompt will appear
+     immediately. Complete the verification to sign in instantly.
+3. If you don't have a passkey or account yet, enter any username and click
+   **Continue**. On the next page, you can enter any password to register (the
+   password will be ignored, but it simulates a traditional sign-up flow).
 
-If you do have entries in the password manager:
+### WebAuthn Signal API Demo:
 
-- Select a password entry, and associated username will be filled in the
-  username field, so that you can **Continue** to enter a password.
-- Select a passkey entry, and a passkey dialog will appear to proceed with
-  user verification, and you'll be signed in.
-
-If your sign-in attempt is rejected by the server because the public key is not
-found on the server, the password manager will delete the passkey to avoid
-further confusion. This is done by WebAuthn Signal API.
+If a passkey sign-in attempt is rejected by the server because the corresponding
+public key is not found (e.g., if the user deleted their credential from their
+account settings but the local passkey remains in their password manager), the
+server uses the WebAuthn Signal API to signal the browser. The browser's
+password manager will then delete the invalid passkey, preventing future
+confusion.
