@@ -150,6 +150,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
 
   res.locals.signin_status = getSignInStatus(req, res);
+  res.locals.analytics_id = config.analytics_id;
 
   // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
   res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
