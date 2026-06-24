@@ -22,8 +22,6 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
-import {logger} from '~project-sesame/server/libs/logger.ts';
-
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
@@ -251,6 +249,7 @@ export const config = {
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
+  helps_root_file_path: path.join(dist_root_file_path, 'shared', 'helps'),
   is_localhost,
   port,
   origin,
@@ -286,4 +285,3 @@ export const config = {
   enabled_pages,
   analytics_id,
 };
-logger?.info('Project Sesame configuration', config);

@@ -129,6 +129,8 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   })(req, res, next);
 });
 
+logger.info('Configuration', config);
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(useragent.express());
@@ -141,24 +143,48 @@ app.use(
   express.static(path.join(config.dist_root_file_path, 'client/static'))
 );
 
-// Set page defaults
-app.use((req: Request, res: Response, next: NextFunction): void => {
-  const width = req.headers['sec-ch-viewport-width'];
-  if (typeof width === 'string') {
-    res.locals.open_drawer = parseInt(width) > 768;
+async function getHelpContent(
+  layout: string,
+  type: string
+): Promise<string | null> {
+  try {
+    const targetPath = path.resolve(
+      path.join(config.helps_root_file_path, `${layout}.${type}.md`)
+    );
+    const rootPathWithSep = config.helps_root_file_path.endsWith(path.sep)
+      ? config.helps_root_file_path
+      : config.helps_root_file_path + path.sep;
+    if (!targetPath.startsWith(rootPathWithSep)) {
+      return null;
+    }
+    return await fs.readFile(targetPath, 'utf-8');
+  } catch (e) {
+    return null;
   }
-  res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
+}
 
-  res.locals.signin_status = getSignInStatus(req, res);
-  res.locals.analytics_id = config.analytics_id;
+// Set page defaults
+app.use(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const width = req.headers['sec-ch-viewport-width'];
+    if (typeof width === 'string') {
+      res.locals.open_drawer = parseInt(width) > 768;
+    }
+    res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
 
-  // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
-  res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
-  res.locals.layout = res.locals.pagename.slice(1);
-  res.locals.analytics_id = config.analytics_id;
+    res.locals.signin_status = getSignInStatus(req, res);
 
-  return next();
-});
+    // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
+    res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
+    res.locals.layout = res.locals.pagename.slice(1);
+    res.locals.analytics_id = config.analytics_id;
+
+    res.locals.usage_help = await getHelpContent(res.locals.layout, 'usage');
+    res.locals.develop_help = await getHelpContent(res.locals.layout, 'dev');
+
+    return next();
+  }
+);
 
 app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;

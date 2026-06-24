@@ -16,7 +16,6 @@
  */
 
 import {LinearProgress} from 'mdui/components/linear-progress';
-import {Dialog} from 'mdui/components/dialog';
 import {ButtonIcon} from 'mdui/components/button-icon';
 import {TextField} from 'mdui/components/text-field';
 import {NavigationDrawer} from 'mdui/components/navigation-drawer';
@@ -214,26 +213,53 @@ export async function post(
  * Dialog controller
  */
 export class SesameDialog {
-  dialog: Dialog;
+  dialog: HTMLDialogElement;
 
   constructor() {
-    this.dialog = $('#dialog');
+    this.dialog = $('#dialog') as HTMLDialogElement;
+
+    // Close on overlay click (fallback for browsers without closedby support)
+    // @ts-ignore
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      this.dialog.addEventListener('click', event => {
+        if (event.target !== this.dialog) return;
+
+        const rect = this.dialog.getBoundingClientRect();
+        const isDialogContent =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+
+        if (isDialogContent) return;
+
+        this.close();
+      });
+    }
+
+    // Close button event listener
+    const closeBtn = $('#dialog-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.close();
+      });
+    }
   }
 
   set(headline: string, description = ''): void {
-    const headlineElement = $('#dialog span[slot="headline"]');
+    const headlineElement = $('#dialog-headline');
     if (headlineElement) headlineElement.innerText = headline;
 
-    const descriptionElement = $('#dialog span[slot="description"]');
+    const descriptionElement = $('#dialog-content');
     if (descriptionElement) descriptionElement.innerHTML = description;
   }
 
   show(): void {
-    this.dialog.open = true;
+    this.dialog.showModal();
   }
 
   close(): void {
-    this.dialog.open = false;
+    this.dialog.close();
   }
 }
 
@@ -368,22 +394,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  // Show help dialog.
-  $('#help')?.addEventListener('click', dialog.show.bind(dialog));
-
   const mediaQuery = window.matchMedia('(max-width: 768px)');
   mediaQuery?.addEventListener('change', changeLayout);
 
   // Load markdown contents to the dialog
-  const description = $('#help-text .help-description')?.innerText?.trim();
-  const headline = $('#help-text .help-headline')?.innerText?.trim();
-  if (headline && description) {
-    const serialized = description
-      .split('\n')
-      .map((line: string) => line.trim())
-      .join('\n');
-    const mkDesc = await marked.parse(serialized);
-    dialog.set(headline, mkDesc);
+  const usageHelpBtn = $('#usage-help');
+  const developHelpBtn = $('#develop-help');
+  const helpOnPageLoad = $('#help-on-page-load');
+  const usageContent = $('#usage-help-content')?.textContent?.trim();
+  const developContent = $('#develop-help-content')?.textContent?.trim();
+
+  if (helpOnPageLoad) {
+    helpOnPageLoad.addEventListener('change', () => {
+      localStorage.setItem(
+        'helpOnPageLoad',
+        helpOnPageLoad.checked ? 'true' : 'false'
+      );
+    });
+
+    const isHelpOnPageLoad = localStorage.getItem('helpOnPageLoad');
+    if (isHelpOnPageLoad === null || isHelpOnPageLoad === 'true') {
+      helpOnPageLoad.checked = true;
+      if (isHelpOnPageLoad === null) {
+        localStorage.setItem('helpOnPageLoad', 'true');
+      }
+    }
+  }
+
+  async function displayUsageHelp() {
+    const mkDesc = await marked.parse(usageContent);
+    dialog.set("What's this page?", mkDesc);
+    dialog.show();
+  }
+
+  if (usageHelpBtn && usageContent) {
+    usageHelpBtn.addEventListener('click', displayUsageHelp);
+    if (helpOnPageLoad?.checked) {
+      displayUsageHelp();
+    }
+  }
+
+  if (developHelpBtn && developContent) {
+    developHelpBtn.addEventListener('click', async () => {
+      const mkDesc = await marked.parse(developContent);
+      dialog.set('How do I integrate?', mkDesc);
+      dialog.show();
+    });
   }
 
   // Initialize

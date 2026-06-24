@@ -214,3 +214,123 @@ div[slot='appContent'] {
     }
   }
 }
+
+#dialog {
+  margin: auto auto 0 auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: 600px;
+  width: 100%;
+  overflow: visible;
+  z-index: 1100;
+
+  /* 3. Base (closed/exit) state and transitions */
+  opacity: 0;
+  transform: translateY(100%);
+
+  /* transition display and overlay for top-layer elements */
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 0.25s;
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  transition-behavior: allow-discrete;
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+    transition:
+      display 0.25s allow-discrete,
+      overlay 0.25s allow-discrete,
+      background-color 0.25s ease-out,
+      backdrop-filter 0.25s ease-out;
+  }
+
+  .dialog-container {
+    background-color: var(--mdui-theme-surface);
+    color: var(--mdui-theme-on-surface);
+    border-radius: 28px 28px 0 0;
+    padding: 24px 24px 32px 24px;
+    box-shadow: 0px -4px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: Rubik, sans-serif;
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 12px;
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    #dialog-close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--mdui-theme-on-surface);
+      opacity: 0.6;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .dialog-body {
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  /* 1. Visible (open) state */
+  &[open] {
+    opacity: 1;
+    transform: translateY(0);
+
+    /* 2. Starting state for entry (must come after open state) */
+    @starting-style {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+
+    &::backdrop {
+      background-color: rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(1px);
+
+      @starting-style {
+        background-color: rgba(0, 0, 0, 0);
+        backdrop-filter: blur(0px);
+      }
+    }
+  }
+}
+
+/* 5. Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  dialog#dialog {
+    transform: none;
+    transition-duration: 0.1s;
+
+    &[open] {
+      @starting-style {
+        transform: none;
+      }
+    }
+  }
+}
+
+#mdui-bottom-app-bar {
+  --z-index: 900;
+}
