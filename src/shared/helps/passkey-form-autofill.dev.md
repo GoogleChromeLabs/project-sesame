@@ -36,4 +36,3 @@ To deliver a top-tier passkey experience, consider implementing these advanced p
 - **Guide:** [Sign in with a passkey through form autofill](https://web.dev/articles/passkey-form-autofill) (web.dev)
 - **Guide:** [Server-side passkey authentication](https://developers.google.com/identity/passkeys/developer-guides/server-authentication) (Google Developers)
 - **Codelab:** [Implement passkeys with form autofill in a web app](https://goo.gle/passkeys-codelab) (Hands-on tutorial)
-
