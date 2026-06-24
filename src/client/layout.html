@@ -42,7 +42,7 @@
       {{> sidebar this}}
     </mdui-navigation-drawer>
     {{{body}}}
-    <mdui-bottom-app-bar>
+    <mdui-bottom-app-bar style="z-index: 900">
       {{#if usage_help}}
       <script id="usage-help-content" type="text/markdown">{{{usage_help}}}</script>
       <mdui-button-icon id="usage-help" icon="help_center--outlined"></mdui-button-icon>
