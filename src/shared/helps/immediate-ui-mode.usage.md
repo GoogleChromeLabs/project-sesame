@@ -16,19 +16,32 @@
 
 ## Immediate UI mode
 
-Immediate UI mode for logins is a web capability designed to streamline sign-in
-flows. With immediate UI mode, users can sign in to a website just by selecting
-an account displayed in a dedicated browser native dialog that unifies all
-credential types (currently passwords and passkeys) saved to the password
-manager.
+[Immediate UI
+mode](https://developer.chrome.com/docs/identity/immediate-ui-mode) is a web
+platform capability designed to streamline the sign-in experience. It allows
+users to authenticate simply by selecting their account from a unified, native
+browser dialog. This dialog aggregates all credentials saved in their password
+manager, including both traditional passwords and modern passkeys.
 
-Unlike passkey dialog, immediate UI mode doesn't show a QR code dialog even after the user cancels the biometric prompt.
+Unlike the standard passkey prompt, immediate UI mode fails fast. If a user
+cancels the biometric verification or if no matching credentials are found, the
+API throws an exception immediately without falling back to a QR code or
+external security key dialog.
 
-To try out this feature, you need to have a password and a passkey saved to the
-password manager. If you don't have any yet, please go [passkey form
-autofill](/passkey-form-autofill) and save a password, then create a new
-passkey and come back here.
+### How to test this feature
 
-When ready, click the **Sign-in** button. By selecting an account, you'll be
-asked to perform user verification if necessary. Once verified, you'll be signed
-in.
+1. **Browser prerequisite:** Ensure you are using a Chromium-based browser that
+   supports immediate UI mode (available from June 2026 onwards).
+2. **Save test credentials:** You must have at least one account with a password
+   and a passkey saved in your password manager for this demo website. If you do
+   not have any saved credentials, visit the [passkey form
+   autofill](/passkey-form-autofill) page to save a password and register a new
+   passkey, then return here. Creating a second account will show you how the UI
+   let you pick an account.
+3. **Trigger the sign-in prompt:** Click the **Sign-in** button on this page to
+   launch the unified credential picker.
+4. **Select your account:** Choose the saved account you want to sign in with
+   from the native dialog.
+5. **Complete user verification:** Perform the required verification (such as
+   biometric scanning or entering your device PIN) if prompted. Once verified,
+   you will be signed in immediately.
