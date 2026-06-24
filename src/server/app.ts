@@ -416,10 +416,10 @@ app.get(
 );
 
 app.get(
-  '/credential-manager',
+  '/immediate-ui-mode',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {
-    res.render('credential-manager.html', {
+    res.render('immediate-ui-mode.html', {
       title: 'Credential Manager for the Web',
     });
   }

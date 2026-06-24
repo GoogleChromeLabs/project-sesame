@@ -15,9 +15,9 @@
  * limitations under the License
  */
 
-import '../layout';
-import {$, loading, redirect, toast} from '../helpers/index';
-import {capabilities, authenticate} from '../helpers/unified';
+import '../layout.ts';
+import {$, loading, redirect, toast} from '../helpers/index.ts';
+import {capabilities, authenticate} from '../helpers/unified.ts';
 
 if (
   //@ts-ignore
