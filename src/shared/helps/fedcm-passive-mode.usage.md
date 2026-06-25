@@ -16,24 +16,25 @@
 
 ## FedCM passive mode
 
-In this page, you can experience and learn FedCM passive mode.
+On this page, you can experience FedCM's **passive mode**.
 
-FedCM has two modes: "passive" and "active".
+### Passive vs. active mode
 
-- "active": FedCM prompt must be initiated by user interaction (such as clicking a button).
-- "passive": FedCM prompt will be initiated without direct user interaction.
+The Federated Credential Management (FedCM) API supports two distinct UX modes:
 
-## Prerequisites
+- **Active Mode**: The FedCM prompt is triggered by a direct user interaction,
+  such as clicking a "Sign-in" button.
+- **Passive Mode**: The FedCM prompt is initiated automatically when the page
+  loads, without requiring any prior user interaction.
 
-- Google Chrome
+### How to test it:
 
-Last updated: 2025/05/18
-
-If the browser supports FedCM, a FedCM widget will appear at the top right
-corner as soon as you land this page. FedCM on this website supports "[FedCM
-Demo IdP](https://sesame-identity-provider.appspot.com)" and
-"[Google](https://accounts.google.com)".
-
-Select one of identity providers (IdP) and a popup window appears if you haven't
-signed in to the IdP yet. As soon as you are signed in to the IdP, you're signed
-in to this website.
+1. **Browser prerequisite:** Ensure you are using a Chromium-based browser that
+   supports FedCM.
+2. **Observe the prompt**: If your browser supports FedCM, a sign-in dialog
+   should appear in the top-right corner as soon as you land on this page. If
+   not, create an account and sign in to the demo identity provider at
+   [https://sesame-identity-provider.appspot.com](https://sesame-identity-provider.appspot.com)
+   , then come back here.
+3. **Click the dialog**: Clicking on the one tap dialog allows you to sign in to
+   this demo website.

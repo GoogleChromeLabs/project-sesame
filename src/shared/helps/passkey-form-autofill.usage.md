@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Passkey Form Autofill
+## Passkey form autofill
 
 On this page, you can experience a sign-in flow that seamlessly accommodates
 both passkeys and passwords in a single form—a feature known as "passkey form

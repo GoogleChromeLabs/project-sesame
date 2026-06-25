@@ -120,27 +120,22 @@ export class SesameIdP {
       });
     }
 
-    try {
-      const cred = await navigator.credentials.get({
-        // @ts-ignore
-        identity: {providers, mode, context},
-        mediation,
-      });
+    const cred = await navigator.credentials.get({
+      // @ts-ignore
+      identity: {providers, mode, context},
+      mediation,
+    });
 
-      /**
-       * IdentityCredential {
-       *   configURL: string,
-       *   id: string,
-       *   isAutoSelected: boolean,
-       *   token: string,
-       *   type: 'identity'
-       * }
-       */
-      return this.verifyIdToken(cred);
-    } catch (e: any) {
-      console.error(e);
-      throw new Error(e.error);
-    }
+    /**
+     * IdentityCredential {
+     *   configURL: string,
+     *   id: string,
+     *   isAutoSelected: boolean,
+     *   token: string,
+     *   type: 'identity'
+     * }
+     */
+    return this.verifyIdToken(cred);
   }
 
   /**
@@ -237,11 +232,16 @@ export class SesameIdP {
       throw new Error('No verified IdP found.');
     }
 
-    // TODO: Make sure the response is User type
-    const user = await post('/federation/verifyIdToken', {
-      token: cred.token,
-      url: idp.origin,
-    });
+    let user;
+    try {
+      // TODO: Make sure the response is User type
+      user = await post('/federation/verifyIdToken', {
+        token: cred.token,
+        url: idp.origin,
+      });
+    } catch (e: any) {
+      throw new Error('Identity verification failed.');
+    }
     return user;
   }
 
