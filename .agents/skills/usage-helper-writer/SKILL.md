@@ -19,32 +19,30 @@ description: Rephrase and polish technical help documentation or usage guides to
  limitations under the License
 -->
 
-# Usage Helper Writer Skill
+# Usage helper writer skill
 
 This skill provides guidelines and patterns for rewriting, rephrasing, and polishing technical usage guides, helper texts, and onboarding copy in the codebase (especially those originally drafted in non-native English). It aims to produce clear, engaging, and professional English documentation.
 
-## Writing Principles
+## Writing principles
 
-1. **Prioritize Natural Phrasing & Idiomatic English**
-   - Avoid literal translations or awkward grammar patterns (e.g., "In this page, you can experience..." -> "On this page, you can experience...").
-   - Use active voice and direct, action-oriented verbs.
-   - Use clear terms (e.g., "seamlessly accommodates both passkeys and passwords" instead of "can accommodate passkeys and passwords called...").
+- **Prioritize natural phrasing & idiomatic English:**
+  - Avoid literal translations or awkward grammar patterns (e.g., "In this page, you can experience..." -> "On this page, you can experience...").
+  - Use active voice and direct, action-oriented verbs.
+  - Use clear terms (e.g., "seamlessly accommodates both passkeys and passwords" instead of "can accommodate passkeys and passwords called...").
+- **Structure for scannability:**
+  - Use clear, action-oriented section headings (e.g., "### How to test it:", "### WebAuthn Signal API demo:").
+  - Use bold text strategically to highlight user actions, key choices, or system prompts (e.g., **Selecting a saved password**, **Click or tap the username field**).
+- **Clarify technical context and terminology:**
+  - Introduce standard industry terminology where appropriate to educate the user (e.g., mentioning "conditional UI" alongside "passkey form autofill").
+  - Clearly explain the _why_ behind technical features (e.g., instead of "the password manager will delete the passkey to avoid further confusion", use "preventing future confusion by cleaning up invalid or orphaned passkeys").
+- **Tone and style:**
+  - Professional, encouraging, and clear.
+  - Instructive without being overly pedantic.
+  - Consistent with modern web developer documentation standards (like MDN or Google Developer documentation).
+  - **Sentence case headings:** Use sentence case for all titles and section headings (e.g. "## Passkey form autofill" instead of "## Passkey Form Autofill").
+  - **No enumerated instructions:** Do not enumerate instructions, steps, or checklist items using numbers unless a sequential order is strictly necessary. Prefer bullet points with bold descriptors instead to keep documentation clean, flexible, and scannable.
 
-2. **Structure for Scannability**
-   - Use clear, action-oriented section headings (e.g., "### How to test it:", "### WebAuthn Signal API Demo:").
-   - Break down complex flows into numbered lists or bullet points.
-   - Use bold text strategically to highlight user actions, key choices, or system prompts (e.g., **Selecting a saved password**, **Click or tap the username field**).
-
-3. **Clarify Technical Context and Terminology**
-   - Introduce standard industry terminology where appropriate to educate the user (e.g., mentioning "conditional UI" alongside "passkey form autofill").
-   - Clearly explain the _why_ behind technical features (e.g., instead of "the password manager will delete the passkey to avoid further confusion", use "preventing future confusion by cleaning up invalid or orphaned passkeys").
-
-4. **Tone and Style**
-   - Professional, encouraging, and clear.
-   - Instructive without being overly pedantic.
-   - Consistent with modern web developer documentation standards (like MDN or Google Developer documentation).
-
-## Example Pattern: Before & After
+## Example pattern: before & after
 
 ### Before
 
@@ -65,18 +63,17 @@ This skill provides guidelines and patterns for rewriting, rephrasing, and polis
 
 ### After
 
-> ## Passkey Form Autofill
+> ## Passkey form autofill
 >
 > On this page, you can experience a sign-in flow that seamlessly accommodates both passkeys and passwords in a single form—a feature known as "passkey form autofill" (or conditional UI). This page also demonstrates how the WebAuthn Signal API can be used to clean up invalid or orphaned passkeys.
 >
 > ### How to test it:
 >
-> 1. **Click or tap the username field** to trigger the browser's autofill suggestions.
-> 2. If you have credentials saved in your password manager for this site:
->    - **Selecting a saved password**: The username will be filled in automatically. Click **Continue** to proceed to the password step.
->    - **Selecting a saved passkey**: A browser verification prompt will appear immediately. Complete the verification to sign in instantly.
-> 3. If you don't have a passkey or account yet, enter any username and click **Continue**. On the next page, you can enter any password to register (the password will be ignored, but it simulates a traditional sign-up flow).
+> - **Click or tap the username field** to trigger the browser's autofill suggestions.
+> - **Select a saved password (if available)**: The username will be filled in automatically. Click **Continue** to proceed to the password step.
+> - **Select a saved passkey (if available)**: A browser verification prompt will appear immediately. Complete the verification to sign in instantly.
+> - **Register a new account (if no credentials exist)**: Enter any username and click **Continue**. On the next page, you can enter any password to register (the password will be ignored, but it simulates a traditional sign-up flow).
 >
-> ### WebAuthn Signal API Demo:
+> ### WebAuthn Signal API demo:
 >
 > If a passkey sign-in attempt is rejected by the server because the corresponding public key is not found (e.g., if the user deleted their credential from their account settings but the local passkey remains in their password manager), the server uses the WebAuthn Signal API to signal the browser. The browser's password manager will then delete the invalid passkey, preventing future confusion.

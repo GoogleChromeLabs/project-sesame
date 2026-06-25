@@ -14,14 +14,24 @@
  limitations under the License
 -->
 
-## Passkey management
+## Passkey Management
 
-In this page, you can experience a passkey management page.
+On this page, you can experience a complete passkey management dashboard. Providing a user-friendly management interface is a crucial part of a great passkey implementation, allowing users to keep track of and control their security credentials.
 
-In the passkey management page, can do the following things:
+### What you can do on this page:
 
-- Register a new passkey.
-- Delete the registered credential.
-- Rename the registered credential.
-- Find the name, creation date, last used date, provider of the passkey and sync
-  state of the passkey associated with the credential.
+- **Register a new passkey:** Seamlessly create and associate a new passkey with
+  your account using your current device or a physical security key.
+- **Rename a credential:** Assign friendly, custom names to your passkeys (e.g.,
+  "Google Password Manager (second account)") so you can easily identify them
+  later.
+- **Delete a credential:** Revoke a passkey by removing its public key from the
+  server. Once deleted, that specific passkey can no longer be used to sign in
+  to your account. Matching passkey is evicted from the passkey provider if it
+  supports Signal API.
+- **View rich metadata:** Inspect detailed technical and contextual information about each registered credential, including:
+  - **Credential name:** Passkey provider name (e.g., Google Password Manager,
+    iCloud Keychain, Windows Hello) or a custome label you assigned.
+  - **Registered date:** When the passkey was first registered.
+  - **Last used date:** The timestamp of the most recent successful authentication.
+  - **Sync state:** Whether the passkey is backed up and synchronized across the user's devices (a synced/multi-device passkey) or locked to a single physical device (a hardware-bound/single-device passkey).
