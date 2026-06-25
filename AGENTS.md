@@ -14,15 +14,17 @@ Project Sesame is an open-source demo web application built with Node.js, design
 - **Runtime**: Node.js (v22+).
 - **Backend**: Express.js (handling routing and middleware), `@simplewebauthn/server` (for server-side Passkey verification).
 - **Database**: Google Cloud Firestore (via `firebase-admin`). Emulated locally via Firebase Emulator Suite. Mock seed data is loaded from and automatically preserved back to `./.data` using emulator import/export flags (`--import=./.data --export-on-exit`).
+- **Session Management**: `express-session` persisted to Firestore using `@google-cloud/connect-firestore`.
 - **Frontend**: Lit (Google's lightweight library for Web Components), SCSS for styling, Handlebars (`.html`) for SSR templates.
 - **Build/Bundling**: Rsbuild (for frontend), ESBuild (for backend).
+- **Infrastructure & Hosting**: Google App Engine (Standard Environment).
 - **Local Infrastructure**: Caddy (reverse proxy simulating production subdomains `rp.localhost` and `idp.localhost`).
 
 ## Core Architectural Concepts
 
 1.  **Dual Role Architecture**: Uniquely, this single codebase is capable of running as two distinct entities depending on configuration:
-    - **Identity Provider (IdP)**: Simulates an entity that provides identity services.
-    - **Relying Party (RP)**: Simulates an application that consumes identity services.
+    - **Identity Provider (IdP)**: Simulates an entity that provides identity services (runs on `https://idp.localhost` proxying to local port `8000`).
+    - **Relying Party (RP)**: Simulates an application that consumes identity services (runs on `https://rp.localhost` proxying to local port `8080`).
     - Under local development, separate server processes are run with different environments: `rp-localhost` for the RP and `idp-localhost` for the IdP.
 2.  **Access Control**:
     - Use the `pageAclCheck` middleware to enforce access control on UI routes (e.g., `PageType.SignIn`, `PageType.SignedIn`).
@@ -42,9 +44,21 @@ Project Sesame is an open-source demo web application built with Node.js, design
 
 ## Directory Structure
 
-- `src/server/`: Backend Express application. `app.ts` is the entry point. `middlewares/` contains core routing and business logic. `libs/` contains database abstractions.
-- `src/client/`: Frontend code. `pages/` contains TypeScript files corresponding to specific server-rendered views. `helpers/` contains shared utilities.
-- `src/shared/`: Shared assets. `views/` contains Handlebars (`.html`) templates used by the server for SSR.
+- `src/server/`: Backend Express application.
+  - `app.ts`: Main entry point. Initializes Express, configures Handlebars, and mounts middlewares/sub-apps.
+  - `config.ts`: Loads and merges environment configurations.
+  - `middlewares/`: Routing, access control, and business logic. Includes:
+    - `session.ts`: Handles user session state and persistence.
+    - Feature sub-apps: `webauthn`, `fedcm`, `auth`, `federation` mounted as sub-apps for specific flows.
+  - `libs/`: Database abstractions and helper services.
+- `src/client/`: Frontend code compiled via Rsbuild.
+  - `pages/`: TypeScript files corresponding to specific server-rendered views to add client-side Lit interactivity.
+  - `helpers/`: Shared client-side utilities.
+  - `styles/`: SCSS/CSS global and modular styles.
+- `src/shared/`: Shared assets.
+  - `views/`: Handlebars (`.html`) templates for SSR.
+    - `layouts/`: Main page shells (e.g., `index.html`).
+    - `partials/`: Reusable template components.
 
 ---
 
@@ -70,6 +84,22 @@ Project Sesame is an open-source demo web application built with Node.js, design
     - `caddy.sh` requires `sudo` privileges to bind to standard ports and manage TLS certificates.
 4.  **Frontend Components (MDUI)**:
     - Standard UI components must leverage the [MDUI library](https://www.mdui.org/) (Material Design 3 elements) imported via `src/client/layout.ts` and inside Lit template strings (e.g. `<mdui-button>`). Avoid introducing other UI component frameworks to keep payload sizes lean and UI consistent.
+
+---
+
+## 🚀 Build & Deployment Commands
+
+As a senior contributor, you should build the project correctly and know how deployments are structured:
+
+1. **Compilation/Build**:
+   - Build client and server bundles: `npm run build`
+   - Client bundle only (Rsbuild): `npm run build:client`
+   - Server bundle only (ESBuild): `npm run build:server`
+2. **Deployment (Google App Engine)**:
+   - GAE deployment is configured via `app.yaml` variants depending on target environment:
+     - Deploy Staging: `npm run deploy` (deploys `staging.yaml`)
+     - Deploy IdP: `npm run deploy:idp` (deploys `idp.yaml`)
+     - Deploy Production: `npm run deploy:prod` (deploys `prod.yaml`)
 
 ---
 
