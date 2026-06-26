@@ -14,6 +14,8 @@
   <ul>
     {{#if (isPageEnabled '/signin-form')}}
     <li><a href="/signin-form">Sign-in Form</a></li>
+    {{/if}} {{#if (isPageEnabled '/automatic-passkey-creation')}}
+    <li><a href="/automatic-passkey-creation">Automatic Passkey Creation</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-form-autofill')}}
     <li><a href="/passkey-form-autofill">Passkey form autofill</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-one-button')}}
