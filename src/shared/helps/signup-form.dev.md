@@ -14,13 +14,44 @@
  limitations under the License
 -->
 
-## How to integrate password based sign-up form
+## Integrating a password-based sign-up form
 
-Use `input` tag for a `username` field and `password` fields.
+This page demonstrates a traditional registration form built in accordance with
+modern web standards and accessibility guidelines.
 
-Append `autocomplete="username"` attribute for `username` field. Append
-`autocomplete="new-password"` attribute for `password` fields.
+### Best practices & form optimization checklist
 
-### Learning resources
+When implementing password-based sign-up, ensure your form implements the following architectural, UX, and security patterns:
 
-- [Sign-up form best practices](https://web.dev/articles/sign-up-form-best-practices)
+- **Semantic HTML:** Build the form using native `<form>`, `<input>`, and
+  `<button>` elements. This guarantees accessibility, native keyboard
+  navigation, and seamless integration with browser extensions and password
+  managers.
+- **Autofill compatibility:** Assist credential managers by providing explicit `autocomplete` attributes:
+  - Configure the username/identifier field with `autocomplete="username"`.
+  - Configure both the password and password confirmation fields with
+    `autocomplete="new-password"`. This signals to browser password managers to
+    suggest a strong, unique, auto-generated password instead of autofilling
+    existing credentials.
+- **Form simplicity:** Ask only for essential information during registration
+  (e.g., username, password, and optionally a display name). Minimizing form
+  fields reduces cognitive load and significantly decreases cart/form
+  abandonment rates.
+- **Unrestricted password validation:** Avoid overly restrictive password rules
+  (such as banning special characters, restricting length, or blocking
+  copy/paste) that interfere with password managers' ability to generate strong,
+  complex passwords.
+- **Paste enablement:** Never disable copy-and-paste functionality on password
+  fields. Users must be allowed to paste secure credentials directly from
+  external password managers.
+- **Password visibility control:** Include a visibility toggle (switching the
+  input type between `password` and `text`) to help users verify their input,
+  which reduces typing errors and friction.
+
+### Developer resources
+
+- **Guide:** [Sign-up form best
+  practices](https://web.dev/articles/sign-up-form-best-practices) (web.dev)
+- **Guide:** [Help users sign in with
+  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome
+  Developers)
