@@ -17,62 +17,20 @@
 
 import '~project-sesame/client/layout';
 import {
-  $,
   loading,
   redirect,
   postForm,
   toast,
 } from '~project-sesame/client/helpers/index';
-import {
-  capabilities,
-  authenticate,
-  registerCredential,
-} from '~project-sesame/client/helpers/publickey';
 
 postForm(
   async () => {
-    if (capabilities?.conditionalCreate) {
-      try {
-        await registerCredential(false, true);
-      } catch (error: any) {
-        if (error.name === 'InvalidStateError') {
-          console.info('A passkey is already registered for the user.');
-        } else if (error.name === 'NotAllowedError') {
-          console.info(
-            "Passkey was not created because the password didn't match the one in the password manager."
-          );
-        } else if (error.name !== 'AbortError') {
-          console.error(error);
-        }
-      }
-    }
+    loading.stop();
     await redirect('/home');
   },
   (error: Error) => {
+    loading.stop();
     toast(error.message);
+    console.error(error);
   }
 );
-
-// Feature detection: check if WebAuthn and conditional UI are supported.
-if (capabilities?.conditionalGet) {
-  try {
-    // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-    const user = await authenticate({mediation: 'conditional'});
-    if (user) {
-      // When the user is signed in, redirect to the home page.
-      $('#username').value = user.username;
-      loading.start();
-      await redirect('/home');
-    } else {
-      throw new Error('User not found.');
-    }
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    // `NotAllowedError` indicates a user cancellation.
-    // `AbortError` indicates an abort.
-    if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-      toast(error.message);
-    }
-  }
-}

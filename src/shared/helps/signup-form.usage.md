@@ -14,12 +14,16 @@
  limitations under the License
 -->
 
-## Password based sign-up form
+## Password-based sign-up form
 
-In this page, you can experience account creation through a form based sign-up
-flow using a username and a password.
+On this page, you can experience a traditional form-based sign-up flow to register a new account using a username and a password.
 
-Simply enter a username and a password twice to create an account.
+### How to test it:
 
-_The password won't be saved to the server on this website. You don't need to
-create an account before signing in._
+- **Enter a username**: Type a username you would like to use.
+- **Enter a password**: Type a password and then re-enter it in the confirmation field.
+- **Submit the form**: Click **Register** to complete the registration process.
+
+\* _This is a demo application. Passwords are not saved on the server, and you
+can sign in on the sign-in page using any username and password without
+registering first._

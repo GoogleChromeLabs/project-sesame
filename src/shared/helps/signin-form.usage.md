@@ -14,22 +14,17 @@
  limitations under the License
 -->
 
-## Password based sign-in form
+## Password-based sign-in form
 
-In this page, you can experience a form based sign-in flow and passkey automatic
-upgrades. **Automatic passkey upgrades** help your users adopt passkeys.
+On this page, you can experience a traditional form-based sign-in flow using a
+username and password.
 
-## Prerequisites
+### How to test it:
 
-- Automatic passkey upgrades require Chrome or Safari.
+- **Register an account first**: If you do not have an account yet, click
+  **Register now** to create one.
+- **Sign in with your password**: Enter your username and password, then click
+  **Login** to authenticate and access the home page.
 
-Last updated: 2025/05/18
-
-This is an ordinary username and password based sign-in form experience. Simply
-enter a username and a password to proceed.
-
-After a successful password verification, the password manager creates a new
-passkey automatically.
-
-_Use the password saved to your password manager to perform automatic passkey
-upgrades (Save a password to the password manager in advance)._
+\* In fact, you can sign in on this page without creating a new account at
+[/signup-form](/signup-form) because this demo ignores the password.

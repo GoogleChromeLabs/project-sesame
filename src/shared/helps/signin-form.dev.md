@@ -14,21 +14,50 @@
  limitations under the License
 -->
 
-## How to integrate password based sign-in form
+## Integrating a password-based sign-in form
 
-To perform **automatic passkey upgrades**, use **WebAuthn Conditional Create**.
-Simply invoke `navigator.credentials.create()` with `mediation: "conditional"`
-as soon as the user successfully authenticate with a password. There are a few
-conditions to meet:
+This page demonstrates a traditional sign-in form built in accordance with
+modern web standards and accessibility guidelines.
 
-- A password is saved to the password manager.
-- The password the user entered matches the one in the password manager.
-- There is no passkey stored to the password manager yet.
-- `navigator.credentials.create()` is invoked shortly after the user entered the
-  password.
+### Best practices & form optimization checklist
 
-### Learning resources
+When implementing traditional password authentication, ensure your form
+implements the following architectural, UX, and security patterns:
 
-- [Sign-in form best practices](https://web.dev/articles/sign-in-form-best-practices)
-- [Automatically create passkeys for your users using Conditional
-  Create](https://web.dev/articles/webauthn-conditional-create)
+- **Semantic structure:** Wrap all input fields in a `<form>` element. Use
+  `<label>` elements associated with `<input>` fields (positioned above the
+  inputs for optimal mobile readability), and a `<button type="submit">` with
+  descriptive text (such as **Login** or **Sign in**) rather than a generic
+  label.
+- **Stable identifiers:** Use stable, unique `id` and `name` attributes (e.g.,
+  `id="username"` and `name="username"`) that do not change between builds,
+  allowing password managers to reliably identify and save credentials.
+- **Autofill compatibility:** Assist credential managers by providing explicit
+  `autocomplete` attributes:
+  - Configure the username input with `autocomplete="username"`.
+  - Configure the password input with `autocomplete="current-password"` to
+    signal that it is a sign-in form (distinguishing it from registration
+    fields).
+- **Appropriate input types:** Set `type="text"` to trigger the correct virtual
+  keyboard layout on mobile devices. Always use `type="password"` for the
+  password input to mask the entry.
+- **Browser-native validation:** Apply the `required` attribute to inputs to
+  leverage fast, browser-native validation before sending requests to the
+  server.
+- **Password visibility control:** Offer a password visibility toggle (switching
+  the input type between `password` and `text`) to help users verify their
+  input, which reduces typing errors and friction.
+- **Accessible recovery links:** Include a clearly visible "Forgot password?"
+  link to help users recover accounts without frustration.
+- **Mobile optimization:** Ensure all interactive elements have comfortable
+  touch targets (at least 44x44 CSS pixels) and input font sizes are at least
+  16px to prevent iOS browsers from automatically zooming in and disrupting the
+  layout.
+
+### Developer resources
+
+- **Guide:** [Sign-in form best
+  practices](https://web.dev/articles/sign-in-form-best-practices) (web.dev)
+- **Guide:** [Help users sign in with
+  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome
+  Developers)
