@@ -67,5 +67,6 @@
     "/settings/password-change",
     "/settings/delete-account",
     "/signout"
-  ]
+  ],
+  "analytics_id": "G-754F24EHD8"
 }
