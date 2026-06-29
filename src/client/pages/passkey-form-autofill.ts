@@ -39,29 +39,49 @@ postForm(
 );
 
 // Feature detection: check if WebAuthn and conditional UI are supported.
-if (capabilities?.conditionalGet) {
-  try {
-    // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-    const user = await authenticate({mediation: 'conditional'});
-    if (user) {
-      // When the user is signed in, redirect to the home page.
-      $('#username').value = user.username;
-      loading.start();
-      // @ts-ignore
-      if (window.IdentityProvider) {
+async function initAutofill() {
+  if (capabilities?.conditionalGet) {
+    try {
+      // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
+      const user = await authenticate({mediation: 'conditional'});
+      if (user) {
+        // When the user is signed in, redirect to the home page.
+        $('#username').value = user.username;
+        loading.start();
         // @ts-ignore
-        IdentityProvider.close();
+        if (window.IdentityProvider) {
+          // @ts-ignore
+          IdentityProvider.close();
+        }
+        await redirect('/home');
+      } else {
+        throw new Error('User not found.');
       }
-      await redirect('/home');
-    } else {
-      throw new Error('User not found.');
-    }
-  } catch (error: any) {
-    loading.stop();
-    console.error(error);
-    // `NotAllowedError` indicates a user cancellation.
-    if (error.name !== 'NotAllowedError') {
-      toast(error.message);
+    } catch (error: any) {
+      console.error(error);
+      // `NotAllowedError` indicates a user cancellation.
+      if (error.name !== 'NotAllowedError') {
+        toast(error.message);
+      }
     }
   }
+}
+
+initAutofill();
+
+// Explicitly focus the username field to trigger the passkey picker.
+// We use a small delay to ensure MDUI components have finished their initial focus management.
+const focusField = () => {
+  setTimeout(() => {
+    const usernameField = $('#username');
+    if (usernameField) {
+      usernameField.focus();
+    }
+  }, 1000);
+};
+
+if (document.readyState === 'complete') {
+  focusField();
+} else {
+  window.addEventListener('load', focusField, { once: true });
 }
