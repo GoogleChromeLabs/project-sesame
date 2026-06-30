@@ -378,7 +378,10 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         // Password-based entrances go to password-reauth; others (e.g., passkeys) go to passkey-reauth.
         const entrance = sessionService.getEntrancePath();
         const url = new URL(config.origin);
-        if (entrance === '/signin-form' || entrance === '/automatic-passkey-creation') {
+        if (
+          entrance === '/signin-form' ||
+          entrance === '/automatic-passkey-creation'
+        ) {
           url.pathname = '/password-reauth';
         } else {
           url.pathname = '/passkey-reauth';
