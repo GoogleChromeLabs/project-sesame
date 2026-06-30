@@ -271,6 +271,32 @@ app.get(
   }
 );
 
+/**
+ * Automatic Passkey Creation Page.
+ * @swagger
+ * /automatic-passkey-creation:
+ *   get:
+ *     summary: Automatic Passkey Creation
+ *     description: Renders the automatic passkey creation page.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML Page
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ */
+app.get(
+  '/automatic-passkey-creation',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response): void => {
+    return res.render('automatic-passkey-creation.html', {
+      title: 'Automatic Passkey Creation',
+    });
+  }
+);
+
 app.get(
   '/new-password',
   pageAclCheck(PageType.SigningUp),

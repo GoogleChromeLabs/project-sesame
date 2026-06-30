@@ -322,8 +322,22 @@ export function getSignInStatus(req: Request, res: Response): UserSignInStatus {
   return status;
 }
 
+/**
+ * Middleware factory for checking page-level Access Control Lists (ACL) based on user sign-in status.
+ * It enforces routing constraints for different page types (e.g., Sign-In, Sign-Up, Signed-In, Sensitive)
+ * and manages redirection flows to ensure users are in the correct authentication state.
+ *
+ * It also handles:
+ * - Feature-flag gating: Returns 404 if the page is not in the `config.enabled_pages` list.
+ * - Entrance path tracking: Records where the user started their auth flow to support correct post-auth redirection.
+ * - Re-authentication routing: Detects if a signed-in user is attempting to access a sign-in/sensitive page and redirects them to the appropriate re-auth or home path.
+ *
+ * @param pageType The required page ACL category (`PageType`) for the requested route.
+ * @returns An Express request handler function.
+ */
 export function pageAclCheck(pageType: PageType): RequestHandlerParams {
   return (req: Request, res: Response, next: NextFunction): void | any => {
+    // 1. Feature Flag / Gating: If enabled_pages is configured, reject any route not explicitly listed.
     if (
       config.enabled_pages &&
       !config.enabled_pages.includes(req.baseUrl + req.path)
@@ -332,34 +346,42 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
     }
 
     const {signin_status} = res.locals;
-
     const sessionService = new SessionService(req.session);
+
+    // 2. Enforce state transitions based on the requested PageType ACL
     if (pageType === PageType.SignUp) {
+      // Clear any stale sign-up flow state.
       sessionService.resetSigningUp();
+      // Signed-in users have no need to sign up again; redirect them to home.
       if (signin_status >= UserSignInStatus.SignedIn) {
-        // If the user is signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
     } else if (pageType === PageType.SigningUp) {
+      // Redirect already signed-in users to home.
       if (signin_status >= UserSignInStatus.SignedIn) {
-        // If the user is signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
+      // Users must start the sign-up process from the beginning (signup-form).
       if (signin_status < UserSignInStatus.SigningUp) {
-        // If the user has not started signing in, redirect to the original entrance.
         return res.redirect(307, '/signup-form');
       }
     } else if (pageType === PageType.SignIn) {
+      // Clear any stale sign-in flow state.
       sessionService.resetSigningIn();
+
       if (signin_status >= UserSignInStatus.SignedIn) {
         const queryParams = req.query;
         const search = new URLSearchParams(
           queryParams as Record<string, string>
         );
-        // If the user is already signed in...
+        // If already signed in, redirect to the appropriate re-authentication page.
+        // Password-based entrances go to password-reauth; others (e.g., passkeys) go to passkey-reauth.
         const entrance = sessionService.getEntrancePath();
         const url = new URL(config.origin);
-        if (entrance === '/signin-form') {
+        if (
+          entrance === '/signin-form' ||
+          entrance === '/automatic-passkey-creation'
+        ) {
           url.pathname = '/password-reauth';
         } else {
           url.pathname = '/passkey-reauth';
@@ -367,41 +389,43 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
         url.search = search.toString();
         return res.redirect(307, url.pathname + url.search);
       }
+      // Save the current page as the entrance path so we know where the user started.
       sessionService.setEntrancePath(req.path);
     } else if (pageType === PageType.FirstCredential) {
+      // Creating the first passkey after signing in requires an active sign-in flow.
       if (signin_status < UserSignInStatus.SigningIn) {
-        // If the user is not signing in, redirect to the original entrance.
         return res.redirect(307, sessionService.getEntrancePath());
       } else if (signin_status >= UserSignInStatus.SignedIn) {
-        // If the user is recently signed in, redirect to `/home`.
+        // If they are already fully signed in, redirect them to home.
         return res.redirect(307, '/home');
       }
     } else if (pageType === PageType.Reauth) {
+      // Re-authentication requires the user to be in the process of signing in.
       if (signin_status < UserSignInStatus.SigningIn) {
-        // If the user is not signing in, redirect to the original entrance.
         return res.redirect(307, sessionService.getEntrancePath());
       }
+      // If the user has already successfully authenticated recently, redirect them to home.
       if (signin_status >= UserSignInStatus.RecentlySignedIn) {
-        // If the user is recently signed in, redirect to `/home`.
         return res.redirect(307, '/home');
       }
     } else if (pageType === PageType.SignedIn) {
+      // Standard protected pages: Redirect unauthenticated users back to their original entrance.
       if (signin_status < UserSignInStatus.SignedIn) {
-        // If the user has not signed in yet, redirect to the original entrance.
         return res.redirect(307, sessionService.getEntrancePath());
       }
     } else if (pageType === PageType.Sensitive) {
+      // Highly sensitive pages (e.g., changing password or deleting account) require a recent sign-in.
+      // If the sign-in is stale or non-existent, redirect to the entrance with a return URL 'r'.
       if (signin_status < UserSignInStatus.RecentlySignedIn) {
-        // Construct the redirect path as `r`
         const url = new URL(sessionService.getEntrancePath(), config.origin);
         const search = new URLSearchParams({r: req.originalUrl});
         url.search = search.toString();
         logger.debug(url.toString());
 
-        // If the user has not signed in yet, redirect to the original entrance.
         return res.redirect(307, url.pathname + url.search);
       }
     }
+    // 3. Authorized: Allow the request to proceed to the route handler.
     return next();
   };
 }
