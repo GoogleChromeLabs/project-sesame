@@ -62,6 +62,7 @@
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
     "/credential-manager",
+    "/evp",
     "/home",
     "/settings/passkeys",
     "/settings/password-change",
