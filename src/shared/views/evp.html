@@ -1,0 +1,533 @@
+<!--
+ Copyright 2026 Google Inc. All rights reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<style>
+  .hidden {
+    display: none !important;
+  }
+
+  .evp-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    align-items: start;
+    font-family: Rubik, sans-serif;
+  }
+
+  @media (min-width: 992px) {
+    .evp-container {
+      grid-template-columns: 5fr 7fr;
+    }
+  }
+
+  .evp-card {
+    background: var(--mdui-theme-surface, #fffbfa);
+    color: var(--mdui-theme-on-surface, #442c2e);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .evp-card h2, .evp-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .evp-card p.subtitle {
+    color: #5c5c5c;
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Style standard email input to trigger autofill */
+  .email-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #fff;
+    color: #000;
+    transition: border-color 0.2s;
+  }
+
+  .email-input:focus {
+    outline: none;
+    border-color: var(--mdui-theme-on-surface, #442c2e);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a73e8; /* Standard secure blue for action */
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    transition: background-color 0.2s;
+  }
+
+  .submit-btn:hover {
+    background-color: #1557b0;
+  }
+
+  .submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* Status Banners */
+  .status-banner {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    margin-top: 24px;
+    border: 1px solid transparent;
+  }
+
+  .status-banner.success {
+    background-color: #e6f4ea;
+    border-color: #82c396;
+    color: #137333;
+  }
+
+  .status-banner.error {
+    background-color: #fce8e6;
+    border-color: #f5adad;
+    color: #c5221f;
+  }
+
+  .status-banner h4 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .status-banner p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .verified-badge {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    margin-top: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* OTP Fallback */
+  .otp-container {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid #cfd9d2;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  /* Protocol Inspector */
+  .inspector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+
+  .inspector-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+  }
+
+  .status-badge.idle {
+    background: #f1f3f4;
+    color: #5f6368;
+  }
+
+  .status-badge.verifying {
+    background: #e8f0fe;
+    color: #1a73e8;
+    border-color: #1a73e8;
+  }
+
+  .status-badge.verified {
+    background: #e6f4ea;
+    color: #137333;
+    border-color: #137333;
+  }
+
+  .status-badge.failed {
+    background: #fce8e6;
+    color: #c5221f;
+    border-color: #c5221f;
+  }
+
+  .tab-navigation {
+    display: flex;
+    gap: 16px;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #5f6368;
+    padding: 6px 0;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tab-btn.active {
+    color: var(--mdui-theme-on-surface, #442c2e);
+    border-bottom-color: var(--mdui-theme-on-surface, #442c2e);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Trace Steps */
+  .trace-placeholder {
+    border: 1px dashed rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    padding: 64px 16px;
+    text-align: center;
+    color: #5f6368;
+    font-size: 14px;
+  }
+
+  .trace-step {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.01);
+  }
+
+  .trace-step-header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .trace-step-header:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .trace-step-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .step-num {
+    font-family: monospace;
+    font-size: 12px;
+    color: #5f6368;
+  }
+
+  .step-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .step-status {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .step-status.pending { color: #5f6368; }
+  .step-status.success { color: #137333; }
+  .step-status.failed { color: #c5221f; }
+
+  .trace-step-body {
+    padding: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    background: #fff;
+    display: none;
+  }
+
+  .trace-step-body.open {
+    display: block;
+  }
+
+  .step-desc {
+    color: #5c5c5c;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .json-toggle {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #5f6368;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .json-details {
+    margin-top: 8px;
+  }
+
+  .json-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: #5f6368;
+    text-transform: uppercase;
+    margin-top: 8px;
+    margin-bottom: 2px;
+  }
+
+  .json-data {
+    background: #f8f9fa;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    overflow-x: auto;
+    color: #3c4043;
+    max-height: 150px;
+    margin: 0;
+  }
+
+  /* Console Terminal */
+  .console-log {
+    background-color: #1e1e1e;
+    color: #f1f1f1;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    height: 400px;
+    overflow-y: auto;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .console-line {
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  .console-line .timestamp {
+    color: #858585;
+    margin-right: 8px;
+  }
+
+  .console-line.system { color: #75beff; }
+  .console-line.success { color: #4ec9b0; }
+  .console-line.error { color: #f48771; }
+  .console-line.highlight { color: #cca700; }
+</style>
+
+<div class="evp-container">
+  <!-- Left Column: Form & Flow -->
+  <div class="panel-left">
+    <div class="evp-card">
+      <div id="email-form-container">
+        <h2>Sign In</h2>
+        <p class="subtitle">
+          Select your email address from the autofill dropdown to verify it instantly.
+        </p>
+
+        <!-- Prerequisites Info Box -->
+        <div style="background-color: #f1f3f4; border-left: 4px solid #1a73e8; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: #3c4043; text-align: left;">
+          <strong>Prerequisites for testing:</strong>
+          <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+            <li>Use <strong>Chrome Canary</strong> or Dev channel.</li>
+            <li>Enable the flag: <code style="background: #e8eaed; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 11px;">chrome://flags/#email-verification-protocol</code></li>
+            <li>Ensure you are logged in to your Google Account (Gmail) in this browser profile.</li>
+          </ul>
+        </div>
+
+        <form id="evp-form">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              autocomplete="email"
+              required
+              class="email-input"
+              placeholder="Select from autofill..."
+            />
+          </div>
+
+          <!-- Hidden input for the EVP token -->
+          <input
+            type="hidden"
+            name="evt"
+            id="evt"
+            data-nonce="{{nonce}}"
+            autocomplete="email-verification-token"
+          />
+
+          <button type="submit" class="submit-btn" id="submit-btn">
+            Sign up
+          </button>
+        </form>
+      </div>
+
+      <!-- OTP Fallback Container (Initially Hidden) -->
+      <div id="otp-fallback-container" class="hidden">
+        <div class="otp-container">
+          <h3 style="color: #c5221f;">EVP Token Not Found</h3>
+          <p class="subtitle" style="margin-bottom: 16px;">
+            We did not receive a cryptographic verification token for <strong id="fallback-email-display"></strong>. 
+            We have fallen back to simulating a traditional 6-digit verification code.
+          </p>
+          <form id="otp-form" style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="otp">One-time code</label>
+              <input
+                type="text"
+                id="otp"
+                name="otp"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                required
+                class="email-input"
+                placeholder="123456"
+              />
+            </div>
+            <div style="display: flex; gap: 12px; width: 100%;">
+              <mdui-button type="submit" variant="filled" style="flex: 1;">Verify code</mdui-button>
+              <mdui-button type="button" id="otp-cancel-btn" variant="outlined">Cancel</mdui-button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Status Banners -->
+      <div id="success-banner" class="status-banner success hidden">
+        <div>🎉</div>
+        <div>
+          <h4>Email Verified!</h4>
+          <p>Verified cryptographically. No verification email was sent.</p>
+          <div class="verified-badge">
+            Identity: <strong id="verified-email-text">-</strong>
+          </div>
+        </div>
+      </div>
+
+      <div id="error-banner" class="status-banner error hidden">
+        <div>❌</div>
+        <div>
+          <h4>Verification Failed</h4>
+          <p id="error-message-text">The cryptographic token could not be verified.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Protocol Inspector -->
+  <div class="panel-right">
+    <div class="evp-card">
+      <div class="inspector-header">
+        <div class="inspector-title-group">
+          <h3>Protocol Inspector</h3>
+          <span class="status-badge idle" id="overall-status">Idle</span>
+        </div>
+        <div class="tab-navigation">
+          <button class="tab-btn active" data-tab="trace">Verification Trace</button>
+          <button class="tab-btn" data-tab="logs">Console Logs</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Verification Trace -->
+      <div class="tab-content active" id="tab-trace">
+        <div class="trace-steps" id="trace-steps-list">
+          <div class="trace-placeholder">
+            Submit the form to view the cryptographic trace steps.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Console Logs -->
+      <div class="tab-content" id="tab-logs">
+        <div class="console-log" id="console-log-terminal">
+          <div class="console-line system">Ready. Select your email from the autofill dropdown to begin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
