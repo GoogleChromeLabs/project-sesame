@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating FedCM passive mode
+## Integrate FedCM passive mode
 
 To create a frictionless federated authentication flow, you can use FedCM's
 **passive mode** to trigger the identity provider (IdP) prompt automatically
