@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating FedCM active mode
+## Integrate FedCM active mode
 
 To implement a user-initiated federated sign-in flow, you can use FedCM's
 **active mode**. This mode is designed for scenarios where the authentication
