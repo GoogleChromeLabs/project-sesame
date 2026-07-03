@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating password-based reauthentication
+## Integrate password-based reauthentication
 
 Reauthentication ensures that users re-verify their credentials before
 performing highly sensitive actions, protecting active sessions from
