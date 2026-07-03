@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating a password-based sign-up form
+## Integrate a password-based sign-up form
 
 This page demonstrates a traditional registration form built in accordance with
 modern web standards and accessibility guidelines.
