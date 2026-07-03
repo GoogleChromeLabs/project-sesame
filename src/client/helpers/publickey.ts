@@ -205,7 +205,16 @@ export async function authenticate(params?: {
   controller.abort();
   controller = new AbortController();
 
-  const options = await preparePublicKeyRequestOptions(params?.mediation);
+  let options;
+
+  try {
+    options = await preparePublicKeyRequestOptions(params?.mediation);
+  } catch (e: any) {
+    if (e.status === 404) {
+      throw new DOMException(e.error, 'NotAllowedError');
+    }
+    throw new Error(e.error);
+  }
 
   // Invoke WebAuthn get
   const cred = (await navigator.credentials.get({

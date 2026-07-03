@@ -16,7 +16,7 @@
  */
 
 import {$, post} from '~project-sesame/client/helpers/index';
-import {saveFederation} from '~project-sesame/client/helpers/federated';
+import type {User} from '~project-sesame/server/libs/users';
 
 /**
  * Options for FedCM authentication and delegation.
@@ -175,6 +175,50 @@ export class SesameIdP {
     });
 
     return await this.verifySdJwt(cred);
+  }
+
+  async iframe(options: FedCmOptions = {}): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let {nonce} = options;
+      // TODO: Does `nonce` detection need to be here? Can this be moved to `initialize()`?
+      if (!nonce) {
+        nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
+      }
+      if (!nonce) {
+        reject(new Error('nonce is not declared.'));
+        return;
+      }
+
+      const provider = this.idps[0];
+      if (!provider) {
+        reject(new Error('IdP not specified.'));
+        return;
+      }
+      const origin = new URL(provider.origin).origin;
+
+      const messageListener = async (event: MessageEvent) => {
+        if (event.origin === origin) {
+          event.stopPropagation();
+          try {
+            const result = await post('/federation/verifyIdToken', {
+              token: event.data.token,
+              url: provider.origin,
+            });
+            if (result) {
+              window.removeEventListener('message', messageListener);
+              resolve();
+            } else {
+              window.removeEventListener('message', messageListener);
+              reject(new Error('Token verification failed.'));
+            }
+          } catch (exception: any) {
+            window.removeEventListener('message', messageListener);
+            reject(new Error(exception.error));
+          }
+        }
+      };
+      window.addEventListener('message', messageListener);
+    });
   }
 
   /**

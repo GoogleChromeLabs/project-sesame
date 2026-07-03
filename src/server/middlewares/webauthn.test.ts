@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {test, describe, before, after, beforeEach} from 'node:test';
+import {test, describe, beforeAll, afterAll, beforeEach} from 'vitest';
 import assert from 'node:assert';
 import express, {Request, Response, NextFunction} from 'express';
 import {webauthn} from './webauthn.ts';
@@ -27,7 +27,7 @@ describe('WebAuthn Middlewares', () => {
   let port: number;
   let mockSession: any = {};
 
-  before(async () => {
+  beforeAll(async () => {
     app = express();
     app.use(express.json());
 
@@ -49,7 +49,7 @@ describe('WebAuthn Middlewares', () => {
     });
   });
 
-  after(() => {
+  afterAll(() => {
     server.close();
   });
 

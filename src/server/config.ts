@@ -22,12 +22,11 @@ import * as fs from 'node:fs/promises';
 import {initializeApp} from 'firebase-admin/app';
 import {getFirestore} from 'firebase-admin/firestore';
 
-import {logger} from '~project-sesame/server/libs/logger.ts';
-
 import packageConfig from '../../package.json' with {type: 'json'};
 import firebaseConfig from '../../firebase.json' with {type: 'json'};
 
-const is_localhost = process.env.NODE_ENV === 'localhost';
+const is_localhost =
+  process.env.NODE_ENV === 'localhost' || process.env.NODE_ENV === 'test';
 
 const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
@@ -62,7 +61,7 @@ function generateApkKeyHash(sha256hash: string): string {
   const base64url = btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/=+$/, '');
+    .replace(/={1,2}$/, '');
 
   return `android:apk-key-hash:${base64url}`;
 }
@@ -85,7 +84,10 @@ function initializeFirestore() {
 }
 
 // Load the environment specific config file.
-const env = process.env.NODE_ENV || 'localhost';
+let env = process.env.NODE_ENV || 'localhost';
+if (env === 'test') {
+  env = 'localhost';
+}
 
 const defaultConfigPath = path.join(
   project_root_file_path,
@@ -181,11 +183,13 @@ const {
   project_name,
   origin_trials = [],
   csp,
-  // List of supported IdPs as an RP
-  supported_idps = [],
-  // List of supported RPs as an IdP
+  // Primay IdP origin that will be embedded inside a iframe.
+  primary_idp_origin,
+  // Supported RPs info
   supported_rps = [],
-  // Allowlist pages to render to prevent experimental features from being exposed
+  // Supported IdP info
+  supported_idps = [],
+  // Optional enabled tenants at the top page
   enabled_pages,
   analytics_id,
 } = mergedConfig;
@@ -194,6 +198,7 @@ const {
   connect_src = [],
   font_src = [],
   frame_src = [],
+  frame_ancestors = [],
   img_src = [],
   script_src = [],
   style_src = [],
@@ -222,6 +227,20 @@ const associated_origins = associated_domains.map((_domain: any) => {
   }
 });
 
+// Apply IdP origins to the CSP
+supported_idps.map((idp: any) => {
+  connect_src.push(idp.origin);
+  frame_src.push(idp.origin);
+  script_src.push(idp.origin);
+  style_src.push(idp.origin);
+  style_src_elem.push(idp.origin);
+});
+
+// Apply RP frame origins to CSP `frame-ancestors`
+supported_rps.map((rp: any) => {
+  frame_ancestors.push(rp.origin);
+});
+
 export const store = initializeFirestore();
 
 export const config = {
@@ -230,6 +249,7 @@ export const config = {
   project_root_file_path,
   dist_root_file_path,
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
+  helps_root_file_path: path.join(dist_root_file_path, 'shared', 'helps'),
   is_localhost,
   port,
   origin,
@@ -238,7 +258,9 @@ export const config = {
   associated_domains,
   associated_origins,
   secret,
-  session_cookie_name,
+  session_cookie_name: is_localhost
+    ? session_cookie_name
+    : `__Secure-${session_cookie_name}`,
   repository_url: packageConfig.repository?.url,
   idp_login_path,
   id_token_lifetime,
@@ -251,14 +273,15 @@ export const config = {
     connect_src,
     font_src,
     frame_src,
+    frame_ancestors,
     img_src,
     script_src,
     style_src,
     style_src_elem,
   },
+  primary_idp_origin,
   supported_idps,
   supported_rps,
   enabled_pages,
   analytics_id,
 };
-logger.info('Project Sesame configuration', config);

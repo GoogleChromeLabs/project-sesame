@@ -574,7 +574,7 @@ router.post(
     const {user} = res.locals;
     await Users.delete(user.id);
 
-    setSignedOut(req, res);
+    await setSignedOut(req, res);
 
     res.json({});
   }

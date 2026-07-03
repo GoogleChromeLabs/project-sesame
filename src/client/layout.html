@@ -42,13 +42,27 @@
       {{> sidebar this}}
     </mdui-navigation-drawer>
     {{{body}}}
-    <mdui-dialog
-      id="dialog"
-      close-on-overlay-click
-      close-on-esc>
-      <span slot="headline"></span>
-      <span slot="description"></span>
-    </mdui-dialog>
+    <mdui-bottom-app-bar style="z-index: 900">
+      {{#if usage_help}}
+      <script id="usage-help-content" type="text/markdown">{{{usage_help}}}</script>
+      <mdui-button-icon id="usage-help" icon="help_center--outlined"></mdui-button-icon>
+      {{/if}}
+      {{#if develop_help}}
+      <script id="develop-help-content" type="text/markdown">{{{develop_help}}}</script>
+      <mdui-button-icon id="develop-help" icon="integration_instructions--outlined"></mdui-button-icon>
+      {{/if}}
+      <div style="flex-grow: 1"></div>
+      <mdui-checkbox id="help-on-page-load" icon="close--outlined">Show help on page load</mdui-checkbox>
+    </mdui-bottom-app-bar>
+    <dialog id="dialog" closedby="any" aria-labelledby="dialog-headline">
+      <div class="dialog-container">
+        <div class="dialog-header">
+          <h2 id="dialog-headline"></h2>
+          <button id="dialog-close-btn" type="button" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="dialog-body" id="dialog-content"></div>
+      </div>
+    </dialog>
     <mdui-snackbar id="snackbar"></mdui-snackbar>
   </body>
 </html>

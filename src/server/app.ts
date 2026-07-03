@@ -39,13 +39,19 @@ import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
-import {logger} from '~project-sesame/server/libs/logger.ts';
+import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import {swaggerSpec} from '~project-sesame/server/swagger.ts';
 import fs from 'node:fs/promises';
 import {marked} from 'marked';
 
 const app = express();
+
+app.use((req, res, next) => {
+  logContextStorage.run({path: req.path}, () => {
+    next();
+  });
+});
 
 /**
  * Authentication often needs to add server-side data to the rendered HTML. In order
@@ -79,7 +85,22 @@ function configureTemplateEngine(app: express.Application) {
 
 configureTemplateEngine(app);
 
-app.use(
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  // For the RP to set Permissions Policy `publickey-credentials-get`
+  let permissionsPolicyDomains = [];
+  if (req.path === '/passkey-iframe') {
+    const policies = [
+      `publickey-credentials-get=(self "${config.primary_idp_origin}")`,
+    ];
+    res.setHeader('Permissions-Policy', policies.join(';'));
+  }
+
+  // For the IdP to set CSP `frame_ancestors` when the path is `/iframe-federation`
+  const frameAncestors =
+    req.path === '/iframe-federation'
+      ? ["'self'", ...config.csp.frame_ancestors]
+      : [];
+
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -93,8 +114,10 @@ app.use(
         imgSrc: ["'self'", 'data:', ...config.csp.img_src],
         fontSrc: ["'self'", ...config.csp.font_src],
         frameSrc: ["'self'", ...config.csp.frame_src],
+        frameAncestors,
         styleSrc: ["'self'", "'unsafe-inline'", ...config.csp.style_src],
         styleSrcElem: ["'self'", ...config.csp.style_src_elem],
+        upgradeInsecureRequests: config.debug ? null : [],
       },
       // CSP is report-only if the app is running in debug mode.
       reportOnly: config.debug,
@@ -102,8 +125,11 @@ app.use(
     crossOriginOpenerPolicy: {
       policy: 'same-origin-allow-popups',
     },
-  })
-);
+    xFrameOptions: config.debug ? false : {action: 'deny'},
+  })(req, res, next);
+});
+
+logger.info('Configuration', config);
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -117,22 +143,48 @@ app.use(
   express.static(path.join(config.dist_root_file_path, 'client/static'))
 );
 
-// Set page defaults
-app.use((req: Request, res: Response, next: NextFunction): void => {
-  const width = req.headers['sec-ch-viewport-width'];
-  if (typeof width === 'string') {
-    res.locals.open_drawer = parseInt(width) > 768;
+async function getHelpContent(
+  layout: string,
+  type: string
+): Promise<string | null> {
+  try {
+    const targetPath = path.resolve(
+      path.join(config.helps_root_file_path, `${layout}.${type}.md`)
+    );
+    const rootPathWithSep = config.helps_root_file_path.endsWith(path.sep)
+      ? config.helps_root_file_path
+      : config.helps_root_file_path + path.sep;
+    if (!targetPath.startsWith(rootPathWithSep)) {
+      return null;
+    }
+    return await fs.readFile(targetPath, 'utf-8');
+  } catch (e) {
+    return null;
   }
-  res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
+}
 
-  res.locals.signin_status = getSignInStatus(req, res);
+// Set page defaults
+app.use(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const width = req.headers['sec-ch-viewport-width'];
+    if (typeof width === 'string') {
+      res.locals.open_drawer = parseInt(width) > 768;
+    }
+    res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
 
-  // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
-  res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
-  res.locals.layout = res.locals.pagename.slice(1);
+    res.locals.signin_status = getSignInStatus(req, res);
 
-  return next();
-});
+    // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
+    res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;
+    res.locals.layout = res.locals.pagename.slice(1);
+    res.locals.analytics_id = config.analytics_id;
+
+    res.locals.usage_help = await getHelpContent(res.locals.layout, 'usage');
+    res.locals.develop_help = await getHelpContent(res.locals.layout, 'dev');
+
+    return next();
+  }
+);
 
 app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
@@ -295,6 +347,22 @@ app.get(
 );
 
 app.get(
+  '/passkey-iframe',
+  pageAclCheck(PageType.SignIn),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
+    const iframe_origin = config.primary_idp_origin;
+    const parent_origin = encodeURIComponent(config.origin);
+    return res.render('passkey-iframe.html', {
+      title: 'Passkey within iframe',
+      nonce,
+      iframe_origin,
+      parent_origin,
+    });
+  }
+);
+
+app.get(
   '/passkey-reauth',
   pageAclCheck(PageType.Reauth),
   (req: Request, res: Response): void => {
@@ -316,6 +384,12 @@ app.get(
     });
   }
 );
+
+app.get('/iframe-federation', (req: Request, res: Response): void => {
+  return res.render('iframe-federation.html', {
+    title: 'Sign-in form within an iframe',
+  });
+});
 
 app.get(
   '/fedcm-active-mode',
@@ -402,10 +476,10 @@ app.get(
 app.get(
   '/signout',
   pageAclCheck(PageType.SignedIn),
-  (req: Request, res: Response): void => {
+  async (req: Request, res: Response): Promise<void> => {
     const entrancePath = new SessionService(req.session).getEntrancePath();
 
-    setSignedOut(req, res);
+    await setSignedOut(req, res);
 
     res.redirect(307, entrancePath);
   }

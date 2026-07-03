@@ -1,5 +1,8 @@
 {
   "hostname": "project-sesame-426206.appspot.com",
+  "rp_name": "Project Sesame",
+  "project_name": "project-sesame-426206",
+  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
   "associated_domains": [
     {
       "package_name": "com.google.credentialmanager.sample",
@@ -25,16 +28,34 @@
   "origin_trials": [
     "An71LT63OAgXNVjVamv7HKptDLo3pCk21SRAZ1MSSxbL1CEHa+wkdkW2M/6hC4bjzi63fn3AQOJFT9305bs1SQUAAAB4eyJvcmlnaW4iOiJodHRwczovL3Byb2plY3Qtc2VzYW1lLTQyNjIwNi5hcHBzcG90LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQXV0aGVudGljYXRpb25JbW1lZGlhdGVHZXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9"
   ],
-  "rp_name": "Project Sesame",
-  "project_name": "project-sesame-426206",
-  "allowlisted_accounts": ["agektmr", "chromedemojp@gmail.com", "johnzoeller"],
+  "primary_idp_origin": "https://sesame-identity-provider.appspot.com",
   "supported_idps": [
+    {
+      "name": "FedCM Demo IdP",
+      "iconURL": "https://sesame-identity-provider.appspot.com/images/idp-logo-512.png",
+      "origin": "https://sesame-identity-provider.appspot.com",
+      "configURL": "https://sesame-identity-provider.appspot.com/fedcm/config.json",
+      "secret": "xxxxx"
+    },
+    {
+      "name": "SGO",
+      "origin": "https://issuer.sgo.to",
+      "configURL": "https://issuer.sgo.to/fedcm.json",
+      "clientId": "1234",
+      "secret": "xxxxx"
+    },
     {
       "name": "Google",
       "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
-      "origin": "https://accounts.google.com",
-      "configURL": "https://accounts.google.com/gsi/fedcm.json",
-      "clientId": "493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com",
+      "origin": "https://accounts.sandbox.google.com",
+      "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
+      "secret": "*****"
+    },
+    {
+      "name": "Google Sandbox",
+      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
+      "origin": "https://accounts.sandbox.google.com",
+      "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
       "secret": "*****"
     }
   ],

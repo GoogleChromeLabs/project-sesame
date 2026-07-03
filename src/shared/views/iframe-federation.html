@@ -1,0 +1,39 @@
+<main class="content center">
+  <h2>Log in</h2>
+  <form id="form" method="POST" action="/auth/username-password" class="center">
+    <div id="input-fields" class="hidden center">
+      <mdui-text-field
+        type="text"
+        id="username"
+        name="username"
+        autocomplete="username webauthn"
+        label="username"
+        width="100"
+        variant="outlined"
+        autofocus
+      >
+      </mdui-text-field>
+      <mdui-text-field
+        type="password"
+        id="password"
+        name="password"
+        autocomplete="current-password"
+        label="password"
+        width="100"
+        variant="outlined"
+        autofocus
+      >
+        <mdui-button-icon
+          class="password-toggle"
+          toggle
+          slot="end-icon"
+          icon="visibility_off--outlined"
+          selected-icon="visibility--outlined"
+          selectable
+        >
+        </mdui-button-icon>
+      </mdui-text-field>
+    </div>
+    <mdui-button type="submit" variant="filled">Login</mdui-button>
+  </form>
+</main>
