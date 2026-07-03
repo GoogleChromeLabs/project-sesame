@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating a secure password change flow
+## Integrate a secure password change flow
 
 To build a secure, user-friendly password change experience, you should
 implement standard autocomplete attributes, support the well-known URL redirect,
