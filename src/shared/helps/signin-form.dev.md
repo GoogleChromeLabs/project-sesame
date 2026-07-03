@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Integrating a password-based sign-in form
+## Integrate a password-based sign-in form
 
 This page demonstrates a traditional sign-in form built in accordance with
 modern web standards and accessibility guidelines.
