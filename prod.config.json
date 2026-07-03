@@ -30,21 +30,6 @@
       "origin": "https://sesame-identity-provider.appspot.com",
       "configURL": "https://sesame-identity-provider.appspot.com/fedcm/config.json",
       "secret": "xxxxx"
-    },
-    {
-      "name": "Google",
-      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
-      "origin": "https://accounts.google.com",
-      "configURL": "https://accounts.google.com/gsi/fedcm.json",
-      "clientId": "493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com",
-      "secret": "*****"
-    },
-    {
-      "name": "Google Sandbox",
-      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
-      "origin": "https://accounts.sandbox.google.com",
-      "configURL": "https://accounts.sandbox.google.com/gsi/vc.json",
-      "secret": "*****"
     }
   ],
   "enabled_pages": [
@@ -61,6 +46,7 @@
     "/passkey-one-button",
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
+    "/immediate-ui-mode",
     "/credential-manager",
     "/evp",
     "/home",
@@ -68,5 +54,6 @@
     "/settings/password-change",
     "/settings/delete-account",
     "/signout"
-  ]
+  ],
+  "analytics_id": "G-754F24EHD8"
 }

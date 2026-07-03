@@ -24,14 +24,6 @@
   "primary_idp_origin": "https://idp.localhost",
   "supported_idps": [
     {
-      "name": "Google",
-      "iconURL": "https://accounts.google.com/gsi-static/google-logo.png",
-      "origin": "https://accounts.google.com",
-      "configURL": "https://accounts.google.com/gsi/fedcm.json",
-      "clientId": "493201854729-bposa1duevdn4nspp28cmn6anucu60pf.apps.googleusercontent.com",
-      "secret": "*****"
-    },
-    {
       "name": "FedCM Local IdP",
       "iconURL": "https://idp.localhost/images/idp-logo-512.png",
       "origin": "https://idp.localhost",
