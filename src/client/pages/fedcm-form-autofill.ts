@@ -112,5 +112,5 @@ const focusField = () => {
 if (document.readyState === 'complete') {
   focusField();
 } else {
-  window.addEventListener('load', focusField, { once: true });
+  window.addEventListener('load', focusField, {once: true});
 }
