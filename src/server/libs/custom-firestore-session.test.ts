@@ -15,7 +15,7 @@
  * limitations under the License
  */
 
-import {describe, it, beforeEach, before} from 'node:test';
+import {describe, it, beforeEach, beforeAll} from 'vitest';
 import assert from 'node:assert';
 import net from 'node:net';
 import {CustomFirestoreStore} from './custom-firestore-session.js';
@@ -47,7 +47,7 @@ const checkEmulatorReady = (): Promise<boolean> => {
 describe('CustomFirestoreStore', () => {
   let sessionStore: CustomFirestoreStore;
 
-  before(async () => {
+  beforeAll(async () => {
     const ready = await checkEmulatorReady();
     if (!ready) {
       console.error(
