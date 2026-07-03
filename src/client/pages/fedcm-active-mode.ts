@@ -18,38 +18,22 @@
 import '~project-sesame/client/layout';
 import {$, toast, redirect} from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
-
-let fedcm;
-if (location.host.indexOf('rp.localhost') > -1) {
-  fedcm = new SesameIdP(['https://idp.localhost']);
-} else {
-  fedcm = new SesameIdP(['https://identity-provider-sesame.appspot.com']);
-}
-await fedcm.initialize();
-const google = new SesameIdP(['https://accounts.google.com']);
-await google.initialize();
-
-const signIn = async (idp: SesameIdP) => {
-  try {
-    await idp.signIn({mode: 'active'});
-    await redirect('/home');
-  } catch (e: any) {
-    console.error(e);
-    toast(e.message);
-  }
-};
+import {getIdpUrls} from '../helpers/federated';
 
 if ('IdentityCredential' in window) {
   $('#hidden').classList.remove('hidden');
   $('#unsupported').classList.add('hidden');
-
-  $('#google').addEventListener('click', async (event: MouseEvent) => {
-    event.preventDefault();
-    await signIn(google);
-  });
-
+  const idpURLs = await getIdpUrls();
+  const idp = new SesameIdP(idpURLs);
+  await idp.initialize();
   $('#fedcm').addEventListener('click', async (event: MouseEvent) => {
     event.preventDefault();
-    await signIn(fedcm);
+    try {
+      await idp.signIn({mode: 'active'});
+      await redirect('/home');
+    } catch (e: any) {
+      console.error(e);
+      toast(e.message);
+    }
   });
 }
