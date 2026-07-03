@@ -61,7 +61,7 @@
     "/passkey-one-button",
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
-    "/credential-manager",
+    "/immediate-ui-mode",
     "/home",
     "/settings/passkeys",
     "/settings/password-change",
