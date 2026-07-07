@@ -16,6 +16,7 @@
 <main class="content center">
   <h2>Welcome to Project Sesame</h2>
   <h3>Sign-up</h3>
+
   <ul>
     {{#if (isPageEnabled '/signup-form')}}
     <li><a href="/signup-form">Sign-up Form</a></li>
@@ -48,7 +49,9 @@
     {{#if (isPageEnabled '/credential-manager')}}
     <li><a href="/credential-manager">Credential Manager for the Web</a></li>
     {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li><a href="/evp">EVP Verifier</a></li>
+    <li><a href="/evp">EVP Verifier (Relying Party)</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp-idp')}}
+    <li><a href="/evp-idp">EVP Mock Provider (Identity Provider)</a></li>
     {{/if}}
   </ul>
 </main>
