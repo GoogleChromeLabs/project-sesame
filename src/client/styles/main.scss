@@ -110,8 +110,26 @@ main section {
   }
 }
 
-mdui-text-field {
+mdui-text-field,
+.native-textfield-input {
   width: 400px;
+}
+
+.native-textfield-input {
+  padding: 14px 16px;
+  border: 1px solid var(--mdui-color-outline, #79747e);
+  border-radius: 4px;
+  background-color: var(--mdui-color-surface, #fff);
+  color: var(--mdui-color-on-surface, #000);
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 1rem;
+  &:focus {
+    border-color: var(--mdui-color-primary, #6750a4);
+    border-width: 2px;
+    padding: 13px 15px;
+  }
 }
 
 .glue-cookie-notification-bar-control {
