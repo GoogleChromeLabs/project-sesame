@@ -28,7 +28,7 @@
         id="email"
         name="email"
         autocomplete="email"
-        placeholder="demo@{{idpDomain}}"
+        placeholder="demo@chrome.dev"
         required
         class="native-textfield-input"
       />
@@ -76,5 +76,17 @@
         <mdui-button type="button" id="otp-cancel-btn" variant="outlined" style="flex: 1;">Cancel</mdui-button>
       </div>
     </form>
+  </div>
+
+  <!-- Success Container (Initially Hidden) -->
+  <div id="success-container" class="hidden">
+    <div class="center">
+      <mdui-icon name="check_circle--outlined" style="font-size: 56px; color: #34a853; margin-bottom: 12px;"></mdui-icon>
+      <h3 style="margin-top: 0;">Email Verified Successfully</h3>
+      <p class="instructions" style="text-align: center; max-width: 450px; margin-bottom: 24px;">
+        Your email address <strong id="verified-email-text"></strong> has been cryptographically verified using the <strong>Email Verification Protocol (EVP)</strong>. No traditional verification emails or verification codes were sent.
+      </p>
+      <mdui-button id="back-btn" variant="outlined">Verify another email</mdui-button>
+    </div>
   </div>
 </main>

@@ -21,8 +21,8 @@ import {$, post, toast} from '~project-sesame/client/helpers/index';
 document.addEventListener('DOMContentLoaded', () => {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
-  const emailInput = $('#email') as HTMLInputElement;
-  const tokenInput = $('#evt') as HTMLInputElement;
+  let emailInput = $('#email') as HTMLInputElement;
+  let tokenInput = $('#evt') as HTMLInputElement;
   const submitBtn = $('#submit-btn') as HTMLButtonElement;
 
   const otpFallbackContainer = $('#otp-fallback-container') as HTMLDivElement;
@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     tokenInput.setAttribute('nonce', nonce);
     console.info(`Local session challenge (nonce) bound to input: ${nonce}`);
   }
+
+  const successContainer = $('#success-container') as HTMLDivElement;
+  const verifiedEmailText = $('#verified-email-text') as HTMLSpanElement;
+  const backBtn = $('#back-btn') as HTMLButtonElement;
 
   // Handle main EVP form submission
   evpForm.addEventListener('submit', async event => {
@@ -76,6 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
           'Verification succeeded! Email ownership cryptographically verified.'
         );
         toast(`Email verified successfully!`);
+        
+        // Show success screen
+        emailFormContainer.classList.add('hidden');
+        verifiedEmailText.innerText = result.verifiedEmail || email;
+        successContainer.classList.remove('hidden');
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
@@ -85,6 +94,35 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(`Server error during verification: ${e.message || e}`);
       toast(e.message || 'An unexpected server error occurred.');
     }
+  });
+
+  // Handle Back button on Success screen
+  backBtn.addEventListener('click', () => {
+    // Reset form values
+    evpForm.reset();
+
+    // Recreate email input to clear browser-bound verification / autofill states
+    const newEmailInput = emailInput.cloneNode(true) as HTMLInputElement;
+    newEmailInput.value = '';
+    emailInput.parentNode?.replaceChild(newEmailInput, emailInput);
+    emailInput = newEmailInput;
+
+    // Recreate token input
+    const newTokenInput = tokenInput.cloneNode(true) as HTMLInputElement;
+    newTokenInput.value = '';
+    
+    // Rebind nonce attributes
+    const nonceAttr = newTokenInput.getAttribute('data-nonce');
+    if (nonceAttr) {
+      newTokenInput.setAttribute('nonce', nonceAttr);
+    }
+    tokenInput.parentNode?.replaceChild(newTokenInput, tokenInput);
+    tokenInput = newTokenInput;
+    
+    // Reset UI visibility
+    successContainer.classList.add('hidden');
+    emailFormContainer.classList.remove('hidden');
+    console.info('Form reset and inputs recreated. Ready to verify another email.');
   });
 
   // Handle OTP fallback submission

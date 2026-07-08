@@ -216,11 +216,13 @@ app.get(
   pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
     const isIdp = config.project_name === 'sesame-identity-provider';
+    const idpOrigin = isIdp ? `https://${config.hostname}` : (config.primary_idp_origin || 'https://idp.localhost');
     const idpDomain = config.hostname;
     return res.render('index.html', {
       title: 'Welcome!',
       isIdp,
       idpDomain,
+      idpOrigin,
     });
   }
 );

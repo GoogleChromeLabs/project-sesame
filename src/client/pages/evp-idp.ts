@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mockLoginForm.addEventListener('submit', async event => {
       event.preventDefault();
       try {
-        const email = mockLoginForm.dataset.email || 'demo@idp.localhost';
+        const email = mockLoginForm.dataset.email || 'demo@chrome.dev';
         const res = await post('/auth/mock-login', {email});
         if (res.username) {
           toast('Logged in successfully!');

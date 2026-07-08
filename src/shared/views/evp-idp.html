@@ -14,10 +14,10 @@
  limitations under the License.
 -->
 <main class="content center">
-  <h2>EVP Mock Provider (Issuer)</h2>
+  <h2>EVP Email Provider (Issuer)</h2>
   
   <p class="instructions">
-    This is a mock Identity Provider simulating an email provider for the <strong>Email Verification Protocol (EVP)</strong>. 
+    This is a demo Identity Provider simulating an email provider for the <strong>Email Verification Protocol (EVP)</strong>. 
     Logging in here allows Relying Parties (like our local RP) to verify ownership of your email address cryptographically.
   </p>
 
@@ -33,10 +33,10 @@
           Current Session: <strong>Not logged in</strong>
         </p>
         <p class="instructions">
-          To test the EVP flow, click below to quickly mock login as <code>demo@{{idpDomain}}</code>.
+          To test the EVP flow, click below to quickly log in as <code>demo@chrome.dev</code>.
         </p>
-        <form id="mock-login-form" data-email="demo@{{idpDomain}}" class="center">
-          <mdui-button type="submit" variant="filled" id="mock-login-btn">Log in as demo@{{idpDomain}}</mdui-button>
+        <form id="mock-login-form" data-email="demo@chrome.dev" class="center">
+          <mdui-button type="submit" variant="filled" id="mock-login-btn">Log in as demo@chrome.dev</mdui-button>
         </form>
       {{/if}}
     </div>

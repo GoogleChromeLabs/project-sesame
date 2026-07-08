@@ -16,6 +16,7 @@
  */
 import express, {Request, Response} from 'express';
 import {config} from '~project-sesame/server/config.ts';
+import cors from 'cors';
 import helmet from 'helmet';
 const router = express.Router();
 
@@ -24,6 +25,8 @@ router.use(
     crossOriginResourcePolicy: {policy: 'cross-origin'},
   })
 );
+
+router.use(cors());
 
 /**
  * Android Asset Links.

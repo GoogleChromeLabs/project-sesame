@@ -33,9 +33,14 @@ router.get(
   pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
     const isIdp = config.project_name === 'sesame-identity-provider';
+    if (!isIdp) {
+      const idpOrigin = config.primary_idp_origin || 'https://idp.localhost';
+      res.redirect(`${idpOrigin}/evp-idp`);
+      return;
+    }
     const idpDomain = config.hostname;
     res.render('evp-idp.html', {
-      title: 'EVP Mock Provider',
+      title: 'EVP Email Provider',
       isIdp,
       idpDomain,
     });

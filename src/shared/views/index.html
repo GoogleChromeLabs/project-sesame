@@ -51,7 +51,13 @@
     {{/if}} {{#if (isPageEnabled '/evp')}}
     <li><a href="/evp">EVP Verifier (Relying Party)</a></li>
     {{/if}} {{#if (isPageEnabled '/evp-idp')}}
-    <li><a href="/evp-idp">EVP Mock Provider (Identity Provider)</a></li>
+    <li>
+      {{#if isIdp}}
+      <a href="/evp-idp">EVP Email Provider</a>
+      {{else}}
+      <a href="{{idpOrigin}}/evp-idp">EVP Email Provider (Identity Provider)</a>
+      {{/if}}
+    </li>
     {{/if}}
   </ul>
 </main>
