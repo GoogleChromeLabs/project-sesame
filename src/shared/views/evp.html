@@ -23,15 +23,17 @@
         Select your email address from the autofill dropdown to verify it instantly.
       </p>
 
-      <input
+      <mdui-text-field
         type="email"
         id="email"
         name="email"
         autocomplete="email"
-        placeholder="demo@idp.localhost"
+        label="Email address"
+        placeholder="demo@{{idpDomain}}"
+        variant="outlined"
         required
-        style="width: 100%; max-width: 400px; padding: 14px 16px; border: 1px solid var(--mdui-color-outline, #79747e); border-radius: 4px; background-color: var(--mdui-color-surface, #fff); color: var(--mdui-color-on-surface, #000); font-size: 16px; font-family: inherit; outline: none; margin-bottom: 1rem;"
-      />
+      >
+      </mdui-text-field>
 
       <!-- Hidden input for the EVP token -->
       <input

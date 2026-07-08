@@ -168,6 +168,9 @@ async function getHelpContent(
 // Set page defaults
 app.use(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (config.origin_trials && config.origin_trials.length > 0) {
+      res.setHeader('Origin-Trial', config.origin_trials);
+    }
     const width = req.headers['sec-ch-viewport-width'];
     if (typeof width === 'string') {
       res.locals.open_drawer = parseInt(width) > 768;

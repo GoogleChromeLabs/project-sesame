@@ -126,9 +126,12 @@ router.get(
     const nonce = new SessionService(req.session).setChallenge(
       generateRandomString(24)
     );
+    const idpOrigin = config.primary_idp_origin || 'https://idp.localhost';
+    const idpDomain = new URL(idpOrigin).hostname;
     res.render('evp.html', {
       title: 'EVP Verifier',
       nonce,
+      idpDomain,
     });
   }
 );

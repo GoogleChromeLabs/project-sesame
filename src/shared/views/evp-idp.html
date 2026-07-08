@@ -16,34 +16,34 @@
 <main class="content center">
   <h2>EVP Mock Provider (Issuer)</h2>
   
-  <p class="instructions" style="max-width: 600px; text-align: center; margin-bottom: 2rem;">
+  <p class="instructions">
     This is a mock Identity Provider simulating an email provider for the <strong>Email Verification Protocol (EVP)</strong>. 
     Logging in here allows Relying Parties (like our local RP) to verify ownership of your email address cryptographically.
   </p>
 
   {{#if isIdp}}
-    <div style="margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--mdui-color-outline-variant); background-color: var(--mdui-color-surface-container-low); text-align: left; max-width: 400px; width: 100%;">
+    <div class="center">
       {{#if (isSignedIn)}}
-        <p style="margin-top: 0; font-size: 1.1em; color: var(--mdui-color-on-surface);">
+        <p class="instructions">
           Current Session: Logged in as <strong id="logged-in-username">{{username}}</strong>
         </p>
-        <mdui-button href="/signout" variant="outlined" style="width: 100%;">Log out</mdui-button>
+        <mdui-button href="/signout" variant="outlined">Log out</mdui-button>
       {{else}}
-        <p style="margin-top: 0; font-size: 1.1em; color: var(--mdui-color-on-surface);">
+        <p class="instructions">
           Current Session: <strong>Not logged in</strong>
         </p>
-        <p style="font-size: 0.9em; color: var(--mdui-color-on-surface-variant); margin-bottom: 1.2rem;">
+        <p class="instructions">
           To test the EVP flow, click below to quickly mock login as <code>demo@{{idpDomain}}</code>.
         </p>
-        <form id="mock-login-form" data-email="demo@{{idpDomain}}">
-          <mdui-button type="submit" variant="filled" id="mock-login-btn" style="width: 100%;">Log in as demo@{{idpDomain}}</mdui-button>
+        <form id="mock-login-form" data-email="demo@{{idpDomain}}" class="center">
+          <mdui-button type="submit" variant="filled" id="mock-login-btn">Log in as demo@{{idpDomain}}</mdui-button>
         </form>
       {{/if}}
     </div>
   {{else}}
-    <div style="margin-bottom: 2rem; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--mdui-color-error); background-color: var(--mdui-color-error-container); text-align: left; max-width: 400px; width: 100%;">
-      <p style="margin: 0; color: var(--mdui-color-on-error-container);">
-        <strong>Warning:</strong> This page is only functional on the Identity Provider origin (<code>https://idp.localhost</code>).
+    <div class="center">
+      <p class="instructions">
+        <strong>Warning:</strong> This page is only functional on the Identity Provider origin (<code>https://{{idpDomain}}</code>).
       </p>
     </div>
   {{/if}}
