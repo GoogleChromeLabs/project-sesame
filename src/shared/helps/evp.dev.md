@@ -50,7 +50,7 @@ EVP behavior and configuration requirements differ across local development, sta
 - **Browser flags**: Enable Chrome flags:
   - `chrome://flags/#email-verification-protocol` (to turn on the protocol feature).
   - `chrome://flags/#allow-insecure-localhost` (to allow background network requests to local HTTPS endpoints).
-- **TLS trust**: Direct navigate to both `https://rp.localhost` and `https://idp.localhost` and proceed past the privacy warning to trust the self-signed certificates session-wide.
+- **TLS trust**: Direct navigate to `https://rp.localhost` and proceed past the privacy warning to trust the self-signed certificates session-wide.
 - **DNS TXT delegation bypass**: Real DNS TXT delegation lookups are bypassed for local domains (e.g. `*.localhost`, `localhost`, `127.0.0.1`) in our server-side validation middleware.
 
 #### Staging & production
@@ -78,8 +78,8 @@ The email provider (Issuer) must expose its configuration metadata at a public w
 - **Response format**: The endpoint must return a JSON metadata object:
   ```json
   {
-    "issuance_endpoint": "https://<issuer-domain>/evp-idp/issuance",
-    "jwks_uri": "https://<issuer-domain>/evp-idp/jwks",
+    "issuance_endpoint": "https://<issuer-domain>/issuance",
+    "jwks_uri": "https://<issuer-domain>/jwks",
     "signing_alg_values_supported": ["EdDSA"]
   }
   ```

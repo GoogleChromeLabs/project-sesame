@@ -38,7 +38,6 @@ import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 import {evp} from '~project-sesame/server/middlewares/evp.ts';
-import {evpIdp} from '~project-sesame/server/middlewares/evp-idp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
@@ -505,7 +504,6 @@ app.use('/federation', federation);
 app.use('/settings', settings);
 app.use('/webauthn', webauthn);
 app.use('/evp', evp);
-app.use('/evp-idp', evpIdp);
 app.use('/.well-known', wellKnown);
 
 app.use(

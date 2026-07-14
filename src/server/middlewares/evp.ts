@@ -126,12 +126,9 @@ router.get(
     const nonce = new SessionService(req.session).setChallenge(
       generateRandomString(24)
     );
-    const idpOrigin = config.primary_idp_origin || 'https://idp.localhost';
-    const idpDomain = new URL(idpOrigin).hostname;
     res.render('evp.html', {
       title: 'EVP Verifier',
       nonce,
-      idpDomain,
     });
   }
 );
@@ -278,16 +275,6 @@ router.post(
       if (emailDomain.toLowerCase() === issuerHost.toLowerCase()) {
         isDelegated = true;
         authorizedBy = 'Direct Domain Equality (Self-Authoritative)';
-      } else if (
-        issuerHost === 'localhost' ||
-        issuerHost === '127.0.0.1' ||
-        issuerHost.endsWith('.localhost') ||
-        config.supported_idps.some(
-          (idp: any) => new URL(idp.origin).hostname === issuerHost
-        )
-      ) {
-        isDelegated = true;
-        authorizedBy = 'Local/Staging Development Bypass';
       } else {
         let dnsTxtRecords: string[][] = [];
         try {
