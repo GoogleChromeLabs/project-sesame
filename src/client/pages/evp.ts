@@ -79,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.info(
           'Verification succeeded! Email ownership cryptographically verified.'
         );
-        toast(`Email verified successfully!`);
-        
+
         // Show success screen
         emailFormContainer.classList.add('hidden');
         verifiedEmailText.innerText = result.verifiedEmail || email;
@@ -110,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Recreate token input
     const newTokenInput = tokenInput.cloneNode(true) as HTMLInputElement;
     newTokenInput.value = '';
-    
+
     // Rebind nonce attributes
     const nonceAttr = newTokenInput.getAttribute('data-nonce');
     if (nonceAttr) {
@@ -118,11 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     tokenInput.parentNode?.replaceChild(newTokenInput, tokenInput);
     tokenInput = newTokenInput;
-    
+
     // Reset UI visibility
     successContainer.classList.add('hidden');
     emailFormContainer.classList.remove('hidden');
-    console.info('Form reset and inputs recreated. Ready to verify another email.');
+    console.info(
+      'Form reset and inputs recreated. Ready to verify another email.'
+    );
   });
 
   // Handle OTP fallback submission

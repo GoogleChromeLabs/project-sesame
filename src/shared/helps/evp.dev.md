@@ -99,4 +99,13 @@ When the form is submitted, the value of the hidden `email-verification-token` i
 
 ### Developer resources
 
+- **Blog Post**: [Test the Email Verification Protocol with an origin trial](https://developer.chrome.com/blog/email-verification-protocol-origin-trial)
 - **Specification**: [Email Verification Protocol Explainer](https://github.com/w3c-fedid/email-verification-protocol) (GitHub)
+
+### Origin Trial Notes
+
+Starting with Chrome 150, Relying Parties must sign up for the EVP origin trial to test the feature on live domains. Key considerations include:
+
+- Only the Relying Party (verifier) needs the origin trial token; Identity Providers (like Gmail, which is participating) do not need to register.
+- The trial is intended to gather feedback on verifying emails seamlessly without sending OTPs or magic links, thus reducing friction and latency.
+- Due to traffic limits on origin trials, always deploy EVP as a progressive enhancement, falling back to traditional OTP or magic links if the token (`email-verification-token`) is missing.
