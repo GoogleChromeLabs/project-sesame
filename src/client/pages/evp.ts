@@ -79,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.info(
           'Verification succeeded! Email ownership cryptographically verified.'
         );
-        toast(`Email verified successfully!`);
 
         // Show success screen
         emailFormContainer.classList.add('hidden');

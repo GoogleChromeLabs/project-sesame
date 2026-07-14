@@ -24,6 +24,8 @@
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
     {{/if}} {{#if (isPageEnabled '/fedcm-delegate')}}
     <li><a href="/fedcm-delegate">FedCM delegation flow</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp')}}
+    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
     {{/if}}
   </ul>
   <h3>Sign-in</h3>
@@ -48,16 +50,9 @@
     <!-- <li><a href="/legacy-credman">Legacy Credential Management</a></li> -->
     {{#if (isPageEnabled '/credential-manager')}}
     <li><a href="/credential-manager">Credential Manager for the Web</a></li>
-    {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li><a href="/evp">EVP Verifier (Relying Party)</a></li>
-    {{/if}} {{#if (isPageEnabled '/evp-idp')}}
-    <li>
-      {{#if isIdp}}
-      <a href="/evp-idp">EVP Email Provider</a>
-      {{else}}
-      <a href="{{idpOrigin}}/evp-idp">EVP Email Provider (Identity Provider)</a>
-      {{/if}}
-    </li>
     {{/if}}
+    <li>
+      <a href="https://rowan.fyi/made/email-provider" target="_blank">EVP Email Provider (Issuer)</a>
+    </li>
   </ul>
 </main>

@@ -16,25 +16,26 @@
 
 ## Email Verification Protocol
 
-On this page, you can experience a secure registration flow that instantly verifies the user's email address using the experimental **Email Verification Protocol (EVP)**.
+On this page, you can experience a secure registration flow that instantly verifies your email address using the experimental **Email Verification Protocol (EVP)**.
 
-EVP allows browsers to securely share cryptographically verified email addresses (stored in the browser or Google Account) with websites using verifiable credentials, eliminating the need to send OTP codes or verification links.
+EVP allows browsers to securely share cryptographically verified email addresses with websites using verifiable credentials, eliminating the friction of waiting for OTP codes or clicking verification links in your inbox.
 
-### How to test it:
+### How to test the demo:
 
 - **Browser prerequisites:**
-  1. Ensure you are using Chrome Canary or Dev channel.
+  1. Ensure you are using a compatible browser version (**Requires Chrome 150+**).
   2. Enable the Email Verification Protocol flag: `chrome://flags/#email-verification-protocol`.
-  3. **For local testing:** Enable the insecure localhost flag: `chrome://flags/#allow-insecure-localhost`. This is **mandatory** for Chrome to allow background requests to `https://idp.localhost` with our local self-signed SSL certificates.
-- **Google Account requirement:** Ensure you are logged into your Google Account in the active browser profile.
-- **Select email from autofill:** Click the email input field and choose your email address from the browser's autofill dropdown.
-  > [!TIP]
-  > **Testing with custom mock emails:** To test the cryptographic flow with a mock email (like `demo@chrome.dev`, `demo@idp.localhost`, or `demo@sesame-identity-provider.appspot.com`), you must first add it to your browser's autofill addresses. In Chrome, go to `chrome://settings/addresses`, click **Add**, fill in the **Email** field, and save. Leave other fields blank. Now it will appear in the dropdown.
-- **Test with a demo email address (privacy-friendly):** To test the real cryptographic flow without using your personal Google Account, you can use our built-in mock Identity Provider:
-  1. Open a new tab and visit our mock provider page at your configured IdP origin (e.g. `https://idp.localhost/` for local testing or `https://sesame-identity-provider.appspot.com/` for staging/prod).
-  2. Register or log in to an account with a custom email (e.g., **`demo@chrome.dev`**, **`demo@idp.localhost`**, or **`demo@sesame-identity-provider.appspot.com`**).
-  3. Return to this page, click the email input field, select your registered email from the browser autofill list, and click **Verify**.
-  4. The browser will retrieve a signed cryptographic token from the mock provider, and our server will verify it end-to-end.
-- **Submit the form:** Click the **Verify** button. The browser will supply a cryptographic Email Verification Token (EVT) that the server verifies.
-- **Observe the console:** Open Chrome DevTools (Console tab) to inspect the step-by-step cryptographic verification trace and data outputs.
-- **Fallback to OTP:** If you type any other fake email address manually (or decline permission), the browser won't supply a token, and the page will fallback to simulating a traditional 6-digit verification code.
+- **Log in to the email provider:**
+  For this demo, we expect you to log in with the provided demo email address (**`demo@rowan.fyi`**) via our demo email provider.
+  1. Open a new tab and visit the [EVP Email Provider](https://rowan.fyi/made/email-provider).
+  2. Follow the provider's instructions to ensure your browser is logged in as `demo@rowan.fyi`.
+- **Add to your browser autofill:**
+  To test the cryptographic flow smoothly, you must add the demo email to your browser's autofill addresses.
+  1. In Chrome, navigate to `chrome://settings/addresses`.
+  2. Click **Add**, enter **`demo@rowan.fyi`** in the **Email** field, and save. Leave other fields blank.
+- **Select the email from autofill:**
+  Return to this page, click the email input field, and choose **`demo@rowan.fyi`** from the browser's autofill dropdown.
+- **Submit the form:**
+  Click the **Continue** button. The browser will retrieve a signed cryptographic Email Verification Token (EVT) from the email provider and supply it to the page, completing the verification instantly.
+- **Observe the console:** Open your browser's Developer Tools (Console tab) to inspect the step-by-step cryptographic verification trace and data outputs in real time.
+- **Fallback to OTP:** If you type any other email address manually (or decline the browser prompt), the browser won't supply a token, and the page will smoothly fall back to simulating a traditional 6-digit verification code.
