@@ -23,7 +23,7 @@ import {
   toast,
 } from '~project-sesame/client/helpers/index';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
-import {getIdpUrls} from '../helpers/federated';
+import {getIdpUrls} from '~project-sesame/client/helpers/federated';
 
 postForm(
   async () => {
