@@ -264,10 +264,27 @@ div[slot='appContent'] {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     padding-bottom: 12px;
 
-    h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 500;
+    .dialog-title-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mdui-icon {
+        font-size: 24px;
+        color: var(--mdui-theme-on-surface);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 500;
+      }
+    }
+
+    .dialog-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     #dialog-close-btn {
