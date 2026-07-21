@@ -264,9 +264,7 @@ export function initializeSession() {
     resave: true,
     saveUninitialized: false,
     proxy: true,
-    name: config.is_localhost
-      ? config.session_cookie_name
-      : `__Secure-${config.session_cookie_name}`,
+    name: config.session_cookie_name,
     store: new CustomFirestoreStore({
       dataset: store,
       kind: 'sessions',
