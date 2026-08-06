@@ -121,20 +121,23 @@ describe('EVP Middlewares', () => {
     assert.ok(body.error.includes('Invalid token format'));
   });
 
-  test('POST /evp/verify performs full verification (Happy Path)', async () => {
-    // Generate Ed25519 keys for IdP and Browser
+  test('POST /evp/verify performs full verification and establishes session (Happy Path)', async () => {
     const idpKeyPair = crypto.generateKeyPairSync('ed25519');
     const browserKeyPair = crypto.generateKeyPairSync('ed25519');
 
     const idpJwk = idpKeyPair.publicKey.export({format: 'jwk'});
     const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
 
-    // Construct a valid SD-JWT (EVT)
+    const now = Math.floor(Date.now() / 1000);
+
+    // Construct a valid SD-JWT (EVT) with selective disclosures
     const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
     const evtPayload = {
       iss: 'https://accounts.google.com',
       email: 'test@gmail.com',
       email_verified: true,
+      iat: now - 30, // 30s ago
+      exp: now + 300, // in 5 mins
       cnf: {jwk: browserJwk},
     };
 
@@ -161,6 +164,7 @@ describe('EVP Middlewares', () => {
       aud: `http://127.0.0.1:${port}`,
       nonce: 'test-session-challenge', // matches mockSession.challenge
       sd_hash: calculatedEvtHash,
+      iat: now - 10,
     };
 
     const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
@@ -175,7 +179,11 @@ describe('EVP Middlewares', () => {
       .toString('base64url');
     const kbJwt = `${kbSigningInput}.${kbSignature}`;
 
-    const fullToken = `${sdJwt}~${kbJwt}`;
+    // Test multi-part format with disclosure
+    const mockDisclosure = Buffer.from(
+      JSON.stringify(['salt', 'field', 'value'])
+    ).toString('base64url');
+    const fullToken = `${sdJwt}~${mockDisclosure}~${kbJwt}`;
 
     // Mock DNS resolveTxt
     vi.mocked(dns.resolveTxt).mockResolvedValue([['iss=accounts.google.com']]);
@@ -213,6 +221,8 @@ describe('EVP Middlewares', () => {
     });
 
     assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('set-login'), 'logged-in');
+
     const body = (await res.json()) as any;
 
     assert.strictEqual(
@@ -227,5 +237,142 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.steps.step4.status, 'success');
     assert.strictEqual(body.steps.step5.status, 'success');
     assert.strictEqual(body.steps.step6.status, 'success');
+    assert.strictEqual(mockSession.user.username, 'test@gmail.com');
+  });
+
+  test('POST /evp/verify fails when token is expired (exp check)', async () => {
+    const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+    const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+    const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+
+    const now = Math.floor(Date.now() / 1000);
+
+    const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
+    const evtPayload = {
+      iss: 'https://accounts.google.com',
+      email: 'test@gmail.com',
+      email_verified: true,
+      iat: now - 500,
+      exp: now - 100, // Expired
+      cnf: {jwk: browserJwk},
+    };
+
+    const evtHeaderB64 = Buffer.from(JSON.stringify(evtHeader)).toString(
+      'base64url'
+    );
+    const evtPayloadB64 = Buffer.from(JSON.stringify(evtPayload)).toString(
+      'base64url'
+    );
+    const evtSigningInput = `${evtHeaderB64}.${evtPayloadB64}`;
+    const evtSignature = crypto
+      .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+      .toString('base64url');
+    const sdJwt = `${evtSigningInput}.${evtSignature}`;
+
+    const calculatedEvtHash = crypto
+      .createHash('sha256')
+      .update(sdJwt + '~')
+      .digest('base64url');
+
+    const kbHeader = {alg: 'EdDSA', typ: 'kb+jwt'};
+    const kbPayload = {
+      aud: `http://127.0.0.1:${port}`,
+      nonce: 'test-session-challenge',
+      sd_hash: calculatedEvtHash,
+    };
+
+    const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
+      'base64url'
+    );
+    const kbPayloadB64 = Buffer.from(JSON.stringify(kbPayload)).toString(
+      'base64url'
+    );
+    const kbSigningInput = `${kbHeaderB64}.${kbPayloadB64}`;
+    const kbSignature = crypto
+      .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+      .toString('base64url');
+    const kbJwt = `${kbSigningInput}.${kbSignature}`;
+
+    const fullToken = `${sdJwt}~${kbJwt}`;
+
+    const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, false);
+    assert.strictEqual(body.steps.step2.status, 'failed');
+    assert.ok(body.error.includes('expired'));
+  });
+
+  test('POST /evp/verify fails when iat is older than 5 minutes', async () => {
+    const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+    const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+    const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+
+    const now = Math.floor(Date.now() / 1000);
+
+    const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
+    const evtPayload = {
+      iss: 'https://accounts.google.com',
+      email: 'test@gmail.com',
+      email_verified: true,
+      iat: now - 350, // 350s ago > 300s
+      exp: now + 500,
+      cnf: {jwk: browserJwk},
+    };
+
+    const evtHeaderB64 = Buffer.from(JSON.stringify(evtHeader)).toString(
+      'base64url'
+    );
+    const evtPayloadB64 = Buffer.from(JSON.stringify(evtPayload)).toString(
+      'base64url'
+    );
+    const evtSigningInput = `${evtHeaderB64}.${evtPayloadB64}`;
+    const evtSignature = crypto
+      .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+      .toString('base64url');
+    const sdJwt = `${evtSigningInput}.${evtSignature}`;
+
+    const calculatedEvtHash = crypto
+      .createHash('sha256')
+      .update(sdJwt + '~')
+      .digest('base64url');
+
+    const kbHeader = {alg: 'EdDSA', typ: 'kb+jwt'};
+    const kbPayload = {
+      aud: `http://127.0.0.1:${port}`,
+      nonce: 'test-session-challenge',
+      sd_hash: calculatedEvtHash,
+    };
+
+    const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
+      'base64url'
+    );
+    const kbPayloadB64 = Buffer.from(JSON.stringify(kbPayload)).toString(
+      'base64url'
+    );
+    const kbSigningInput = `${kbHeaderB64}.${kbPayloadB64}`;
+    const kbSignature = crypto
+      .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+      .toString('base64url');
+    const kbJwt = `${kbSigningInput}.${kbSignature}`;
+
+    const fullToken = `${sdJwt}~${kbJwt}`;
+
+    const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, false);
+    assert.strictEqual(body.steps.step2.status, 'failed');
+    assert.ok(body.error.includes('too old'));
   });
 });

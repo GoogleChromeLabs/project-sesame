@@ -16,7 +16,6 @@
  */
 import express, {Request, Response} from 'express';
 import {config} from '~project-sesame/server/config.ts';
-import cors from 'cors';
 import helmet from 'helmet';
 const router = express.Router();
 
@@ -25,8 +24,6 @@ router.use(
     crossOriginResourcePolicy: {policy: 'cross-origin'},
   })
 );
-
-router.use(cors());
 
 /**
  * Android Asset Links.
@@ -151,26 +148,6 @@ router.get('/passkey-endpoints', (req: Request, res: Response): void => {
  */
 router.get('/change-password', (req: Request, res: Response): void => {
   res.redirect(302, '/settings/password-change');
-});
-
-/**
- * Email Verification Protocol (EVP) Discovery.
- * @swagger
- * /.well-known/email-verification:
- *   get:
- *     summary: EVP Issuer Discovery
- *     description: Returns the endpoints and algorithms supported by the EVP issuer.
- *     tags: [Well-Known]
- *     responses:
- *       200:
- *         description: Discovery configuration
- */
-router.get('/email-verification', (req: Request, res: Response): void => {
-  res.json({
-    issuance_endpoint: `${config.origin}/evp-idp/issuance`,
-    jwks_uri: `${config.origin}/evp-idp/jwks`,
-    signing_alg_values_supported: ['EdDSA'],
-  });
 });
 
 export {router as wellKnown};

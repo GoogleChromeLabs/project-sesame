@@ -18,8 +18,8 @@
 import {Router, Request, Response} from 'express';
 import dns from 'node:dns/promises';
 import crypto from 'node:crypto';
-import {config} from '../config.ts';
 import {
+  setSignedIn,
   SessionService,
   PageType,
   ApiType,
@@ -28,68 +28,7 @@ import {
 } from '../libs/session.ts';
 import {logger} from '../libs/logger.ts';
 import {generateRandomString} from '../libs/helpers.ts';
-
-const WELL_KNOWN_ISSUERS: Record<
-  string,
-  {
-    metadata: any;
-    jwks: any;
-  }
-> = {
-  'https://accounts.google.com': {
-    metadata: {
-      issuance_endpoint:
-        'https://accounts.google.com/gsi/email-verification/issue',
-      jwks_uri:
-        'https://verifiablecredentials-pa.googleapis.com/.well-known/vc-public-jwks',
-      signing_alg_values_supported: ['EdDSA'],
-    },
-    jwks: {
-      keys: [
-        {
-          key_ops: ['verify'],
-          crv: 'Ed25519',
-          use: 'sig',
-          x: 'GuNteO__TGPZ6Cg_QAkHaAgeVsxjevVjnCOQhEtihP8',
-          alg: 'EdDSA',
-          kty: 'OKP',
-        },
-        {
-          crv: 'Ed25519',
-          key_ops: ['verify'],
-          use: 'sig',
-          x: 's67dqUq-JC_3eqZzxM7O2hfSrlr8zU-mJppb-GDH0a0',
-          alg: 'EdDSA',
-          kty: 'OKP',
-        },
-        {
-          key_ops: ['verify'],
-          crv: 'Ed25519',
-          use: 'sig',
-          x: 'YLc8EhrIA5eCj7501gSxdgYk0_NSKqkf83aVLBH5y-Y',
-          alg: 'EdDSA',
-          kty: 'OKP',
-        },
-        {
-          kty: 'OKP',
-          alg: 'EdDSA',
-          x: 'ETW0l_0paWEjHBGvZ70Ljs3IAXaZvqU4nWSA0UbvBuI',
-          key_ops: ['verify'],
-          crv: 'Ed25519',
-          use: 'sig',
-        },
-        {
-          alg: 'EdDSA',
-          kty: 'OKP',
-          crv: 'Ed25519',
-          key_ops: ['verify'],
-          use: 'sig',
-          x: 'dCCZZmy3Zuy8R8i0ed0GEa0Hhqum2OrhR1lJ7x4vN_E',
-        },
-      ],
-    },
-  },
-};
+import {User} from '../libs/users.ts';
 
 const router = Router();
 
@@ -168,12 +107,14 @@ router.post(
       // =========================================================================
       steps.step1.inputs = {rawToken: evt};
       const evtParts = evt.split('~');
-      if (evtParts.length !== 2) {
+      if (evtParts.length < 2) {
         throw new Error(
-          'Invalid token format: Expected [SD-JWT_Issuance_Token]~[KB-JWT_Presentation_Token]'
+          'Invalid token format: Missing Key Binding JWT separator "~"'
         );
       }
-      const [sdJwtString, kbJwtString] = evtParts;
+      const sdJwtString = evtParts[0];
+      const kbJwtString = evtParts[evtParts.length - 1];
+      const disclosures = evtParts.slice(1, -1).filter(Boolean);
 
       const decodedEvt = decodeJwt(sdJwtString);
       const decodedKb = decodeJwt(kbJwtString);
@@ -183,6 +124,7 @@ router.post(
         evtPayload: decodedEvt.payload,
         kbHeader: decodedKb.header,
         kbPayload: decodedKb.payload,
+        disclosures,
       };
       steps.step1.status = 'success';
 
@@ -194,6 +136,10 @@ router.post(
       const tokenAudience = decodedKb.payload.aud;
       const tokenNonce = decodedKb.payload.nonce;
       const tokenHash = decodedKb.payload.sd_hash;
+
+      const tokenExp = decodedEvt.payload.exp || decodedKb.payload.exp;
+      const tokenIat = decodedEvt.payload.iat || decodedKb.payload.iat;
+      const currentTime = Math.floor(Date.now() / 1000);
 
       const calculatedEvtHash = crypto
         .createHash('sha256')
@@ -216,6 +162,9 @@ router.post(
         tokenNonce,
         calculatedEvtHash,
         tokenHash,
+        tokenExp,
+        tokenIat,
+        currentTime,
       };
 
       if (
@@ -247,6 +196,23 @@ router.post(
       if (calculatedEvtHash !== tokenHash) {
         throw new Error(
           `Hash binding mismatch: Calculated "${calculatedEvtHash}", Token contained "${tokenHash}"`
+        );
+      }
+
+      // Timestamp validations (exp & iat)
+      if (tokenExp && currentTime >= tokenExp) {
+        throw new Error(
+          `Token has expired. Current timestamp is ${currentTime}, but token expired at ${tokenExp}.`
+        );
+      }
+      if (tokenIat && tokenExp && tokenIat >= tokenExp) {
+        throw new Error(
+          `Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`
+        );
+      }
+      if (tokenIat && currentTime - tokenIat > 300) {
+        throw new Error(
+          `Token is too old. Issued at ${tokenIat} (${currentTime - tokenIat}s ago), exceeding the 5-minute freshness limit.`
         );
       }
 
@@ -304,43 +270,24 @@ router.post(
       const discoveryUrl = `${tokenIssuer}/.well-known/email-verification`;
       steps.step4.inputs = {url: discoveryUrl};
 
-      let issuerMetadata: any;
-      let issuerJWKS: any;
-
-      const knownIssuer = WELL_KNOWN_ISSUERS[tokenIssuer];
-      if (knownIssuer && process.env.VITEST !== 'true') {
-        issuerMetadata = knownIssuer.metadata;
-        issuerJWKS = knownIssuer.jwks;
-        steps.step4.outputs = {
-          message:
-            '[LOCAL BYPASS] Used local metadata and JWKS to avoid corporate network proxy blocks',
-          issuerMetadata,
-          issuerJWKS,
-        };
-      } else {
-        // Fetch well-known config
-        const wellKnownRes = await fetch(discoveryUrl);
-        if (!wellKnownRes.ok) {
-          throw new Error(
-            `Failed to fetch issuer metadata from ${discoveryUrl}`
-          );
-        }
-        issuerMetadata = await wellKnownRes.json();
-
-        // Fetch JWKS
-        const jwksRes = await fetch(issuerMetadata.jwks_uri);
-        if (!jwksRes.ok) {
-          throw new Error(
-            `Failed to fetch JWKS from ${issuerMetadata.jwks_uri}`
-          );
-        }
-        issuerJWKS = await jwksRes.json();
-
-        steps.step4.outputs = {
-          issuerMetadata,
-          issuerJWKS,
-        };
+      // Fetch well-known config
+      const wellKnownRes = await fetch(discoveryUrl);
+      if (!wellKnownRes.ok) {
+        throw new Error(`Failed to fetch issuer metadata from ${discoveryUrl}`);
       }
+      const issuerMetadata = await wellKnownRes.json();
+
+      // Fetch JWKS
+      const jwksRes = await fetch(issuerMetadata.jwks_uri);
+      if (!jwksRes.ok) {
+        throw new Error(`Failed to fetch JWKS from ${issuerMetadata.jwks_uri}`);
+      }
+      const issuerJWKS = await jwksRes.json();
+
+      steps.step4.outputs = {
+        issuerMetadata,
+        issuerJWKS,
+      };
       steps.step4.status = 'success';
 
       // =========================================================================
@@ -432,6 +379,14 @@ router.post(
 
       success = true;
       verifiedEmail = tokenEmail;
+
+      // Establish session in Sesame
+      const user: User = {
+        id: generateRandomString(16),
+        username: verifiedEmail,
+        displayName: verifiedEmail.split('@')[0],
+      };
+      setSignedIn(user, req, res);
     } catch (error: any) {
       logger.error('EVP Verification error:', error);
       errorMsg = error.message || 'Verification failed';
