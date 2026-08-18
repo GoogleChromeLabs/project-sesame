@@ -110,9 +110,11 @@ async function renderIdentityProviders(): Promise<void> {
             return idp.origin === map.iss;
           });
           const idpName = idp?.name || map.iss || 'Unnamed';
-          return html`${i > 0 && i < mappings.length
-              ? html` <mdui-divider></mdui-divider> `
-              : ''}
+          return html`${
+              i > 0 && i < mappings.length
+                ? html` <mdui-divider></mdui-divider> `
+                : ''
+            }
             <mdui-list-item nonclickable>
               <mdui-icon
                 slot="icon"
