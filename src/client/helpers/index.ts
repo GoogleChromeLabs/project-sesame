@@ -209,11 +209,15 @@ export async function post(
   }
 }
 
+let usageContent: string | undefined;
+let developContent: string | undefined;
+
 /**
  * Dialog controller
  */
 export class SesameDialog {
   dialog: HTMLDialogElement;
+  currentMode: 'usage' | 'develop' | null = null;
 
   constructor() {
     this.dialog = $('#dialog') as HTMLDialogElement;
@@ -244,6 +248,18 @@ export class SesameDialog {
         this.close();
       });
     }
+
+    // Toggle help button event listener
+    const toggleBtn = $('#dialog-toggle-help-btn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        if (this.currentMode === 'usage') {
+          this.setHelpMode('develop');
+        } else if (this.currentMode === 'develop') {
+          this.setHelpMode('usage');
+        }
+      });
+    }
   }
 
   set(headline: string, description = ''): void {
@@ -252,6 +268,31 @@ export class SesameDialog {
 
     const descriptionElement = $('#dialog-content');
     if (descriptionElement) descriptionElement.innerHTML = description;
+  }
+
+  async setHelpMode(mode: 'usage' | 'develop'): Promise<void> {
+    this.currentMode = mode;
+
+    const titleIcon = $('#dialog-title-icon') as any;
+    const toggleBtn = $('#dialog-toggle-help-btn') as any;
+
+    if (mode === 'usage') {
+      if (titleIcon) titleIcon.name = 'help_center--outlined';
+      if (toggleBtn) {
+        toggleBtn.icon = 'integration_instructions--outlined';
+        toggleBtn.title = 'Switch to development help';
+      }
+      const desc = usageContent ? await marked.parse(usageContent) : '';
+      this.set("What's this page?", desc);
+    } else if (mode === 'develop') {
+      if (titleIcon) titleIcon.name = 'integration_instructions--outlined';
+      if (toggleBtn) {
+        toggleBtn.icon = 'help_center--outlined';
+        toggleBtn.title = 'Switch to usage help';
+      }
+      const desc = developContent ? await marked.parse(developContent) : '';
+      this.set('How do I integrate?', desc);
+    }
   }
 
   show(): void {
@@ -401,8 +442,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const usageHelpBtn = $('#usage-help');
   const developHelpBtn = $('#develop-help');
   const helpOnPageLoad = $('#help-on-page-load');
-  const usageContent = $('#usage-help-content')?.textContent?.trim();
-  const developContent = $('#develop-help-content')?.textContent?.trim();
+  usageContent = $('#usage-help-content')?.textContent?.trim();
+  developContent = $('#develop-help-content')?.textContent?.trim();
 
   if (helpOnPageLoad) {
     helpOnPageLoad.addEventListener('change', () => {
@@ -422,8 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function displayUsageHelp() {
-    const mkDesc = await marked.parse(usageContent);
-    dialog.set("What's this page?", mkDesc);
+    await dialog.setHelpMode('usage');
     dialog.show();
   }
 
@@ -436,8 +476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (developHelpBtn && developContent) {
     developHelpBtn.addEventListener('click', async () => {
-      const mkDesc = await marked.parse(developContent);
-      dialog.set('How do I integrate?', mkDesc);
+      await dialog.setHelpMode('develop');
       dialog.show();
     });
   }
