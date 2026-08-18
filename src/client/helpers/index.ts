@@ -209,6 +209,9 @@ export async function post(
   }
 }
 
+let usageContent: string | undefined;
+let developContent: string | undefined;
+
 /**
  * Dialog controller
  */
@@ -269,8 +272,6 @@ export class SesameDialog {
 
   async setHelpMode(mode: 'usage' | 'develop'): Promise<void> {
     this.currentMode = mode;
-    const usageContent = $('#usage-help-content')?.textContent?.trim();
-    const developContent = $('#develop-help-content')?.textContent?.trim();
 
     const titleIcon = $('#dialog-title-icon') as any;
     const toggleBtn = $('#dialog-toggle-help-btn') as any;
@@ -441,8 +442,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const usageHelpBtn = $('#usage-help');
   const developHelpBtn = $('#develop-help');
   const helpOnPageLoad = $('#help-on-page-load');
-  const usageContent = $('#usage-help-content')?.textContent?.trim();
-  const developContent = $('#develop-help-content')?.textContent?.trim();
+  usageContent = $('#usage-help-content')?.textContent?.trim();
+  developContent = $('#develop-help-content')?.textContent?.trim();
 
   if (helpOnPageLoad) {
     helpOnPageLoad.addEventListener('change', () => {
