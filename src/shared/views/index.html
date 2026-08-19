@@ -16,6 +16,7 @@
 <main class="content center">
   <h2>Welcome to Project Sesame</h2>
   <h3>Sign-up</h3>
+
   <ul>
     {{#if (isPageEnabled '/signup-form')}}
     <li><a href="/signup-form">Sign-up Form</a></li>
@@ -23,6 +24,8 @@
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
     {{/if}} {{#if (isPageEnabled '/fedcm-delegate')}}
     <li><a href="/fedcm-delegate">FedCM delegation flow</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp')}}
+    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
     {{/if}}
   </ul>
   <h3>Sign-in</h3>
@@ -46,5 +49,12 @@
     {{/if}} {{#if (isPageEnabled '/fedcm-form-autofill')}}
     <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
     {{/if}}
+    <!-- <li><a href="/legacy-credman">Legacy Credential Management</a></li> -->
+    {{#if (isPageEnabled '/credential-manager')}}
+    <li><a href="/credential-manager">Credential Manager for the Web</a></li>
+    {{/if}}
+    <li>
+      <a href="https://rowan.fyi/made/email-provider" target="_blank">EVP Email Provider (Issuer)</a>
+    </li>
   </ul>
 </main>
