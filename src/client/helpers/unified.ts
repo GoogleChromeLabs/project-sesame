@@ -27,6 +27,7 @@ import {
 } from './publickey';
 import {SesameIdP} from './identity';
 import {verifyPassword} from './password';
+import {getIdpUrls} from './federated';
 
 let controller = new AbortController();
 
@@ -71,14 +72,12 @@ export async function authenticate(params?: {
       );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new SesameIdP([
-          'https://sesame-identity-provider.appspot.com',
-        ]);
-        const nonce = await idp.initialize();
+        const idpURLs = await getIdpUrls();
+        const idp = new SesameIdP(idpURLs);
+        await idp.initialize();
         await idp.signIn({
           mode: 'active',
           // loginHint: cred.id,
-          nonce,
         });
         return true;
       } catch (e) {
@@ -121,12 +120,13 @@ export async function legacyAuthenticate(
   // const options = await preparePublicKeyRequestOptions(mediation !== 'optional');
 
   try {
+    const idpURLs = await getIdpUrls();
     const cred = await navigator.credentials.get({
       // @ts-ignore
       password: true,
       // temporary experiment for unified auth
       federated: {
-        providers: ['https://sesame-identity-provider.appspot.com'],
+        providers: idpURLs,
       },
       // temporary experiment for unified auth
       // publicKey: options,
@@ -143,9 +143,7 @@ export async function legacyAuthenticate(
       // );
     } else if (cred?.type === 'federated') {
       try {
-        const idp = new SesameIdP([
-          'https://sesame-identity-provider.appspot.com',
-        ]);
+        const idp = new SesameIdP(idpURLs);
         await idp.initialize();
         await idp.signIn({
           mode: 'active',

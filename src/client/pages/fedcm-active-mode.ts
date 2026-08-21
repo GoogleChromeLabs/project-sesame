@@ -23,7 +23,7 @@ import {getIdpUrls} from '../helpers/federated';
 if ('IdentityCredential' in window) {
   $('#hidden').classList.remove('hidden');
   $('#unsupported').classList.add('hidden');
-  const idpURLs = await getIdpUrls();
+  const idpURLs = await getIdpUrls({primaryOnly: true});
   const idp = new SesameIdP(idpURLs);
   await idp.initialize();
   $('#fedcm').addEventListener('click', async (event: MouseEvent) => {
