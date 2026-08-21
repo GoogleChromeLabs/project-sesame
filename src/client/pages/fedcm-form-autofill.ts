@@ -28,6 +28,7 @@ import {
   authenticate,
 } from '~project-sesame/client/helpers/publickey';
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
+import {getIdpUrls} from '~project-sesame/client/helpers/federated';
 
 postForm(
   async () => {
@@ -68,12 +69,8 @@ async function fedcm() {
   // @ts-ignore
   if (window.IdentityCredential) {
     try {
-      const idp = new SesameIdP([
-        'https://accounts.google.com',
-        'https://sesame-identity-provider.appspot.com',
-        'https://idp.localhost',
-        'https://issuer.sgo.to',
-      ]);
+      const idpURLs = await getIdpUrls();
+      const idp = new SesameIdP(idpURLs);
       await idp.initialize();
       await idp.signIn({
         // @ts-ignore
