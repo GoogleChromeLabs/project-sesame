@@ -79,11 +79,11 @@ router.get(
   apiAclCheck(ApiType.NoAuth),
   (req: Request, res: Response) => {
     res.json({
-      accounts_endpoint: '/fedcm/accounts',
-      client_metadata_endpoint: '/fedcm/metadata',
-      id_assertion_endpoint: '/fedcm/idtokens',
-      disconnect_endpoint: '/fedcm/disconnect',
-      login_url: config.idp_login_path,
+      accounts_endpoint: `${config.origin}/fedcm/accounts`,
+      client_metadata_endpoint: `${config.origin}/fedcm/metadata`,
+      id_assertion_endpoint: `${config.origin}/fedcm/idtokens`,
+      disconnect_endpoint: `${config.origin}/fedcm/disconnect`,
+      login_url: `${config.origin}${config.idp_login_path}`,
       branding: {
         background_color: '#6200ee',
         color: '#ffffff',
