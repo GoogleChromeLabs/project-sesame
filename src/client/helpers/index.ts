@@ -211,6 +211,8 @@ export async function post(
 
 let usageContent: string | undefined;
 let developContent: string | undefined;
+let usageHtml: string | undefined;
+let developHtml: string | undefined;
 
 /**
  * Dialog controller
@@ -282,16 +284,20 @@ export class SesameDialog {
         toggleBtn.icon = 'integration_instructions--outlined';
         toggleBtn.title = 'Switch to development help';
       }
-      const desc = usageContent ? await marked.parse(usageContent) : '';
-      this.set("What's this page?", desc);
+      if (!usageHtml && usageContent) {
+        usageHtml = await marked.parse(usageContent);
+      }
+      this.set("What's this page?", usageHtml || '');
     } else if (mode === 'develop') {
       if (titleIcon) titleIcon.name = 'integration_instructions--outlined';
       if (toggleBtn) {
         toggleBtn.icon = 'help_center--outlined';
         toggleBtn.title = 'Switch to usage help';
       }
-      const desc = developContent ? await marked.parse(developContent) : '';
-      this.set('How do I integrate?', desc);
+      if (!developHtml && developContent) {
+        developHtml = await marked.parse(developContent);
+      }
+      this.set('How do I integrate?', developHtml || '');
     }
   }
 
