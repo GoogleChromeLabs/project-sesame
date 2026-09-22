@@ -163,6 +163,34 @@ router.post(
   }
 );
 
+/**
+ * Mock login endpoint for quick developer testing (EVP flow).
+ * Automatically validates/creates the user and logs them in.
+ */
+router.post(
+  '/mock-login',
+  apiAclCheck(ApiType.NoAuth),
+  async (req: Request, res: Response): Promise<void> => {
+    const {email = 'demo@chrome.dev'} = req.body;
+    try {
+      if (!Users.isValidUsername(email)) {
+        res.status(400).json({error: 'Invalid mock email'});
+        return;
+      }
+      const user = await Users.validatePassword(email, 'mock-password-123');
+      if (user) {
+        setSignedIn(user, req, res);
+        res.json({username: user.username});
+      } else {
+        res.status(500).json({error: 'Failed to authenticate mock user.'});
+      }
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({error: error.message});
+    }
+  }
+);
+
 // TODO: This part is not really worked on yet
 /**
  * Create a new user with username and password.

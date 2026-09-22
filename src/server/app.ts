@@ -37,6 +37,7 @@ import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
 import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
+import {evp} from '~project-sesame/server/middlewares/evp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
@@ -166,6 +167,9 @@ async function getHelpContent(
 // Set page defaults
 app.use(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (config.origin_trials && config.origin_trials.length > 0) {
+      res.setHeader('Origin-Trial', config.origin_trials);
+    }
     const width = req.headers['sec-ch-viewport-width'];
     if (typeof width === 'string') {
       res.locals.open_drawer = parseInt(width) > 768;
@@ -210,8 +214,16 @@ app.get(
   '/',
   pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
+    const isIdp = config.project_name === 'sesame-identity-provider';
+    const idpOrigin = isIdp
+      ? `https://${config.hostname}`
+      : config.primary_idp_origin || 'https://idp.localhost';
+    const idpDomain = config.hostname;
     return res.render('index.html', {
       title: 'Welcome!',
+      isIdp,
+      idpDomain,
+      idpOrigin,
     });
   }
 );
@@ -517,6 +529,7 @@ app.use('/fedcm', fedcm);
 app.use('/federation', federation);
 app.use('/settings', settings);
 app.use('/webauthn', webauthn);
+app.use('/evp', evp);
 app.use('/.well-known', wellKnown);
 
 app.use(

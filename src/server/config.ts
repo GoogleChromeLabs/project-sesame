@@ -32,6 +32,10 @@ const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
   process.env.NODE_ENV === 'rp-localhost';
 
+if (is_localhost || is_mock_cross_site) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 /**
  * During development, the server application only receives requests proxied
  * from the frontend tooling (e.g. Vite). This is because the frontend tooling

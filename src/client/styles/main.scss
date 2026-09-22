@@ -110,8 +110,34 @@ main section {
   }
 }
 
-mdui-text-field {
+mdui-text-field,
+.native-textfield-input {
   width: 400px;
+}
+
+.native-textfield-input {
+  padding: 14px 16px;
+  border: 2px solid #5f6368 !important;
+  border-radius: 8px;
+  background-color: #f1f3f4 !important;
+  color: #202124 !important;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+
+  &:focus {
+    border-color: #1a73e8 !important;
+    background-color: #ffffff !important;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.1),
+      0 0 0 3px rgba(26, 115, 232, 0.2) !important;
+  }
 }
 
 .glue-cookie-notification-bar-control {
