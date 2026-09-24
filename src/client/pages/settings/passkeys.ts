@@ -153,9 +153,11 @@ async function renderCredentials(): Promise<void> {
             });
             timestampStr = `Created ${createdDate}`;
           }
-          return html`${i > 0 && i < res.length
-              ? html` <mdui-divider></mdui-divider> `
-              : ''}
+          return html`${
+              i > 0 && i < res.length
+                ? html` <mdui-divider></mdui-divider> `
+                : ''
+            }
             <mdui-list-item nonclickable>
               <mdui-icon
                 slot="icon"

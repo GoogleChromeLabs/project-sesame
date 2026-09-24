@@ -45,11 +45,11 @@
     <mdui-bottom-app-bar style="z-index: 900">
       {{#if usage_help}}
       <script id="usage-help-content" type="text/markdown">{{{usage_help}}}</script>
-      <mdui-button-icon id="usage-help" icon="help_center--outlined"></mdui-button-icon>
+      <mdui-button-icon id="usage-help" icon="help_center--outlined" title="Usage help"></mdui-button-icon>
       {{/if}}
       {{#if develop_help}}
       <script id="develop-help-content" type="text/markdown">{{{develop_help}}}</script>
-      <mdui-button-icon id="develop-help" icon="integration_instructions--outlined"></mdui-button-icon>
+      <mdui-button-icon id="develop-help" icon="integration_instructions--outlined" title="Development help"></mdui-button-icon>
       {{/if}}
       <div style="flex-grow: 1"></div>
       <mdui-checkbox id="help-on-page-load" icon="close--outlined">Show help on page load</mdui-checkbox>
@@ -57,8 +57,18 @@
     <dialog id="dialog" closedby="any" aria-labelledby="dialog-headline">
       <div class="dialog-container">
         <div class="dialog-header">
-          <h2 id="dialog-headline"></h2>
-          <button id="dialog-close-btn" type="button" aria-label="Close dialog">&times;</button>
+          <div class="dialog-title-container">
+            <mdui-icon id="dialog-title-icon"></mdui-icon>
+            <h2 id="dialog-headline"></h2>
+          </div>
+          <div class="dialog-header-actions">
+            {{#if usage_help}}
+              {{#if develop_help}}
+              <mdui-button-icon id="dialog-toggle-help-btn"></mdui-button-icon>
+              {{/if}}
+            {{/if}}
+            <mdui-button-icon id="dialog-close-btn" type="button" aria-label="Close dialog" icon="close--outlined"></mdui-button-icon>
+          </div>
         </div>
         <div class="dialog-body" id="dialog-content"></div>
       </div>
