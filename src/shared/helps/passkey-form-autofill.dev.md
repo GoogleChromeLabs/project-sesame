@@ -55,7 +55,7 @@ Consider these patterns to improve the passkey experience:
   [signal the list of active passkeys](https://developer.chrome.com/docs/identity/webauthn-signal-api#signal-a-list-of-saved-credentials),
   which keeps the credentials stored in the browser synchronized with your
   application.
-  
+
 ### Developer resources
 
 - **Guide:** [Sign in with a passkey through form
