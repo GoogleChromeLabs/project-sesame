@@ -16,29 +16,36 @@
 
 ## Passkey form autofill
 
-This page shows **passkey form autofill** (also known as conditional UI), which
-lets you sign in with a passkey or a password from the same form. It also covers
-the
-[WebAuthn Signal API](https://developer.chrome.com/docs/identity/webauthn-signal-api),
-which removes invalid or orphaned passkeys.
+This page demonstrates **passkey form autofill** (also known as Conditional UI),
+which lets users sign in with either a passkey or a password through the same
+form. It also demonstrates how the WebAuthn
+[Signal API](https://developer.chrome.com/docs/identity/webauthn-signal-api)
+helps clean up passkeys that remain in a password manager after their
+corresponding credentials have been removed from the server.
 
 ### How to test it
 
-1. Click or tap the username field to open the browser's autofill suggestions.
-2. Depending on what is saved for this site, do one of the following:
-   - **Select a saved password**: The username fills in automatically. Click
-     **Continue** to move to the password step.
-   - **Select a saved passkey**: A browser verification prompt appears.
-     Complete the verification to sign in.
-   - **Nothing saved yet**: Enter any username and click **Continue**. On the
-     next page, enter any password to register. The password is ignored, but
-     the step simulates a traditional sign-up flow.
+1. Click or tap the **username field** to display the browser's autofill
+   suggestions.
+2. If your password manager has credentials saved for this site, choose one:
 
-### Removing orphaned passkeys
+   - **Saved password:** Select it to fill in your username, then select
+     **Continue** to proceed to the password step.
+   - **Saved passkey:** Select it and follow the browser's verification
+     prompt to sign in.
 
-If the server rejects a passkey sign-in because the corresponding public key is
-not found (e.g., if you deleted the credential from your account settings but
-the passkey remains in your password manager), the page uses the
-[WebAuthn Signal API](https://developer.chrome.com/docs/identity/webauthn-signal-api)
-to tell the browser that the credential no longer exists. Your password manager
-then removes the invalid passkey, preventing future confusion.
+3. If you don't have saved credentials, enter any username and select
+   **Continue**. On the next page, enter any password to create a demo
+   account. The password is ignored; this step simulates a traditional
+   sign-up flow.
+
+### How the Signal API handles invalid passkeys
+
+A passkey can remain in your password manager even after you delete its
+corresponding credential from your account settings. If you try to sign in
+with that passkey, the server rejects the attempt because it can no longer
+find the matching public key.
+
+The page then uses the WebAuthn Signal API to notify the passkey provider
+that the credential is no longer recognized. A supporting password manager
+can remove the invalid passkey so it is no longer offered for sign-in.
