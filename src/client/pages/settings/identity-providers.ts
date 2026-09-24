@@ -18,13 +18,14 @@
 import {html, render} from 'lit';
 import '../../layout';
 import {$, loading, post} from '../../helpers/index';
-import {getAllIdentityProviders} from '~project-sesame/client/helpers/federated';
+import {
+  getAllIdentityProviders,
+  getIdpUrls,
+} from '~project-sesame/client/helpers/federated';
 
+const idpURLs = await getIdpUrls();
 const {idps} = await post('/federation/options', {
-  urls: [
-    'https://sesame-identity-provider.appspot.com',
-    'https://accounts.google.com',
-  ],
+  urls: idpURLs,
 });
 
 // /**

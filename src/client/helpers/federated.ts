@@ -25,7 +25,8 @@ export async function authenticate(): Promise<
   PasswordCredential | string | undefined
 > {
   try {
-    const idp = new SesameIdP(['https://sesame-identity-provider.appspot.com']);
+    const idpURLs = await getIdpUrls();
+    const idp = new SesameIdP(idpURLs);
     await idp.initialize();
     const cred = await navigator.credentials.get({
       // temporary experiment for unified auth
