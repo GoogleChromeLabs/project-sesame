@@ -16,33 +16,33 @@
 
 ## Integrating automatic passkey creation
 
-Automatic passkey creation is implemented via the WebAuthn **Conditional
-Create** API. This API allows password managers to detect when a user signs in
-with a traditional password and offer to upgrade their account to a passkey on
-the spot. This drives passkey adoption by creating a passkey automatically at
-the exact moment they successfully authenticate, without requiring them to
-navigate to a settings page.
+**Conditional Create** is a WebAuthn API feature that lets your application
+ask a password manager to create a passkey automatically after a user signs
+in with a password. This helps users adopt passkeys without a separate setup
+step or a visit to their account settings.
 
-Invoke `navigator.credentials.create()` with `mediation: "conditional"` soon
-after the user successfully authenticates with a traditional password (the
-duration depends on the browser). If you have a second step authentication,
-invoke it after the user successfully signed in.
+### When passkey creation is available
 
-### Key integration conditions:
+Requirements vary by browser and password manager. Typically, the user must
+have a password saved for your site, and the password they use to sign in must
+match the saved one. The password manager may decline to create a passkey if
+one already exists for the account.
 
-- **Saved password:** A password must be saved in the browser's password
-  manager.
-- **Matching password:** The password entered by the user must match the one
-  stored in the password manager.
-- **No existing passkeys:** There must be no existing passkey for this account
-  in the password manager.
-- **Immediate invocation:** `navigator.credentials.create()` must be called
-  shortly after password authentication is completed.
-- **Ignore errors:** To let the user smoothly land on the homepage, gracefully
-  ignore errors caused by a conditional create call.
-- **User presence off:** The resulting credential has a `user presence` off.
-  Make sure you skip the `UP` flag check on the server side.
+### How to integrate it
 
-### Learning resources
+- **Request creation after sign-in:** Call `navigator.credentials.create()`
+  with `mediation: 'conditional'` shortly after successful password
+  authentication. If your flow includes a second authentication step, wait
+  until that step is complete. The allowed time window depends on the browser
+  and password manager.
+- **Keep sign-in uninterrupted:** If conditional creation fails with an
+  expected error, let the user continue without displaying an error message.
+  Passkey creation should not block a successful sign-in.
+- **Verify and register the passkey:** Send the returned credential to your
+  server for verification and registration. For conditional registration,
+  accept unset user presence (`UP`) and user verification (`UV`) flags while
+  retaining all other registration checks.
 
-- [Automatically create passkeys for your users using Conditional Create](https://developer.chrome.com/docs/identity/webauthn-conditional-create)
+### Developer resources
+
+[Automatically create passkeys for your users using Conditional Create](https://developer.chrome.com/docs/identity/webauthn-conditional-create)
