@@ -90,7 +90,31 @@ export async function getAllIdentityProviders(): Promise<any> {
 
 /**
  * Returns a list of IdP URLs based on the environment.
+ * @param {Object|boolean} [options] - Options to filter IdP URLs, or boolean for primaryOnly.
+ * @param {boolean} [options.primaryOnly] - If true, returns only the primary IdP URL.
+ * @param {string} [options.origin] - Specific IdP origin to filter by.
  */
-export async function getIdpUrls(): Promise<string[]> {
-  return get('/federation/idp-list');
+export async function getIdpUrls(
+  options?:
+    | boolean
+    | {
+        primaryOnly?: boolean;
+        origin?: string;
+      }
+): Promise<string[]> {
+  const query: {[key: string]: string} = {};
+  if (typeof options === 'boolean') {
+    if (options) {
+      query.primary = 'true';
+    }
+  } else if (options) {
+    if (options.primaryOnly) {
+      query.primary = 'true';
+    }
+    if (options.origin) {
+      query.origin = options.origin;
+    }
+  }
+
+  return get('/federation/idp-list', query);
 }

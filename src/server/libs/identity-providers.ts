@@ -41,7 +41,24 @@ export class IdentityProviders {
     return Promise.resolve(structuredClone(idp));
   }
 
-  static getOrigins(): string[] {
+  static getPrimaryOrigin(): string | undefined {
+    if (config.primary_idp_origin) {
+      const primary = this.idps.find(
+        idp => idp.origin === config.primary_idp_origin
+      );
+      if (primary) {
+        return primary.origin;
+      }
+      return config.primary_idp_origin;
+    }
+    return this.idps[0]?.origin;
+  }
+
+  static getOrigins(primaryOnly: boolean = false): string[] {
+    if (primaryOnly) {
+      const primary = this.getPrimaryOrigin();
+      return primary ? [primary] : [];
+    }
     return this.idps.map(idp => idp.origin);
   }
 }

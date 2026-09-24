@@ -350,6 +350,17 @@ router.post(
  *     summary: List IdPs
  *     description: Returns a list of available Identity Provider URLs.
  *     tags: [Federation]
+ *     parameters:
+ *       - in: query
+ *         name: primary
+ *         schema:
+ *           type: boolean
+ *         description: If true, returns only the primary IdP URL.
+ *       - in: query
+ *         name: origin
+ *         schema:
+ *           type: string
+ *         description: Filters IdP URLs by origin.
  *     responses:
  *       200:
  *         description: List of IdP URLs
@@ -364,7 +375,14 @@ router.get(
   '/idp-list',
   apiAclCheck(ApiType.NoAuth),
   (req: Request, res: Response): void => {
-    const idpUrls = IdentityProviders.getOrigins();
+    const primaryOnly = req.query.primary === 'true';
+    const origin =
+      typeof req.query.origin === 'string' ? req.query.origin : undefined;
+
+    let idpUrls = IdentityProviders.getOrigins(primaryOnly);
+    if (origin) {
+      idpUrls = idpUrls.filter(url => url === origin);
+    }
 
     res.json(idpUrls);
   }
