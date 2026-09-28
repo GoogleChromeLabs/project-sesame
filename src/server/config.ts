@@ -199,6 +199,7 @@ const {
   show_home_link = true,
   help_on_page_load = !is_idp,
   analytics_id,
+  theme_color = is_idp ? '#c2e7ff' : '#fedbd0',
 } = mergedConfig;
 
 const {
@@ -294,4 +295,5 @@ export const config = {
   is_idp,
   help_on_page_load,
   analytics_id,
+  theme_color,
 };
