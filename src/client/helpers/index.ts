@@ -460,11 +460,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const isHelpOnPageLoad = localStorage.getItem('helpOnPageLoad');
-    if (isHelpOnPageLoad === null || isHelpOnPageLoad === 'true') {
+    // If not explicitly set in localStorage, fall back to data-default (e.g. false for IdP)
+    const defaultEnabled = helpOnPageLoad.dataset.default !== 'false';
+    if (
+      isHelpOnPageLoad === 'true' ||
+      (isHelpOnPageLoad === null && defaultEnabled)
+    ) {
       helpOnPageLoad.checked = true;
-      if (isHelpOnPageLoad === null) {
-        localStorage.setItem('helpOnPageLoad', 'true');
-      }
+    } else {
+      helpOnPageLoad.checked = false;
     }
   }
 

@@ -190,6 +190,8 @@ app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
 app.locals.show_home_link = config.show_home_link;
+app.locals.is_idp = config.is_idp;
+app.locals.help_on_page_load = config.help_on_page_load;
 
 /**
  * Landing Page.
