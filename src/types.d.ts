@@ -36,6 +36,7 @@ interface AppLocals {
   id_token_lifetime?: number;
   show_home_link?: boolean;
   help_on_page_load?: boolean;
+  theme_color?: string;
 }
 
 interface ResLocals {
