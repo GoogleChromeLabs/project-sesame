@@ -27,8 +27,13 @@
           </mdui-button-icon>
         </div>
         <header>
+          {{#if show_home_link}}
           <a href="/"><img src="/images/icon.svg" width="34" height="34"></a>
           <h2><a href="/">SHRINE</a></h2>
+          {{else}}
+          <img src="/images/icon.svg" width="34" height="34">
+          <h2>SHRINE</h2>
+          {{/if}}
         </header>
         {{#if (isSignedIn)}}
         <mdui-list>

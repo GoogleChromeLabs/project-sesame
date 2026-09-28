@@ -52,7 +52,12 @@
       <mdui-button-icon id="develop-help" icon="integration_instructions--outlined" title="Development help"></mdui-button-icon>
       {{/if}}
       <div style="flex-grow: 1"></div>
-      <mdui-checkbox id="help-on-page-load" icon="close--outlined">Show help on page load</mdui-checkbox>
+      <mdui-checkbox
+        id="help-on-page-load"
+        icon="close--outlined"
+        data-default="{{#if help_on_page_load}}true{{else}}false{{/if}}">
+        Show help on page load
+      </mdui-checkbox>
     </mdui-bottom-app-bar>
     <dialog id="dialog" closedby="any" aria-labelledby="dialog-headline">
       <div class="dialog-container">

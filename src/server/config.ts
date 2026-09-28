@@ -160,6 +160,11 @@ if (is_mock_cross_site) {
 
 mergedConfig = mergeConfigs(mergedConfig, envConfig);
 
+const is_idp =
+  env === 'idp' ||
+  env === 'idp-localhost' ||
+  mergedConfig.project_name === 'sesame-identity-provider';
+
 const {
   hostname,
   // Set the port number 8081 for AppEngine
@@ -191,6 +196,8 @@ const {
   supported_idps = [],
   // Optional enabled tenants at the top page
   enabled_pages,
+  show_home_link = true,
+  help_on_page_load = !is_idp,
   analytics_id,
 } = mergedConfig;
 
@@ -283,5 +290,8 @@ export const config = {
   supported_idps,
   supported_rps,
   enabled_pages,
+  show_home_link,
+  is_idp,
+  help_on_page_load,
   analytics_id,
 };

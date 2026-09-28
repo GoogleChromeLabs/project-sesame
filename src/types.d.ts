@@ -30,9 +30,12 @@ import {User, SignUpUser} from './server/libs/users.js';
 
 interface AppLocals {
   is_localhost?: boolean;
+  is_idp?: boolean;
   title?: string;
   repository_url?: string;
   id_token_lifetime?: number;
+  show_home_link?: boolean;
+  help_on_page_load?: boolean;
 }
 
 interface ResLocals {
