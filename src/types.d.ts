@@ -33,6 +33,7 @@ interface AppLocals {
   title?: string;
   repository_url?: string;
   id_token_lifetime?: number;
+  show_home_link?: boolean;
 }
 
 interface ResLocals {

@@ -189,6 +189,7 @@ app.use(
 app.locals.origin_trials = config.origin_trials;
 app.locals.repository_url = config.repository_url;
 app.locals.debug = config.debug;
+app.locals.show_home_link = config.show_home_link;
 
 /**
  * Landing Page.

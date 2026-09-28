@@ -191,6 +191,7 @@ const {
   supported_idps = [],
   // Optional enabled tenants at the top page
   enabled_pages,
+  show_home_link = true,
   analytics_id,
 } = mergedConfig;
 
@@ -283,5 +284,6 @@ export const config = {
   supported_idps,
   supported_rps,
   enabled_pages,
+  show_home_link,
   analytics_id,
 };
