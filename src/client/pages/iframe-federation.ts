@@ -30,7 +30,7 @@ import {
 
 post('/auth/userinfo', {})
   .then(user => {
-    $('#form').addEventListener('submit', async e => {
+    $('#form').addEventListener('submit', async (e: Event) => {
       e.preventDefault();
       await postMessage();
     });

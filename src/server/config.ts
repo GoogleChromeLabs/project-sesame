@@ -32,14 +32,6 @@ const is_mock_cross_site =
   process.env.NODE_ENV === 'idp-localhost' ||
   process.env.NODE_ENV === 'rp-localhost';
 
-/**
- * During development, the server application only receives requests proxied
- * from the frontend tooling (e.g. Vite). This is because the frontend tooling
- * is responsible for serving the frontend application during development, to
- * enable hot module reloading and other development features.
- */
-const is_development_proxy = process.env.PROXY;
-
 const project_root_file_path = path.join(
   url.fileURLToPath(import.meta.url),
   '..',

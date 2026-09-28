@@ -1,11 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es2019",
+    "target": "es2022",
     "module": "esnext",
     "lib": ["ESNext", "DOM"],
-    "baseUrl": "./",
-    "outDir": "../dist",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "allowJs": true,
     "checkJs": false,
@@ -20,5 +20,6 @@
       "~project-sesame/server/*": ["../server/*"],
       "~project-sesame/shared/*": ["../shared/*"]
     }
-  }
+  },
+  "include": ["../types.d.ts", "./**/*.ts"]
 }

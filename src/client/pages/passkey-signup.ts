@@ -38,7 +38,7 @@ postForm(
         .then(async () => {
           await redirect('/home');
         })
-        .catch(error => {
+        .catch((error: Error) => {
           // 'InvalidStateError' indicates a passkey already exists on the device.
           if (error.name === 'InvalidStateError') {
             toast('A passkey already exists for this device.');
