@@ -22,6 +22,7 @@ import {
 } from '@simplewebauthn/server';
 
 import {store} from '~project-sesame/server/config.ts';
+import {deleteDocuments, OwnedDocument, toOwnedDocuments} from './helpers.ts';
 import {PasskeyUserId} from './users.ts';
 
 export interface SesamePublicKeyCredential {
@@ -94,15 +95,56 @@ export class PublicKeyCredentials {
     return ref.delete();
   }
 
+  /**
+   * Deletes all passkeys that belong to the given passkey user ID.
+   *
+   * This is part of deleting an account: passkeys stored on the server must
+   * not outlive the account they were registered for.
+   *
+   * @param passkey_user_id - The passkey user ID of the account.
+   * @returns A promise that resolves to the number of deleted passkeys.
+   */
   static async deleteByPasskeyUserId(
     passkey_user_id: PasskeyUserId = ''
-  ): Promise<void> {
-    const creds =
-      await PublicKeyCredentials.findByPasskeyUserId(passkey_user_id);
-    if (creds) {
-      creds.forEach(async cred => {
-        await PublicKeyCredentials.remove(cred.id);
-      });
+  ): Promise<number> {
+    // Never run the query with an empty ID. It must not match anything.
+    if (!passkey_user_id) {
+      return 0;
     }
+    const snapshot = await store
+      .collection(PublicKeyCredentials.collection)
+      .where('passkeyUserId', '==', passkey_user_id)
+      .get();
+    return deleteDocuments(snapshot.docs.map(doc => doc.ref));
+  }
+
+  /**
+   * Lists passkeys along with the passkey user ID of the account that owns
+   * them, so that passkeys whose account no longer exists can be detected.
+   *
+   * Only the fields required for that are loaded. Passkeys without a passkey
+   * user ID are left out, as it's unknown which account they belong to.
+   *
+   * @param registered_before - Only passkeys registered before this time (epoch
+   *   milliseconds) are listed. During a passkey sign-up, the passkey is stored
+   *   right before its account is created, so a freshly registered passkey may
+   *   legitimately have no account yet.
+   * @returns A promise that resolves to the list of passkey references.
+   */
+  static async listOwnedDocuments(
+    registered_before: number
+  ): Promise<OwnedDocument[]> {
+    const snapshot = await store
+      .collection(PublicKeyCredentials.collection)
+      .select('passkeyUserId', 'registeredAt')
+      .get();
+    const docs = snapshot.docs.filter(doc => {
+      const registeredAt: unknown = doc.get('registeredAt');
+      // Legacy passkeys without a registration time can't be brand new.
+      return (
+        typeof registeredAt !== 'number' || registeredAt < registered_before
+      );
+    });
+    return toOwnedDocuments(docs, 'passkeyUserId');
   }
 }

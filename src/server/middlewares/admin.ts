@@ -16,15 +16,34 @@
  */
 import {Router, Request, Response} from 'express';
 import {Users} from '~project-sesame/server/libs/users.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 
 const router = Router();
 
-// TODO: Gate with admin ACL
+// TODO(security): Gate with admin ACL. Anyone can trigger the eviction for
+// now. It only deletes expired accounts and orphaned data, but the orphan
+// sweep reads every passkey, signed-in session and federation mapping, so
+// repeated calls can inflate Firestore usage. Restricting this to a scheduler
+// (e.g. App Engine Cron, whose `X-Appengine-Cron` header can't be forged by
+// external requests) is left for a follow-up, as it depends on how the
+// eviction gets scheduled.
 
+/**
+ * Evicts expired accounts along with all of their associated data, and
+ * deletes data that outlived its account.
+ */
 router.get(
   '/delete-all-users',
   async (req: Request, res: Response): Promise<void> => {
-    await Users.deleteOldUsers();
+    try {
+      await Users.deleteOldUsers();
+    } catch (error) {
+      // Keep the details in the server log. Running the eviction again picks up
+      // where it failed.
+      logger.error('Failed to evict expired accounts.', error);
+      res.status(500).json({error: 'Failed to evict expired accounts.'});
+      return;
+    }
     res.sendStatus(200);
   }
 );
