@@ -183,3 +183,25 @@ router.post(
   }
 );
 ```
+
+## Account deletion and data cleanup
+
+Project Sesame implements a comprehensive cleanup strategy to ensure no orphaned personal data remains when an account is deleted or expired.
+
+### Cascading deletion
+
+When a user manually deletes their account (via `/auth/account/delete`), all associated data is deleted in cascade before the user document itself is removed:
+
+- **Passkeys (`PublicKeyCredentials`)**: All WebAuthn credentials tied to the user's `passkeyUserId`.
+- **Sessions**: All active sessions across all devices (`sessionStore.destroyAllByUserId`).
+- **Federation mappings (`FederationMappings`)**: Linked IdP/RP identity records.
+- **User profile (`Users`)**: Deleted last, ensuring that any failures midway allow the operation to be retried safely.
+
+### Automated eviction and cron cleanup
+
+To keep the demo environment clean and prevent unbounded data growth:
+
+- **Scheduled eviction**: App Engine Cron runs every 2 hours via `cron.yaml` calling `/admin/delete-all-users`.
+- **Expiration (`expiresAt`)**: Accounts past their expiration timestamp are evicted (allowlisted seed accounts have far-future expiration dates and are preserved).
+- **Orphan sweep**: Sweeps residual passkeys, sessions, or federation records whose parent user no longer exists, with a grace period for in-flight registrations.
+- **Endpoint security**: The eviction endpoint is protected by `cronCheck` middleware, ensuring requests in deployed environments (`prod`, `staging`, `idp`) must carry the unforgeable `X-Appengine-Cron: true` header.
