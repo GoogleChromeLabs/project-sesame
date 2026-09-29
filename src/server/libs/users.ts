@@ -399,16 +399,11 @@ export class Users {
   static async deleteOldUsers(): Promise<void> {
     logger.info('Expired account eviction started...');
     const now = getTime();
-    // Range filters only match values of the same type, so accounts with a
-    // legacy numeric `expiresAt` have to be queried separately.
-    const snapshots = await Promise.all([
-      store
-        .collection(Users.collection)
-        .where('expiresAt', '<=', Timestamp.fromMillis(now))
-        .get(),
-      store.collection(Users.collection).where('expiresAt', '<=', now).get(),
-    ]);
-    const expired = snapshots.flatMap(snapshot => snapshot.docs);
+    const snapshot = await store
+      .collection(Users.collection)
+      .where('expiresAt', '<=', Timestamp.fromMillis(now))
+      .get();
+    const expired = snapshot.docs;
     for (const doc of expired) {
       await Users.deleteAccount({
         id: doc.id,

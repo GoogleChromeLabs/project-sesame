@@ -14,19 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import {Router, Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 import {Users} from '~project-sesame/server/libs/users.ts';
 import {logger} from '~project-sesame/server/libs/logger.ts';
 
 const router = Router();
 
-// TODO(security): Gate with admin ACL. Anyone can trigger the eviction for
-// now. It only deletes expired accounts and orphaned data, but the orphan
-// sweep reads every passkey, signed-in session and federation mapping, so
-// repeated calls can inflate Firestore usage. Restricting this to a scheduler
-// (e.g. App Engine Cron, whose `X-Appengine-Cron` header can't be forged by
-// external requests) is left for a follow-up, as it depends on how the
-// eviction gets scheduled.
+/**
+ * Validates that requests come from the App Engine Cron service.
+ *
+ * In deployed App Engine environments (prod, staging, idp), requests sent by
+ * App Engine Cron include the `X-Appengine-Cron: true` header. App Engine strips
+ * this header from external requests, making it unforgeable.
+ */
+export function cronCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const isDeployed =
+    process.env.NODE_ENV === 'prod' ||
+    process.env.NODE_ENV === 'staging' ||
+    process.env.NODE_ENV === 'idp';
+
+  if (isDeployed && req.header('X-Appengine-Cron') !== 'true') {
+    logger.warn('Blocked unauthorized request to admin cron endpoint.', {
+      path: req.path,
+      ip: req.ip,
+    });
+    res.status(403).json({error: 'Forbidden'});
+    return;
+  }
+  next();
+}
 
 /**
  * Evicts expired accounts along with all of their associated data, and
@@ -34,6 +54,7 @@ const router = Router();
  */
 router.get(
   '/delete-all-users',
+  cronCheck,
   async (req: Request, res: Response): Promise<void> => {
     try {
       await Users.deleteOldUsers();

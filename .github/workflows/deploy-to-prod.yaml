@@ -49,4 +49,4 @@ jobs:
           project_id: ${{ secrets.MAIN_PROJECT_ID }}
       # Deploys the application to Google App Engine.
       - name: Deploy to App Engine
-        run: gcloud app deploy prod.yaml --quiet
+        run: gcloud app deploy prod.yaml cron.yaml --quiet

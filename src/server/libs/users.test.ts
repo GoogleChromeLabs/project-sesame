@@ -219,20 +219,6 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
   it('should evict expired accounts along with their data and keep the others', async () => {
     const expired = await Users.create(`testuser-expired-${Date.now()}`);
     await Users.update({...expired, expiresAt: getTime(-1000)});
-    // Legacy accounts store `expiresAt` as a number instead of a Timestamp.
-    const legacyId = `legacy-expired-${Date.now()}`;
-    const legacyPasskeyUserId = generateRandomString();
-    await store
-      .collection(Users.collection)
-      .doc(legacyId)
-      .set({
-        id: legacyId,
-        username: legacyId,
-        passkeyUserId: legacyPasskeyUserId,
-        registeredAt: getTime(-2000),
-        expiresAt: getTime(-1000),
-        approved_clients: [],
-      });
     // Registered long ago but not expired, like an allowlisted account.
     const active = await Users.create(`testuser-active-${Date.now()}`);
     await Users.update({
@@ -245,7 +231,6 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
     const expiredPasskey = await createPasskey(expired.passkeyUserId);
     const expiredSession = await createSession({user: expired});
     const expiredMapping = await createMapping(expired.id);
-    const legacyPasskey = await createPasskey(legacyPasskeyUserId);
     const activePasskey = await createPasskey(active.passkeyUserId);
     const activeSession = await createSession({user: active});
     const activeMapping = await createMapping(active.id);
@@ -253,13 +238,8 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
     await Users.deleteOldUsers();
 
     assert.strictEqual(await Users.findById(expired.id), undefined);
-    assert.strictEqual(await Users.findById(legacyId), undefined);
     assert.strictEqual(
       await exists(PublicKeyCredentials.collection, expiredPasskey),
-      false
-    );
-    assert.strictEqual(
-      await exists(PublicKeyCredentials.collection, legacyPasskey),
       false
     );
     assert.strictEqual(

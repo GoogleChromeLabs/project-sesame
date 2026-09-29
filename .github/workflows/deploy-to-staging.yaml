@@ -49,7 +49,7 @@ jobs:
           project_id: ${{ secrets.DEV_PROJECT_ID }}
       # Deploys the application to Google App Engine.
       - name: Deploy to App Engine
-        run: gcloud app deploy staging.yaml --quiet
+        run: gcloud app deploy staging.yaml cron.yaml --quiet
 
   deploy-idp:
     # Specifies the runner environment for the job.
