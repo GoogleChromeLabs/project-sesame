@@ -18,6 +18,7 @@
 .env.production
 .npm
 .vscode/
+.worktree/
 *.log
 coverage/
 dist/

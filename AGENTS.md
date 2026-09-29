@@ -100,6 +100,19 @@ Project Sesame is an open-source demo web application built with Node.js, design
     - `caddy.sh` requires `sudo` privileges to bind to standard ports and manage TLS certificates.
 4.  **Frontend Components (MDUI)**:
     - Standard UI components must leverage the [MDUI library](https://www.mdui.org/) (Material Design 3 elements) imported via `src/client/layout.ts` and inside Lit template strings (e.g. `<mdui-button>`). Avoid introducing other UI component frameworks to keep payload sizes lean and UI consistent.
+5.  **Git Worktree Workflow for Parallel Development**:
+    - When working on feature development, bug fixes, or task execution, you **MUST** use Git Worktrees under the `.worktree/` directory to prevent branch switching conflicts when multiple agents or sessions run concurrently.
+    - Never switch or check out feature branches directly in the repository root.
+    - Create and check out a dedicated worktree for the task:
+      ```bash
+      git worktree add .worktree/<branch-name> -b <branch-name> origin/main
+      ```
+    - Carry out all file modifications, local testing (`npm run check`), and git commits inside the corresponding `.worktree/<branch-name>` directory.
+    - After the work is completed or the pull request is merged, clean up the worktree:
+      ```bash
+      git worktree remove .worktree/<branch-name>
+      ```
+    - **Firestore Emulator Port Contention**: Local test execution (`npm test` / `npm run check`) boots the Firestore emulator on port `8081` via `firebase emulators:exec`. If multiple agents or worktrees run `npm run check` simultaneously, a port conflict may occur. If port `8081` is busy, wait briefly for the active test run to finish and retry.
 
 ---
 

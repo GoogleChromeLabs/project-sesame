@@ -7,5 +7,5 @@
     "resolveJsonModule": true
   },
   "include": ["src/types.d.ts", "**/*.ts"],
-  "typeRoots": ["node_modules/@types"]
+  "exclude": [".worktree/**/*", "dist/**/*", "node_modules/**/*"]
 }
