@@ -44,7 +44,6 @@
     "/passkey-reauth",
     "/passkey-form-autofill",
     "/passkey-iframe",
-    "/passkey-one-button",
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
     "/immediate-ui-mode",
@@ -54,5 +53,6 @@
     "/settings/delete-account",
     "/signout"
   ],
+  "show_home_link": false,
   "analytics_id": "G-754F24EHD8"
 }

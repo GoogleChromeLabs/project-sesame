@@ -19,16 +19,6 @@
 
 * {
   box-sizing: border-box;
-  --mdui-theme-primary: #fedbd0;
-  --mdui-theme-secondary: #feeae6;
-  --mdui-theme-surface: #fffbfa;
-  --mdui-theme-background: #ffffff;
-  --mdui-theme-error: #c5032b;
-  --mdui-theme-on-primary: #442c2e;
-  --mdui-theme-on-secondary: #442c2e;
-  --mdui-theme-on-surface: #442c2e;
-  --mdui-theme-on-background: #442c2e;
-  --mdui-theme-on-error: #fffbfa;
 }
 
 html {
@@ -114,6 +104,11 @@ mdui-text-field {
   width: 400px;
 }
 
+mdui-button {
+  --mdui-color-primary: 103, 80, 164;
+  --mdui-color-on-primary: 255, 255, 255;
+}
+
 .glue-cookie-notification-bar-control {
   position: fixed;
   bottom: 16px;
@@ -136,7 +131,10 @@ mdui-text-field {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  background-color: var(--mdui-theme-primary);
+  background-color: rgb(var(--mdui-color-primary-container));
+  color: rgb(var(--mdui-color-on-primary-container));
+  --mdui-color-surface: var(--mdui-color-primary-container);
+  --mdui-color-on-surface: var(--mdui-color-on-primary-container);
   --shape-corner: 0;
   a {
     text-decoration: none;
@@ -151,14 +149,13 @@ mdui-text-field {
   }
   mdui-list {
     padding-top: 64px;
-    background-color: var(--mdui-theme-primary);
+    background-color: transparent;
     flex: 1 0 auto;
     &.flex-bottom {
       flex: 0 1 auto;
     }
     mdui-list-item h3 {
       cursor: pointer;
-      background-color: var(--mdc-theme-secondary);
       font-size: 1.25em !important;
       margin: 1.2em 0 0.5em 0 !important;
       line-height: 1.5 !important;
@@ -168,7 +165,7 @@ mdui-text-field {
   .corner-triangle {
     position: relative;
     top: 0px;
-    background-color: white;
+    background-color: rgb(var(--mdui-color-background));
     width: 64px;
     height: 64px;
     flex: 0 0 auto;
@@ -190,11 +187,14 @@ mdui-text-field {
 }
 
 mdui-top-app-bar {
+  --mdui-color-surface: var(--mdui-color-primary-container);
+  --mdui-color-on-surface: var(--mdui-color-on-primary-container);
   #nav-brand-icon {
     position: absolute;
-    background-color: var(--mdui-theme-primary);
+    background-color: rgb(var(--mdui-color-primary-container));
   }
-  background-color: var(--mdui-theme-primary);
+  background-color: rgb(var(--mdui-color-primary-container));
+  color: rgb(var(--mdui-color-on-primary-container));
   mdui-linear-progress {
     position: absolute;
     top: 0;
@@ -202,7 +202,7 @@ mdui-top-app-bar {
 }
 
 div[slot='appContent'] {
-  background-color: var(--mdc-theme-background);
+  background-color: rgb(var(--mdui-color-background));
   height: 100%;
   #list {
     min-width: 550px;
@@ -210,7 +210,7 @@ div[slot='appContent'] {
   @media (max-width: 768px) {
     .corner-triangle {
       top: -4px;
-      background-color: var(--mdui-theme-primary);
+      background-color: rgb(var(--mdui-color-primary-container));
     }
   }
 }
@@ -246,8 +246,8 @@ div[slot='appContent'] {
   }
 
   .dialog-container {
-    background-color: var(--mdui-theme-surface);
-    color: var(--mdui-theme-on-surface);
+    background-color: rgb(var(--mdui-color-surface));
+    color: rgb(var(--mdui-color-on-surface));
     border-radius: 28px 28px 0 0;
     padding: 24px 24px 32px 24px;
     box-shadow: 0px -4px 30px rgba(0, 0, 0, 0.15);
@@ -271,7 +271,7 @@ div[slot='appContent'] {
 
       mdui-icon {
         font-size: 24px;
-        color: var(--mdui-theme-on-surface);
+        color: rgb(var(--mdui-color-on-surface));
       }
 
       h2 {
@@ -293,7 +293,7 @@ div[slot='appContent'] {
       font-size: 28px;
       line-height: 1;
       cursor: pointer;
-      color: var(--mdui-theme-on-surface);
+      color: rgb(var(--mdui-color-on-surface));
       opacity: 0.6;
       transition: opacity 0.2s;
 
