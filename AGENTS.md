@@ -112,6 +112,7 @@ Project Sesame is an open-source demo web application built with Node.js, design
       ```bash
       git worktree remove .worktree/<branch-name>
       ```
+    - **Firestore Emulator Port Contention**: Local test execution (`npm test` / `npm run check`) boots the Firestore emulator on port `8081` via `firebase emulators:exec`. If multiple agents or worktrees run `npm run check` simultaneously, a port conflict may occur. If port `8081` is busy, wait briefly for the active test run to finish and retry.
 
 ---
 
