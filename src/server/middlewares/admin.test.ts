@@ -68,7 +68,8 @@ describe('Admin Cron Middleware (cronCheck)', () => {
     const req = {
       path: '/delete-all-users',
       ip: '127.0.0.1',
-      header: (name: string) => (name === 'X-Appengine-Cron' ? 'true' : undefined),
+      header: (name: string) =>
+        name === 'X-Appengine-Cron' ? 'true' : undefined,
     } as unknown as Request;
 
     const res = {} as Response;
