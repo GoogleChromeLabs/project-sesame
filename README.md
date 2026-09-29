@@ -190,7 +190,7 @@ Project Sesame implements a comprehensive cleanup strategy to ensure no orphaned
 
 ### Cascading deletion
 
-When a user manually deletes their account (via `/auth/account/delete`), all associated data is deleted in cascade before the user document itself is removed:
+When a user manually deletes their account (via `/auth/delete-user`), all associated data is deleted in cascade before the user document itself is removed:
 
 - **Passkeys (`PublicKeyCredentials`)**: All WebAuthn credentials tied to the user's `passkeyUserId`.
 - **Sessions**: All active sessions across all devices (`sessionStore.destroyAllByUserId`).
