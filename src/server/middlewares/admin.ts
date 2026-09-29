@@ -14,17 +14,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
-import {Router, Request, Response} from 'express';
+import {Router, Request, Response, NextFunction} from 'express';
 import {Users} from '~project-sesame/server/libs/users.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 
 const router = Router();
 
-// TODO: Gate with admin ACL
+/**
+ * Validates that requests come from the App Engine Cron service.
+ *
+ * In deployed App Engine environments (prod, staging, idp), requests sent by
+ * App Engine Cron include the `X-Appengine-Cron: true` header. App Engine strips
+ * this header from external requests, making it unforgeable.
+ */
+export function cronCheck(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const isDeployed =
+    process.env.NODE_ENV === 'prod' ||
+    process.env.NODE_ENV === 'staging' ||
+    process.env.NODE_ENV === 'idp';
 
+  if (isDeployed && req.header('X-Appengine-Cron') !== 'true') {
+    logger.warn('Blocked unauthorized request to admin cron endpoint.', {
+      path: req.path,
+      ip: req.ip,
+    });
+    res.status(403).json({error: 'Forbidden'});
+    return;
+  }
+  next();
+}
+
+/**
+ * Evicts expired accounts along with all of their associated data, and
+ * deletes data that outlived its account.
+ */
 router.get(
   '/delete-all-users',
+  cronCheck,
   async (req: Request, res: Response): Promise<void> => {
-    await Users.deleteOldUsers();
+    try {
+      await Users.deleteOldUsers();
+    } catch (error) {
+      // Keep the details in the server log. Running the eviction again picks up
+      // where it failed.
+      logger.error('Failed to evict expired accounts.', error);
+      res.status(500).json({error: 'Failed to evict expired accounts.'});
+      return;
+    }
     res.sendStatus(200);
   }
 );

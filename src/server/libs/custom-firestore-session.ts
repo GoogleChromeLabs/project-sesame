@@ -17,8 +17,14 @@
 
 import {ALLOW_LISTED_FOREVER, getTime} from '../middlewares/common.ts';
 import {SessionData} from 'express-session';
-import {config} from '../config.ts';
+import {config, store} from '../config.ts';
 import {FirestoreStore, StoreOptions} from '@google-cloud/connect-firestore';
+import {deleteDocuments, OwnedDocument, toOwnedDocuments} from './helpers.ts';
+
+/**
+ * The name of the Firestore collection that sessions are stored in.
+ */
+export const SESSIONS_COLLECTION = 'sessions';
 
 /**
  * Override the Firestore `set` and `get` functions for storing a session.
@@ -90,4 +96,59 @@ export class CustomFirestoreStore extends FirestoreStore {
         }
       });
   };
+
+  /**
+   * Destroys every session that belongs to the given user.
+   *
+   * Unlike `destroy()`, which removes a single session (e.g. when the user
+   * signs out on one device), this signs the user out of all devices at once.
+   * It's used when the account itself is deleted, so that no session keeps
+   * holding a copy of a user who no longer exists.
+   *
+   * This relies on `set()` storing sessions as plain documents rather than as
+   * serialized strings, which makes `user.id` queryable.
+   *
+   * @param userId - The ID of the user whose sessions should be destroyed.
+   * @returns A promise that resolves to the number of destroyed sessions.
+   */
+  async destroyAllByUserId(userId: string): Promise<number> {
+    // Never run the query with an empty ID. It must not match anything.
+    if (!userId) {
+      return 0;
+    }
+    const snapshot = await this.db
+      .collection(this.kind)
+      .where('user.id', '==', userId)
+      .get();
+    return deleteDocuments(snapshot.docs.map(doc => doc.ref));
+  }
+
+  /**
+   * Lists sessions of signed-in users along with the ID of that user, so that
+   * sessions whose account no longer exists can be detected.
+   *
+   * Sessions without a signed-in user (e.g. in the middle of signing in) don't
+   * belong to any account and aren't listed. Only the fields required for that
+   * are loaded.
+   *
+   * @returns A promise that resolves to the list of session references.
+   */
+  async listOwnedDocuments(): Promise<OwnedDocument[]> {
+    const snapshot = await this.db
+      .collection(this.kind)
+      .where('user.id', '!=', null)
+      .select('user.id')
+      .get();
+    return toOwnedDocuments(snapshot.docs, 'user.id');
+  }
 }
+
+/**
+ * The session store shared by the session middleware and account management.
+ * Deleting an account needs to destroy the account's sessions in the same
+ * collection that the middleware reads them from.
+ */
+export const sessionStore = new CustomFirestoreStore({
+  dataset: store,
+  kind: SESSIONS_COLLECTION,
+});
