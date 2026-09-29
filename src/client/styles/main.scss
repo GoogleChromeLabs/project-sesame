@@ -100,8 +100,28 @@ main section {
   }
 }
 
-mdui-text-field {
+mdui-text-field,
+.native-textfield-input {
   width: 400px;
+}
+
+.native-textfield-input {
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--mdui-color-outline, 121, 116, 126));
+  border-radius: 4px;
+  background-color: rgb(var(--mdui-color-surface, 255, 255, 255));
+  color: rgb(var(--mdui-color-on-surface, 28, 27, 31));
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 1rem;
+
+  &:focus {
+    border-color: rgb(var(--mdui-color-primary, 103, 80, 164));
+    border-width: 2px;
+    padding: 13px 15px;
+  }
 }
 
 mdui-button {
