@@ -15,11 +15,7 @@
  * limitations under the License
  */
 
-import {
-  Base64URLString,
-  CredentialDeviceType,
-  AuthenticatorTransportFuture,
-} from '@simplewebauthn/server';
+import {Base64URLString, CredentialDeviceType} from '@simplewebauthn/server';
 
 import {store} from '~project-sesame/server/config.ts';
 import {deleteDocuments, OwnedDocument, toOwnedDocuments} from './helpers.ts';
@@ -36,7 +32,9 @@ export interface SesamePublicKeyCredential {
   aaguid: string; // AAGUID,
   providerIcon?: string; // Provider icon
   userVerified: boolean; // user verifying authenticator,
-  transports: AuthenticatorTransportFuture[]; // list of transports,
+  // List of transports. SimpleWebAuthn v14 types transports as `string[]`
+  // (it no longer exports `AuthenticatorTransportFuture`).
+  transports: string[];
   browser?: string;
   os?: string;
   platform?: string;
