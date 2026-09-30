@@ -327,7 +327,7 @@ app.get(
     // claimed address. Send anyone who lands here directly back to the start.
     const email = new SessionService(req.session).getPendingEmail();
     if (!email) {
-      return res.redirect(307, '/evp');
+      return res.redirect(307, '/evp-passkey-signup');
     }
     res.render('one-time-code.html', {
       title: 'Enter the code',
@@ -454,7 +454,7 @@ app.get(
  * Passwordless sign-up: verify the email address with the Email Verification
  * Protocol (or a one-time code fallback), then create a passkey.
  * @swagger
- * /evp:
+ * /evp-passkey-signup:
  *   get:
  *     summary: Passwordless sign-up page
  *     description: Renders the sign-up page that verifies an email address with the Email Verification Protocol and then creates a passkey.
@@ -464,7 +464,7 @@ app.get(
  *         description: HTML page
  */
 app.get(
-  '/evp',
+  '/evp-passkey-signup',
   pageAclCheck(PageType.SignUp),
   (req: Request, res: Response): void => {
     const sessionService = new SessionService(req.session);
@@ -472,7 +472,7 @@ app.get(
     // use the passkey created at the end of this flow once the user signs out.
     sessionService.setEntrancePath('/passkey-form-autofill');
     const nonce = sessionService.setChallenge();
-    res.render('evp.html', {
+    res.render('evp-passkey-signup.html', {
       title: 'Passwordless sign-up',
       nonce,
     });

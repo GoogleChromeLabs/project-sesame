@@ -51,7 +51,7 @@
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
     "/immediate-ui-mode",
-    "/evp",
+    "/evp-passkey-signup",
     "/home",
     "/settings/passkeys",
     "/settings/password-change",
