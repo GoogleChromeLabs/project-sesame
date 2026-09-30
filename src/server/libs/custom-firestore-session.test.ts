@@ -134,6 +134,26 @@ describe('CustomFirestoreStore', () => {
     }
   });
 
+  it('should drop properties deleted from the session on the next set', async () => {
+    const sid = `sid-delete-${Date.now()}`;
+
+    try {
+      await setSession(sid, {
+        cookie: {originalMaxAge: 3600},
+        signup_user: {username: 'someone@example.com'},
+        pending_email: 'someone@example.com',
+      });
+      await setSession(sid, {cookie: {originalMaxAge: 3600}});
+
+      const retrieved = await getSession(sid);
+      assert.ok(retrieved, 'Session should be retrieved');
+      assert.strictEqual(retrieved.signup_user, undefined);
+      assert.strictEqual(retrieved.pending_email, undefined);
+    } finally {
+      await destroySession(sid).catch(() => {});
+    }
+  });
+
   it('should compute standard expiration date for non-allowlisted accounts', async () => {
     const sid = `sid-normal-${Date.now()}`;
     const sessionData = {
