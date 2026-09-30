@@ -22,7 +22,6 @@ import crypto from 'node:crypto';
 import {SessionService, ApiType, apiAclCheck} from '../libs/session.ts';
 import {Users, generatePasskeyUserId} from '../libs/users.ts';
 import {logger} from '../libs/logger.ts';
-import {generateRandomString} from '../libs/helpers.ts';
 import {csrfCheck} from './common.ts';
 
 const router = Router();
@@ -49,34 +48,6 @@ function isPlausibleEmail(email: string): boolean {
     !domain.startsWith('.') &&
     !domain.endsWith('.')
   );
-}
-
-/**
- * Renders the passwordless sign-up page and binds a fresh nonce to the
- * session.
- *
- * The nonce is embedded in the hidden `email-verification-token` input so the
- * browser includes it in the Key Binding JWT. This ties the Email Verification
- * Token to this particular session and prevents replay.
- *
- * This handler is exported (rather than registered on the router) so that
- * `app.ts` can mount it at the exact `/evp` path behind
- * `pageAclCheck(PageType.SignUp)`. Mounting it inside the router would make
- * `enabled_pages` see `/evp/` instead of `/evp`.
- *
- * @param req - The Express request.
- * @param res - The Express response.
- */
-export function renderEvpPage(req: Request, res: Response): void {
-  const sessionService = new SessionService(req.session);
-  // This is a sign-up page, so point the entrance at a sign-in page that can
-  // use the passkey created at the end of this flow once the user signs out.
-  sessionService.setEntrancePath('/passkey-form-autofill');
-  const nonce = sessionService.setChallenge(generateRandomString(24));
-  res.render('evp.html', {
-    title: 'Passwordless sign-up',
-    nonce,
-  });
 }
 
 /**

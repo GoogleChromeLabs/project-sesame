@@ -37,7 +37,7 @@ import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
 import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {evp, renderEvpPage} from '~project-sesame/server/middlewares/evp.ts';
+import {evp} from '~project-sesame/server/middlewares/evp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
@@ -432,7 +432,21 @@ app.get(
  *       200:
  *         description: HTML page
  */
-app.get('/evp', pageAclCheck(PageType.SignUp), renderEvpPage);
+app.get(
+  '/evp',
+  pageAclCheck(PageType.SignUp),
+  (req: Request, res: Response): void => {
+    const sessionService = new SessionService(req.session);
+    // This is a sign-up page, so point the entrance at a sign-in page that can
+    // use the passkey created at the end of this flow once the user signs out.
+    sessionService.setEntrancePath('/passkey-form-autofill');
+    const nonce = sessionService.setChallenge();
+    res.render('evp.html', {
+      title: 'Passwordless sign-up',
+      nonce,
+    });
+  }
+);
 
 app.get('/iframe-federation', (req: Request, res: Response): void => {
   return res.render('iframe-federation.html', {

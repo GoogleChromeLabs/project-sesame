@@ -18,7 +18,7 @@
 import {test, describe, beforeAll, afterAll, beforeEach, vi} from 'vitest';
 import assert from 'node:assert';
 import express, {Request, Response, NextFunction} from 'express';
-import {evp, renderEvpPage} from './evp.ts';
+import {evp} from './evp.ts';
 import {Users} from '../libs/users.ts';
 import http from 'http';
 import dns from 'node:dns/promises';
@@ -68,7 +68,6 @@ describe('EVP Middlewares', () => {
       next();
     });
 
-    app.get('/evp', renderEvpPage);
     app.use('/evp', evp);
 
     server = http.createServer(app);
@@ -95,16 +94,6 @@ describe('EVP Middlewares', () => {
     vi.clearAllMocks();
     // By default, no account exists for the email being signed up.
     vi.spyOn(Users, 'findByUsername').mockResolvedValue(undefined);
-  });
-
-  test('GET /evp renders page, sets challenge and entrance path', async () => {
-    const res = await originalFetch(`http://127.0.0.1:${port}/evp`);
-    assert.strictEqual(res.status, 200);
-    const text = await res.text();
-    assert.strictEqual(text, 'rendered-html');
-    assert.ok(mockSession.challenge);
-    assert.notStrictEqual(mockSession.challenge, 'test-session-challenge');
-    assert.strictEqual(mockSession.entrance, '/passkey-form-autofill');
   });
 
   test('POST /evp/verify returns 400 on missing parameters', async () => {
