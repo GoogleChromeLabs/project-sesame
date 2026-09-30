@@ -16,20 +16,60 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, post, toast} from '~project-sesame/client/helpers/index';
+import {$, post, redirect, toast} from '~project-sesame/client/helpers/index';
+import {
+  capabilities,
+  registerCredential,
+} from '~project-sesame/client/helpers/publickey';
+
+/**
+ * How the email address was verified. Shown to the user on the passkey step so
+ * the difference between the instant EVP path and the fallback is visible.
+ */
+type VerificationMethod = 'evp' | 'otp';
+
+/**
+ * A single step in the server-side verification trace returned by
+ * `/evp/verify`.
+ */
+interface VerificationStep {
+  status: 'pending' | 'success' | 'failed';
+  inputs: Record<string, unknown>;
+  outputs: Record<string, unknown>;
+}
+
+/**
+ * Extracts a human-readable message from an error thrown by `post()` (which
+ * throws the parsed JSON body) or by WebAuthn (which throws a `DOMException`).
+ *
+ * @param error - The caught value.
+ * @param fallback - The message to use when nothing better is available.
+ * @returns The message to show to the user.
+ */
+function errorMessage(error: any, fallback: string): string {
+  return error?.error || error?.message || fallback;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
-  let emailInput = $('#email') as HTMLInputElement;
-  let tokenInput = $('#evt') as HTMLInputElement;
+  const emailInput = $('#email') as HTMLInputElement;
+  const tokenInput = $('#evt') as HTMLInputElement;
   const submitBtn = $('#submit-btn') as HTMLButtonElement;
 
   const otpFallbackContainer = $('#otp-fallback-container') as HTMLDivElement;
   const fallbackEmailDisplay = $('#fallback-email-display') as HTMLSpanElement;
   const otpForm = $('#otp-form') as HTMLFormElement;
   const otpInput = $('#otp') as HTMLInputElement;
+  const otpSubmitBtn = $('#otp-submit-btn') as HTMLButtonElement;
   const otpCancelBtn = $('#otp-cancel-btn') as HTMLElement;
+
+  const passkeyContainer = $('#passkey-container') as HTMLDivElement;
+  const verifiedEmailText = $('#verified-email-text') as HTMLSpanElement;
+  const verificationMethodText = $(
+    '#verification-method-text'
+  ) as HTMLSpanElement;
+  const createPasskeyBtn = $('#create-passkey-btn') as HTMLButtonElement;
 
   // Set the nonce attribute dynamically to prevent the browser from stripping it during HTML parsing
   const nonce = tokenInput.getAttribute('data-nonce');
@@ -38,11 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info(`Local session challenge (nonce) bound to input: ${nonce}`);
   }
 
-  const successContainer = $('#success-container') as HTMLDivElement;
-  const verifiedEmailText = $('#verified-email-text') as HTMLSpanElement;
-  const backBtn = $('#back-btn') as HTMLButtonElement;
+  /**
+   * Moves the UI to the final step, where the user creates a passkey. The
+   * server has already put the session into the sign-up state for `email`.
+   *
+   * @param email - The verified email address.
+   * @param method - How the address was verified.
+   */
+  function showPasskeyStep(email: string, method: VerificationMethod): void {
+    emailFormContainer.classList.add('hidden');
+    otpFallbackContainer.classList.add('hidden');
+    verifiedEmailText.innerText = email;
+    verificationMethodText.innerText =
+      method === 'evp'
+        ? 'instantly with the Email Verification Protocol'
+        : 'with a one-time code';
+    passkeyContainer.classList.remove('hidden');
+    console.info(
+      `Email verified via ${method.toUpperCase()}. Ready to create a passkey for ${email}.`
+    );
+  }
 
-  // Handle main EVP form submission
+  // Step 1: Submit the email. Use the EVP token if the browser supplied one.
   evpForm.addEventListener('submit', async event => {
     event.preventDefault();
 
@@ -71,90 +128,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const result = await post('/evp/verify', {email, evt});
-
-      submitBtn.disabled = false;
       printTraceToConsole(result.steps);
 
       if (result.success) {
         console.info(
           'Verification succeeded! Email ownership cryptographically verified.'
         );
-
-        // Show success screen
-        emailFormContainer.classList.add('hidden');
-        verifiedEmailText.innerText = result.verifiedEmail || email;
-        successContainer.classList.remove('hidden');
+        showPasskeyStep(result.verifiedEmail || email, 'evp');
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
       }
     } catch (e: any) {
+      const message = errorMessage(e, 'An unexpected server error occurred.');
+      console.error(`Server error during verification: ${message}`);
+      toast(message);
+    } finally {
       submitBtn.disabled = false;
-      console.error(`Server error during verification: ${e.message || e}`);
-      toast(e.message || 'An unexpected server error occurred.');
     }
   });
 
-  // Handle Back button on Success screen
-  backBtn.addEventListener('click', () => {
-    // Reset form values
-    evpForm.reset();
-
-    // Recreate email input to clear browser-bound verification / autofill states
-    const newEmailInput = emailInput.cloneNode(true) as HTMLInputElement;
-    newEmailInput.value = '';
-    emailInput.parentNode?.replaceChild(newEmailInput, emailInput);
-    emailInput = newEmailInput;
-
-    // Recreate token input
-    const newTokenInput = tokenInput.cloneNode(true) as HTMLInputElement;
-    newTokenInput.value = '';
-
-    // Rebind nonce attributes
-    const nonceAttr = newTokenInput.getAttribute('data-nonce');
-    if (nonceAttr) {
-      newTokenInput.setAttribute('nonce', nonceAttr);
-    }
-    tokenInput.parentNode?.replaceChild(newTokenInput, tokenInput);
-    tokenInput = newTokenInput;
-
-    // Reset UI visibility
-    successContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
-    console.info(
-      'Form reset and inputs recreated. Ready to verify another email.'
-    );
-  });
-
-  // Handle OTP fallback submission
-  otpForm.addEventListener('submit', event => {
+  // Step 2 (fallback): Verify the simulated one-time code on the server.
+  otpForm.addEventListener('submit', async event => {
     event.preventDefault();
     const email = emailInput.value.trim();
     const otp = otpInput.value.trim();
 
     if (!/^\d{6}$/.test(otp)) {
       console.error('Invalid OTP format. Must be a 6-digit number.');
-      toast('Invalid OTP format. Must be 6 digits.');
+      toast('Enter the 6-digit code.');
       return;
     }
 
-    console.info(`Simulating OTP verification for code: ${otp}...`);
-    console.info('OTP verified successfully!');
+    console.info(`Submitting simulated one-time code: ${otp}...`);
+    otpSubmitBtn.disabled = true;
 
-    otpFallbackContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
-    toast(`Email verified via OTP: ${email}`);
+    try {
+      const result = await post('/evp/otp', {email, otp});
+      console.info('One-time code accepted (simulated).');
+      showPasskeyStep(result.verifiedEmail || email, 'otp');
+    } catch (e: any) {
+      const message = errorMessage(e, 'Failed to verify the code.');
+      console.error(`OTP verification failed: ${message}`);
+      toast(message);
+    } finally {
+      otpSubmitBtn.disabled = false;
+    }
   });
 
-  // Handle OTP Cancel button
+  // Return from the one-time code step to the email step.
   otpCancelBtn.addEventListener('click', () => {
     otpFallbackContainer.classList.add('hidden');
     emailFormContainer.classList.remove('hidden');
     console.info('Returned to email registration screen.');
   });
 
+  // Step 3: Create a passkey. The server creates the account once the passkey
+  // is registered, and signs the user in.
+  createPasskeyBtn.addEventListener('click', async () => {
+    createPasskeyBtn.disabled = true;
+    // Registration requests a platform authenticator by default. If none is
+    // available, allow any authenticator (a security key or a phone) instead
+    // so the sign-up can still complete without a password.
+    const nonPlatform = !capabilities?.userVerifyingPlatformAuthenticator;
+
+    try {
+      await registerCredential(nonPlatform);
+      console.info('Passkey created. The account is ready.');
+      await redirect('/home');
+    } catch (e: any) {
+      createPasskeyBtn.disabled = false;
+      if (e?.name === 'InvalidStateError') {
+        // A passkey for this account already exists on the authenticator.
+        toast('A passkey already exists for this device.');
+      } else if (e?.name === 'NotAllowedError') {
+        // The user dismissed the passkey dialog. Let them try again.
+        toast('Passkey creation was canceled. Try again when you are ready.');
+      } else {
+        const message = errorMessage(e, 'Failed to create a passkey.');
+        console.error(e);
+        toast(message);
+      }
+    }
+  });
+
   /* Console Printing Helpers */
-  function printTraceToConsole(steps: any) {
+  function printTraceToConsole(steps: Record<string, VerificationStep>) {
     const stepMetadata = [
       {
         num: 1,
@@ -194,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     stepMetadata.forEach(meta => {
       const stepKey = `step${meta.num}`;
-      const stepData = steps[stepKey];
+      const stepData = steps?.[stepKey];
       if (!stepData) return;
 
       console.groupCollapsed(
@@ -221,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.groupCollapsed('Step 2: OTP Fallback [TRIGGERED]');
     console.log(
-      `Description: A simulated 6-digit verification code has been dispatched to ${email}.`
+      `Description: A real site would email a 6-digit code to ${email}. This demo sends nothing, and the server accepts any 6-digit code.`
     );
     console.groupEnd();
     console.groupEnd();

@@ -14,11 +14,11 @@
  limitations under the License.
 -->
 
-## Email Verification Protocol
+## Passwordless sign-up with email verification
 
-On this page, you can experience a secure registration flow that instantly verifies your email address using the experimental **Email Verification Protocol (EVP)**.
+On this page, you can experience a fully passwordless sign-up. You verify your email address instantly with the experimental **Email Verification Protocol (EVP)**, then create a **passkey** to finish setting up your account. No password is created at any point.
 
-EVP allows browsers to securely share cryptographically verified email addresses with websites using verifiable credentials, eliminating the friction of waiting for OTP codes or clicking verification links in your inbox.
+EVP allows browsers to securely share cryptographically verified email addresses with websites using verifiable credentials, eliminating the friction of waiting for OTP codes or clicking verification links in your inbox. Pairing it with a passkey means the account is protected by a phishing-resistant credential from the very first sign-in.
 
 ### How to test the demo:
 
@@ -35,7 +35,10 @@ EVP allows browsers to securely share cryptographically verified email addresses
   2. Click **Add**, enter **`demo@rowan.fyi`** in the **Email** field, and save. Leave other fields blank.
 - **Select the email from autofill:**
   Return to this page, click the email input field, and choose **`demo@rowan.fyi`** from the browser's autofill dropdown.
-- **Submit the form:**
-  Click the **Continue** button. The browser will retrieve a signed cryptographic Email Verification Token (EVT) from the email provider and supply it to the page, completing the verification instantly.
+- **Verify your email:**
+  Click the **Continue** button. The browser retrieves a signed Email Verification Token (EVT) from the email provider and supplies it to the page, and the server verifies it instantly.
+- **Create a passkey:**
+  Once your email is verified, click **Create a passkey** and complete the browser prompt. The account is created only after the passkey is registered, and you'll be signed in and taken to the home page.
 - **Observe the console:** Open your browser's Developer Tools (Console tab) to inspect the step-by-step cryptographic verification trace and data outputs in real time.
-- **Fallback to OTP:** If you type any other email address manually (or decline the browser prompt), the browser won't supply a token, and the page will smoothly fall back to simulating a traditional 6-digit verification code.
+- **Fallback to a one-time code:** If you type an email address manually (or decline the browser prompt), the browser won't supply a token, and the page falls back to a traditional 6-digit verification code. **This demo doesn't send any email, so any 6 digits will be accepted.** You then continue to passkey creation as usual.
+- **Try it again:** Each email address can be registered only once. To repeat the demo with the same address, delete the account from **Settings** first, and remove the passkey from your password manager.

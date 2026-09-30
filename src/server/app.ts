@@ -37,7 +37,7 @@ import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
 import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {evp} from '~project-sesame/server/middlewares/evp.ts';
+import {evp, renderEvpPage} from '~project-sesame/server/middlewares/evp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
@@ -418,6 +418,21 @@ app.get(
     });
   }
 );
+
+/**
+ * Passwordless sign-up: verify the email address with the Email Verification
+ * Protocol (or a one-time code fallback), then create a passkey.
+ * @swagger
+ * /evp:
+ *   get:
+ *     summary: Passwordless sign-up page
+ *     description: Renders the sign-up page that verifies an email address with the Email Verification Protocol and then creates a passkey.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML page
+ */
+app.get('/evp', pageAclCheck(PageType.SignUp), renderEvpPage);
 
 app.get('/iframe-federation', (req: Request, res: Response): void => {
   return res.render('iframe-federation.html', {

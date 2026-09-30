@@ -15,10 +15,15 @@
 -->
 
 <main class="content center">
-  <h2>Sign-up</h2>
+  <h2>Passwordless sign-up</h2>
 
+  <!-- Step 1: Enter an email address. EVP verifies it without leaving the page. -->
   <div id="email-form-container">
     <form id="evp-form" class="center">
+      <p class="instructions">
+        Enter your email address. Once it's verified, you'll create a passkey
+        to finish signing up. No password needed.
+      </p>
       <input
         type="email"
         id="email"
@@ -48,12 +53,13 @@
     </form>
   </div>
 
-  <!-- OTP Fallback Container (Initially Hidden) -->
+  <!-- Step 2 (fallback): Simulated one-time code when no EVP token is available. -->
   <div id="otp-fallback-container" class="hidden">
     <form id="otp-form" class="center">
       <p class="instructions">
-        We did not receive a cryptographic verification token for <strong id="fallback-email-display"></strong>.
-        We have fallen back to simulating a traditional 6-digit verification code.
+        We couldn't verify <strong id="fallback-email-display"></strong> instantly,
+        so we'd normally email you a 6-digit code instead.
+        <strong>This demo doesn't send any email: enter any 6 digits to continue.</strong>
       </p>
 
       <mdui-text-field
@@ -61,6 +67,7 @@
         id="otp"
         name="otp"
         inputmode="numeric"
+        autocomplete="one-time-code"
         pattern="[0-9]{6}"
         maxlength="6"
         label="One-time code"
@@ -70,21 +77,27 @@
       </mdui-text-field>
 
       <div class="split">
-        <mdui-button type="submit" variant="filled" style="flex: 1; margin-right: 8px;">Verify code</mdui-button>
+        <mdui-button type="submit" variant="filled" id="otp-submit-btn" style="flex: 1; margin-right: 8px;">Verify code</mdui-button>
         <mdui-button type="button" id="otp-cancel-btn" variant="outlined" style="flex: 1;">Cancel</mdui-button>
       </div>
     </form>
   </div>
 
-  <!-- Success Container (Initially Hidden) -->
-  <div id="success-container" class="hidden">
+  <!-- Step 3: The email is verified. Create a passkey to finish signing up. -->
+  <div id="passkey-container" class="hidden">
     <div class="center">
       <mdui-icon name="check_circle--outlined" style="font-size: 56px; color: #34a853; margin-bottom: 12px;"></mdui-icon>
-      <h3 style="margin-top: 0;">Email Verified Successfully</h3>
+      <h3 style="margin-top: 0;">Email verified</h3>
       <p class="instructions" style="text-align: center; max-width: 450px; margin-bottom: 24px;">
-        Your email address <strong id="verified-email-text"></strong> has been cryptographically verified using the <strong>Email Verification Protocol (EVP)</strong>.
+        <strong id="verified-email-text"></strong> has been verified
+        <span id="verification-method-text"></span>.
+        Create a passkey to finish setting up your account. You'll use it to
+        sign in with your fingerprint, face, or screen lock.
       </p>
-      <mdui-button id="back-btn" variant="outlined">Retry demo again</mdui-button>
+      <mdui-button id="create-passkey-btn" variant="filled" icon="key--outlined">Create a passkey</mdui-button>
+      <p class="instructions">
+        <a href="/evp">Use a different email address</a>
+      </p>
     </div>
   </div>
 </main>

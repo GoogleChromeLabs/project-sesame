@@ -97,9 +97,22 @@ When the form is submitted, the value of the hidden `email-verification-token` i
 5. **Issuer signature verification**: Validate the signature on the SD-JWT credential using the fetched issuer public keys.
 6. **Key binding verification**: Extract the browser's ephemeral public key from the validated SD-JWT and verify the signature on the KB-JWT to prove ownership of the private key.
 
+Treat the nonce as mandatory and single-use: reject the token if your session has no nonce, and delete the nonce as soon as a token has been accepted.
+
+### Completing a passwordless sign-up with a passkey
+
+A verified email address is a strong starting point for a passwordless account. Instead of asking for a password after verification, go straight to passkey creation:
+
+- **Keep the verified email in a pending sign-up state:** After the token passes all six checks, store the normalized email address as the username in the session together with a newly generated WebAuthn user handle. Don't create the account yet.
+- **Check for existing accounts after verification:** Look up the email address only after ownership is proven, so the endpoint can't be used to find out which addresses are registered. If an account exists, guide the user to sign in instead.
+- **Create the account when the passkey is registered:** Call `navigator.credentials.create()` with the pending username and user handle. Create the account and sign the user in only after the registration response has been verified on the server. This guarantees that every account has a passkey from the start, and that abandoned sign-ups leave nothing behind.
+- **Allow roaming authenticators when needed:** If `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` resolves to `false`, omit `authenticatorAttachment: 'platform'` so the user can still use a security key or a phone.
+- **Keep the fallback on the same path:** When no token is available, verify the email with a one-time code or a magic link, then continue to the same passkey step. In a real deployment, generate a random code on the server, send it to the address, store it with a short expiry, compare it on submission, and rate-limit attempts. This demo only simulates that step and accepts any 6-digit code.
+
 ### Developer resources
 
 - **Blog Post**: [Test the Email Verification Protocol with an origin trial](https://developer.chrome.com/blog/email-verification-protocol-origin-trial)
+- **Guide**: [Create a passkey for passwordless logins](https://web.dev/articles/passkey-registration) (web.dev)
 - **Specification**: [Email Verification Protocol Explainer](https://github.com/w3c-fedid/email-verification-protocol) (GitHub)
 
 ### Origin Trial Notes
