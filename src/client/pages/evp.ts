@@ -50,7 +50,10 @@ function errorMessage(error: any, fallback: string): string {
   return error?.error || error?.message || fallback;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Wires up the three sign-up steps and restores the EVP nonce attribute.
+ */
+function initPage(): void {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
   const emailInput = $('#email') as HTMLInputElement;
@@ -71,7 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ) as HTMLSpanElement;
   const createPasskeyBtn = $('#create-passkey-btn') as HTMLButtonElement;
 
-  // Set the nonce attribute dynamically to prevent the browser from stripping it during HTML parsing
+  // Restore the `nonce` content attribute. Because this page is served with a
+  // CSP header, the browser's nonce hiding blanks `nonce` to "" when the
+  // element is inserted (the value survives only in the `.nonce` IDL
+  // property). Chrome's autofill reads the content attribute when requesting
+  // an Email Verification Token, so copy the server-rendered value back from
+  // `data-nonce`. Setting it after insertion is not hidden again.
   const nonce = tokenInput.getAttribute('data-nonce');
   if (nonce) {
     tokenInput.setAttribute('nonce', nonce);
@@ -285,4 +293,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.groupEnd();
     console.groupEnd();
   }
-});
+}
+
+// Importing helpers/publickey (which uses top-level await) turns this file
+// into an async module that can evaluate after DOMContentLoaded has fired.
+// Run the initializer immediately if the DOM is already parsed.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPage);
+} else {
+  initPage();
+}
