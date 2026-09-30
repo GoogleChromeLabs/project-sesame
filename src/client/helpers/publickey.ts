@@ -20,9 +20,7 @@ import {
   Base64URLString,
   RegistrationCredential,
   AuthenticationCredential,
-  PublicKeyCredentialCreationOptions,
   PublicKeyCredentialCreationOptionsJSON,
-  PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/server';
 import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';

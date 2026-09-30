@@ -21,7 +21,7 @@
     "build": "npm run clean && npm run build:client && npm run build:server && npm run docs:build",
     "build:client": "npx rsbuild build",
     "build:server": "node esbuild.config.mjs",
-    "check": "npm run format:check && npm run lint && npm run test:coverage && npm run build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build",
     "clean": "rimraf ./dist",
     "deploy": "CLOUDSDK_CORE_PROJECT=project-sesame-426206 gcloud app deploy staging.yaml",
     "deploy:idp": "CLOUDSDK_CORE_PROJECT=sesame-identity-provider gcloud app deploy idp.yaml",
@@ -46,7 +46,8 @@
     "start": "node --enable-source-maps dist/server/app.js",
     "test": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest\"",
     "test:coverage": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run --coverage\"",
-    "test:run": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run\""
+    "test:run": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json"
   },
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
