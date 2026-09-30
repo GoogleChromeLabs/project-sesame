@@ -38,7 +38,7 @@ EVP allows browsers to securely share cryptographically verified email addresses
 - **Verify your email:**
   Click the **Continue** button. The browser retrieves a signed Email Verification Token (EVT) from the email provider and supplies it to the page, and the server verifies it instantly.
 - **Create a passkey:**
-  Once your email is verified, click **Create a passkey** and complete the browser prompt. The account is created only after the passkey is registered, and you'll be signed in and taken to the home page.
+  Once your email is verified, you're taken to the next page. Click **Create a passkey** there and complete the browser prompt. The account is created only after the passkey is registered, and you'll be signed in and taken to the home page.
 - **Observe the console:** Open your browser's Developer Tools (Console tab) to inspect the step-by-step cryptographic verification trace and data outputs in real time.
 - **Fallback to a one-time code:** If you type an email address manually (or decline the browser prompt), the browser won't supply a token, and the page falls back to a traditional 6-digit verification code. **This demo doesn't send any email, so any 6 digits will be accepted.** You then continue to passkey creation as usual.
 - **Try it again:** Each email address can be registered only once. To repeat the demo with the same address, delete the account from **Settings** first, and remove the passkey from your password manager.

@@ -316,6 +316,16 @@ app.get(
 );
 
 app.get(
+  '/new-passkey',
+  pageAclCheck(PageType.SigningUp),
+  (req: Request, res: Response): void => {
+    res.render('new-passkey.html', {
+      title: 'Create a passkey',
+    });
+  }
+);
+
+app.get(
   '/password',
   pageAclCheck(PageType.FirstCredential),
   (req: Request, res: Response): void => {

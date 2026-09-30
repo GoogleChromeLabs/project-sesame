@@ -41,6 +41,7 @@
     "/signin-form",
     "/automatic-passkey-creation",
     "/new-password",
+    "/new-passkey",
     "/password",
     "/password-reauth",
     "/passkey-reauth",

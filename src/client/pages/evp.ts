@@ -17,16 +17,6 @@
 
 import '~project-sesame/client/layout';
 import {$, post, redirect, toast} from '~project-sesame/client/helpers/index';
-import {
-  capabilities,
-  registerCredential,
-} from '~project-sesame/client/helpers/publickey';
-
-/**
- * How the email address was verified. Shown to the user on the passkey step so
- * the difference between the instant EVP path and the fallback is visible.
- */
-type VerificationMethod = 'evp' | 'otp';
 
 /**
  * A single step in the server-side verification trace returned by
@@ -51,7 +41,8 @@ function errorMessage(error: any, fallback: string): string {
 }
 
 /**
- * Wires up the three sign-up steps and restores the EVP nonce attribute.
+ * Wires up the email and one-time code steps and restores the EVP nonce
+ * attribute.
  */
 function initPage(): void {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
@@ -67,13 +58,6 @@ function initPage(): void {
   const otpSubmitBtn = $('#otp-submit-btn') as HTMLButtonElement;
   const otpCancelBtn = $('#otp-cancel-btn') as HTMLElement;
 
-  const passkeyContainer = $('#passkey-container') as HTMLDivElement;
-  const verifiedEmailText = $('#verified-email-text') as HTMLSpanElement;
-  const verificationMethodText = $(
-    '#verification-method-text'
-  ) as HTMLSpanElement;
-  const createPasskeyBtn = $('#create-passkey-btn') as HTMLButtonElement;
-
   // Restore the `nonce` content attribute. Because this page is served with a
   // CSP header, the browser's nonce hiding blanks `nonce` to "" when the
   // element is inserted (the value survives only in the `.nonce` IDL
@@ -87,24 +71,12 @@ function initPage(): void {
   }
 
   /**
-   * Moves the UI to the final step, where the user creates a passkey. The
-   * server has already put the session into the sign-up state for `email`.
-   *
-   * @param email - The verified email address.
-   * @param method - How the address was verified.
+   * Moves on to the second step, where the user creates a passkey. The server
+   * has already put the session into the sign-up state for the verified email
+   * address, which `/new-passkey` requires.
    */
-  function showPasskeyStep(email: string, method: VerificationMethod): void {
-    emailFormContainer.classList.add('hidden');
-    otpFallbackContainer.classList.add('hidden');
-    verifiedEmailText.innerText = email;
-    verificationMethodText.innerText =
-      method === 'evp'
-        ? 'instantly with the Email Verification Protocol'
-        : 'with a one-time code';
-    passkeyContainer.classList.remove('hidden');
-    console.info(
-      `Email verified via ${method.toUpperCase()}. Ready to create a passkey for ${email}.`
-    );
+  async function goToPasskeyStep(): Promise<void> {
+    await redirect('/new-passkey');
   }
 
   // Step 1: Submit the email. Use the EVP token if the browser supplied one.
@@ -140,9 +112,9 @@ function initPage(): void {
 
       if (result.success) {
         console.info(
-          'Verification succeeded! Email ownership cryptographically verified.'
+          `Verification succeeded! Ownership of ${result.verifiedEmail || email} cryptographically verified.`
         );
-        showPasskeyStep(result.verifiedEmail || email, 'evp');
+        await goToPasskeyStep();
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
@@ -173,8 +145,10 @@ function initPage(): void {
 
     try {
       const result = await post('/evp/otp', {email, otp});
-      console.info('One-time code accepted (simulated).');
-      showPasskeyStep(result.verifiedEmail || email, 'otp');
+      console.info(
+        `One-time code accepted (simulated) for ${result.verifiedEmail || email}.`
+      );
+      await goToPasskeyStep();
     } catch (e: any) {
       const message = errorMessage(e, 'Failed to verify the code.');
       console.error(`OTP verification failed: ${message}`);
@@ -189,35 +163,6 @@ function initPage(): void {
     otpFallbackContainer.classList.add('hidden');
     emailFormContainer.classList.remove('hidden');
     console.info('Returned to email registration screen.');
-  });
-
-  // Step 3: Create a passkey. The server creates the account once the passkey
-  // is registered, and signs the user in.
-  createPasskeyBtn.addEventListener('click', async () => {
-    createPasskeyBtn.disabled = true;
-    // Registration requests a platform authenticator by default. If none is
-    // available, allow any authenticator (a security key or a phone) instead
-    // so the sign-up can still complete without a password.
-    const nonPlatform = !capabilities?.userVerifyingPlatformAuthenticator;
-
-    try {
-      await registerCredential(nonPlatform);
-      console.info('Passkey created. The account is ready.');
-      await redirect('/home');
-    } catch (e: any) {
-      createPasskeyBtn.disabled = false;
-      if (e?.name === 'InvalidStateError') {
-        // A passkey for this account already exists on the authenticator.
-        toast('A passkey already exists for this device.');
-      } else if (e?.name === 'NotAllowedError') {
-        // The user dismissed the passkey dialog. Let them try again.
-        toast('Passkey creation was canceled. Try again when you are ready.');
-      } else {
-        const message = errorMessage(e, 'Failed to create a passkey.');
-        console.error(e);
-        toast(message);
-      }
-    }
   });
 
   /* Console Printing Helpers */
@@ -295,9 +240,9 @@ function initPage(): void {
   }
 }
 
-// Importing helpers/publickey (which uses top-level await) turns this file
-// into an async module that can evaluate after DOMContentLoaded has fired.
-// Run the initializer immediately if the DOM is already parsed.
+// This module may evaluate after DOMContentLoaded has fired (e.g. if any
+// imported module uses top-level await), so run the initializer immediately
+// when the DOM is already parsed.
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initPage);
 } else {
