@@ -316,6 +316,27 @@ app.get(
 );
 
 app.get(
+  '/one-time-code',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    // Signed-in users have no need to verify an email address to sign up.
+    if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+      return res.redirect(307, '/home');
+    }
+    // This page only makes sense after `POST /evp/otp/request` stored the
+    // claimed address. Send anyone who lands here directly back to the start.
+    const email = new SessionService(req.session).getPendingEmail();
+    if (!email) {
+      return res.redirect(307, '/evp');
+    }
+    res.render('one-time-code.html', {
+      title: 'Enter the code',
+      email,
+    });
+  }
+);
+
+app.get(
   '/new-passkey',
   pageAclCheck(PageType.SigningUp),
   (req: Request, res: Response): void => {

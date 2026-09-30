@@ -588,9 +588,44 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.error, 'Invalid XHR request.');
   });
 
-  test('POST /evp/otp accepts a 6-digit code and starts sign-up', async () => {
+  test('POST /evp/otp/request stores the normalized email as pending', async () => {
+    const res = await postJson('/evp/otp/request', {
+      email: ' Someone@Example.com ',
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(mockSession.pending_email, 'someone@example.com');
+    assert.strictEqual(mockSession.signup_user, undefined);
+  });
+
+  test('POST /evp/otp/request requires the page challenge', async () => {
+    delete mockSession.challenge;
+
+    const res = await postJson('/evp/otp/request', {
+      email: 'someone@example.com',
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.ok(body.error.includes('Reload the page'));
+    assert.strictEqual(mockSession.pending_email, undefined);
+  });
+
+  test('POST /evp/otp/request rejects an invalid email address', async () => {
+    const res = await postJson('/evp/otp/request', {email: 'not-an-email'});
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(mockSession.pending_email, undefined);
+  });
+
+  test('POST /evp/otp accepts a 6-digit code for the pending email', async () => {
+    mockSession.pending_email = 'someone@example.com';
+
     const res = await postJson('/evp/otp', {
-      email: 'Someone@Example.com',
+      // A client-supplied address must be ignored.
+      email: 'attacker@example.com',
       otp: '123456',
     });
 
@@ -600,22 +635,21 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.verifiedEmail, 'someone@example.com');
     assert.strictEqual(mockSession.signup_user.username, 'someone@example.com');
     assert.ok(mockSession.signup_user.passkeyUserId);
+    assert.strictEqual(mockSession.pending_email, undefined);
     assert.strictEqual(mockSession.challenge, undefined);
   });
 
   test('POST /evp/otp rejects a malformed code', async () => {
-    const res = await postJson('/evp/otp', {
-      email: 'someone@example.com',
-      otp: '12ab',
-    });
+    mockSession.pending_email = 'someone@example.com';
+
+    const res = await postJson('/evp/otp', {otp: '12ab'});
 
     assert.strictEqual(res.status, 400);
     assert.strictEqual(mockSession.signup_user, undefined);
+    assert.strictEqual(mockSession.pending_email, 'someone@example.com');
   });
 
-  test('POST /evp/otp requires the page challenge', async () => {
-    delete mockSession.challenge;
-
+  test('POST /evp/otp requires a pending email', async () => {
     const res = await postJson('/evp/otp', {
       email: 'someone@example.com',
       otp: '123456',
@@ -623,17 +657,7 @@ describe('EVP Middlewares', () => {
 
     assert.strictEqual(res.status, 400);
     const body = (await res.json()) as any;
-    assert.ok(body.error.includes('Reload the page'));
-    assert.strictEqual(mockSession.signup_user, undefined);
-  });
-
-  test('POST /evp/otp rejects an invalid email address', async () => {
-    const res = await postJson('/evp/otp', {
-      email: 'not-an-email',
-      otp: '123456',
-    });
-
-    assert.strictEqual(res.status, 400);
+    assert.ok(body.error.includes('Start over'));
     assert.strictEqual(mockSession.signup_user, undefined);
   });
 });

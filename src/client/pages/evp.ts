@@ -41,22 +41,13 @@ function errorMessage(error: any, fallback: string): string {
 }
 
 /**
- * Wires up the email and one-time code steps and restores the EVP nonce
- * attribute.
+ * Wires up the email step and restores the EVP nonce attribute.
  */
 function initPage(): void {
-  const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
   const emailInput = $('#email') as HTMLInputElement;
   const tokenInput = $('#evt') as HTMLInputElement;
   const submitBtn = $('#submit-btn') as HTMLButtonElement;
-
-  const otpFallbackContainer = $('#otp-fallback-container') as HTMLDivElement;
-  const fallbackEmailDisplay = $('#fallback-email-display') as HTMLSpanElement;
-  const otpForm = $('#otp-form') as HTMLFormElement;
-  const otpInput = $('#otp') as HTMLInputElement;
-  const otpSubmitBtn = $('#otp-submit-btn') as HTMLButtonElement;
-  const otpCancelBtn = $('#otp-cancel-btn') as HTMLElement;
 
   // Restore the `nonce` content attribute. Because this page is served with a
   // CSP header, the browser's nonce hiding blanks `nonce` to "" when the
@@ -70,16 +61,8 @@ function initPage(): void {
     console.info(`Local session challenge (nonce) bound to input: ${nonce}`);
   }
 
-  /**
-   * Moves on to the second step, where the user creates a passkey. The server
-   * has already put the session into the sign-up state for the verified email
-   * address, which `/new-passkey` requires.
-   */
-  async function goToPasskeyStep(): Promise<void> {
-    await redirect('/new-passkey');
-  }
-
-  // Step 1: Submit the email. Use the EVP token if the browser supplied one.
+  // Submit the email. Use the EVP token if the browser supplied one, and fall
+  // back to a one-time code otherwise.
   evpForm.addEventListener('submit', async event => {
     event.preventDefault();
 
@@ -87,26 +70,25 @@ function initPage(): void {
     const evt = tokenInput.value.trim();
 
     console.info('Form submitted. Checking for browser-populated EVP token...');
-
-    if (!evt) {
-      console.warn(
-        'EVP token NOT found in hidden input. Falling back to OTP flow.'
-      );
-
-      emailFormContainer.classList.add('hidden');
-      otpFallbackContainer.classList.remove('hidden');
-      fallbackEmailDisplay.innerText = email;
-      printFallbackTraceToConsole(email);
-      return;
-    }
-
-    console.info(
-      'EVP token found! Initiating server-side cryptographic verification...'
-    );
-    console.log(`Token: ${evt}`);
     submitBtn.disabled = true;
 
     try {
+      if (!evt) {
+        console.warn(
+          'EVP token NOT found in hidden input. Falling back to OTP flow.'
+        );
+        // The server keeps the address as pending, and `/one-time-code`
+        // verifies that address rather than one sent by the client.
+        await post('/evp/otp/request', {email});
+        await redirect('/one-time-code');
+        return;
+      }
+
+      console.info(
+        'EVP token found! Initiating server-side cryptographic verification...'
+      );
+      console.log(`Token: ${evt}`);
+
       const result = await post('/evp/verify', {email, evt});
       printTraceToConsole(result.steps);
 
@@ -114,7 +96,9 @@ function initPage(): void {
         console.info(
           `Verification succeeded! Ownership of ${result.verifiedEmail || email} cryptographically verified.`
         );
-        await goToPasskeyStep();
+        // The server has put the session into the sign-up state for the
+        // verified address, which `/new-passkey` requires.
+        await redirect('/new-passkey');
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
@@ -126,43 +110,6 @@ function initPage(): void {
     } finally {
       submitBtn.disabled = false;
     }
-  });
-
-  // Step 2 (fallback): Verify the simulated one-time code on the server.
-  otpForm.addEventListener('submit', async event => {
-    event.preventDefault();
-    const email = emailInput.value.trim();
-    const otp = otpInput.value.trim();
-
-    if (!/^\d{6}$/.test(otp)) {
-      console.error('Invalid OTP format. Must be a 6-digit number.');
-      toast('Enter the 6-digit code.');
-      return;
-    }
-
-    console.info(`Submitting simulated one-time code: ${otp}...`);
-    otpSubmitBtn.disabled = true;
-
-    try {
-      const result = await post('/evp/otp', {email, otp});
-      console.info(
-        `One-time code accepted (simulated) for ${result.verifiedEmail || email}.`
-      );
-      await goToPasskeyStep();
-    } catch (e: any) {
-      const message = errorMessage(e, 'Failed to verify the code.');
-      console.error(`OTP verification failed: ${message}`);
-      toast(message);
-    } finally {
-      otpSubmitBtn.disabled = false;
-    }
-  });
-
-  // Return from the one-time code step to the email step.
-  otpCancelBtn.addEventListener('click', () => {
-    otpFallbackContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
-    console.info('Returned to email registration screen.');
   });
 
   /* Console Printing Helpers */
@@ -217,25 +164,6 @@ function initPage(): void {
       console.log('Outputs:', stepData.outputs);
       console.groupEnd();
     });
-    console.groupEnd();
-  }
-
-  function printFallbackTraceToConsole(email: string) {
-    console.group(
-      '%cEVP Verification Fallback Trace',
-      'font-weight: bold; font-size: 13px; color: #c5221f;'
-    );
-    console.groupCollapsed('Step 1: EVP Token Check [FAILED]');
-    console.log(
-      'Description: The browser did not populate the email-verification-token hidden input. This happens when the user types the email manually, declines permission, or uses a browser/domain that does not support EVP.'
-    );
-    console.groupEnd();
-
-    console.groupCollapsed('Step 2: OTP Fallback [TRIGGERED]');
-    console.log(
-      `Description: A real site would email a 6-digit code to ${email}. This demo sends nothing, and the server accepts any 6-digit code.`
-    );
-    console.groupEnd();
     console.groupEnd();
   }
 }

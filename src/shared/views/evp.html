@@ -52,32 +52,4 @@
       </p>
     </form>
   </div>
-
-  <!-- Step 2 (fallback): Simulated one-time code when no EVP token is available. -->
-  <div id="otp-fallback-container" class="hidden">
-    <form id="otp-form" class="center">
-      <p class="instructions">
-        We couldn't verify <strong id="fallback-email-display"></strong> instantly,
-        so we'd normally email you a 6-digit code instead.
-        <strong>This demo doesn't send any email: enter any 6 digits to continue.</strong>
-      </p>
-
-      <mdui-text-field
-        type="text"
-        id="otp"
-        name="otp"
-        inputmode="numeric"
-        autocomplete="one-time-code"
-        pattern="[0-9]{6}"
-        maxlength="6"
-        label="One-time code"
-        variant="outlined"
-        required
-      >
-      </mdui-text-field>
-
-      <mdui-button type="submit" variant="filled" id="otp-submit-btn">Verify code</mdui-button>
-      <mdui-button type="button" variant="text" id="otp-cancel-btn">Cancel</mdui-button>
-    </form>
-  </div>
 </main>

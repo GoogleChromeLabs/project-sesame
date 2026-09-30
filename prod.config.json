@@ -42,6 +42,7 @@
     "/automatic-passkey-creation",
     "/new-password",
     "/new-passkey",
+    "/one-time-code",
     "/password",
     "/password-reauth",
     "/passkey-reauth",

@@ -465,26 +465,22 @@ router.post(
 );
 
 /**
- * Verifies a one-time code as the fallback when the browser didn't supply an
- * Email Verification Token, then starts a passwordless sign-up.
+ * Starts the one-time code fallback when the browser didn't supply an Email
+ * Verification Token. The claimed address is kept in the session as pending
+ * so that the `/one-time-code` page and `POST /evp/otp` can verify it without
+ * trusting the client to send it again.
  *
- * SIMULATED: this demo doesn't send any email, so any 6-digit code is
- * accepted. A real implementation must generate a random code on the server,
- * deliver it to the address, store it with a short expiry, compare it here,
- * and rate-limit attempts.
+ * SIMULATED: this demo doesn't send any email. A real implementation must
+ * generate a random code here, deliver it to the address, and store it with a
+ * short expiry.
  */
 router.post(
-  '/otp',
+  '/otp/request',
   apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response): Promise<void> => {
-    const {email, otp} = req.body;
-
-    if (typeof email !== 'string' || typeof otp !== 'string') {
-      res.status(400).json({error: 'Missing email or one-time code.'});
-      return;
-    }
-
+  (req: Request, res: Response): void => {
+    const {email} = req.body;
     const sessionService = new SessionService(req.session);
+
     // Require the challenge set by the sign-up page so that this endpoint is
     // only reachable from a freshly loaded page in the same session.
     if (!sessionService.getChallenge()) {
@@ -494,13 +490,51 @@ router.post(
       return;
     }
 
-    if (!/^\d{6}$/.test(otp.trim())) {
+    const normalized =
+      typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!isPlausibleEmail(normalized) || !Users.isValidUsername(normalized)) {
+      res.status(400).json({error: 'Enter a valid email address.'});
+      return;
+    }
+
+    sessionService.setPendingEmail(normalized);
+    res.json({success: true});
+  }
+);
+
+/**
+ * Verifies the one-time code for the pending email address, then starts a
+ * passwordless sign-up.
+ *
+ * SIMULATED: this demo doesn't send any email, so any 6-digit code is
+ * accepted. A real implementation must compare the code with the one stored
+ * by `POST /evp/otp/request`, honor its expiry, and rate-limit attempts.
+ */
+router.post(
+  '/otp',
+  apiAclCheck(ApiType.NoAuth),
+  async (req: Request, res: Response): Promise<void> => {
+    const {otp} = req.body;
+    const sessionService = new SessionService(req.session);
+
+    // Verify only the address stored by `POST /evp/otp/request`. Never take
+    // it from the request body.
+    const email = sessionService.getPendingEmail();
+    if (!email) {
+      res.status(400).json({
+        error: 'No email address is waiting for verification. Start over.',
+      });
+      return;
+    }
+
+    if (typeof otp !== 'string' || !/^\d{6}$/.test(otp.trim())) {
       res.status(400).json({error: 'Enter the 6-digit code.'});
       return;
     }
 
     try {
       const verifiedEmail = await startPasskeySignUp(req.session, email);
+      // The EVP nonce is no longer needed once the address is verified.
       sessionService.deleteChallenge();
       res.json({success: true, verifiedEmail});
     } catch (error: any) {
