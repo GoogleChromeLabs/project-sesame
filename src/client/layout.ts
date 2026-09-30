@@ -35,3 +35,8 @@ import 'mdui/components/checkbox.js';
 import 'mdui/components/snackbar.js';
 import 'mdui/components/linear-progress.js';
 import 'mdui/components/icon.js';
+import 'mdui/components/card.js';
+import 'mdui/components/avatar.js';
+import 'mdui/components/dropdown.js';
+import 'mdui/components/menu.js';
+import 'mdui/components/menu-item.js';

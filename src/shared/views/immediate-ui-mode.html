@@ -13,14 +13,70 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<main class="content center">
-  <h2>Choose your account to sign in</h2>
-  <section class="center">
-    <mdui-button id="signin" type="button" variant="filled"
-      >Sign-in</mdui-button
-    >
-    <mdui-button href="/passkey-form-autofill" variant="text"
-      >Sign in with a form instead</mdui-button
-    >
+{{#*inline "productCard"}}
+<mdui-card class="product-card" variant="outlined">
+  <img
+    class="product-image"
+    src="{{productImage}}"
+    alt="{{productName}}"
+    width="400"
+    height="300">
+  <div class="product-summary">
+    <span>{{productName}}</span>
+    <strong>{{productPrice}}</strong>
+  </div>
+  <div class="product-actions">
+    <mdui-button-icon
+      class="favorite-button"
+      variant="outlined"
+      icon="favorite_border--outlined"
+      selected-icon="favorite--outlined"
+      aria-label="Favorite {{productName}}"></mdui-button-icon>
+    <mdui-button class="add-to-cart" variant="filled">Add to cart</mdui-button>
+  </div>
+</mdui-card>
+{{/inline}}
+<main
+  id="shop"
+  class="content shop"
+  data-signed-in="{{#if (isSignedIn)}}true{{else}}false{{/if}}">
+  <h2>Sneakers</h2>
+  <section id="product-grid" class="product-grid">
+    {{> productCard
+      productName="Multicolor Sneakers"
+      productPrice="$149.99"
+      productImage="/images/shop/multicolor-sneakers.png"}}
+    {{> productCard
+      productName="Casual Beige Shoes"
+      productPrice="$89.99"
+      productImage="/images/shop/casual-beige-shoes.png"}}
+    {{> productCard
+      productName="Green Comfy Shoes"
+      productPrice="$119.99"
+      productImage="/images/shop/green-comfy-shoes.png"}}
+    {{> productCard
+      productName="Classic White Runners"
+      productPrice="$129.99"
+      productImage="/images/shop/casual-beige-shoes.png"}}
+    {{> productCard
+      productName="Retro High Tops"
+      productPrice="$159.99"
+      productImage="/images/shop/multicolor-sneakers.png"}}
+    {{> productCard
+      productName="Urban Street Sneakers"
+      productPrice="$109.99"
+      productImage="/images/shop/green-comfy-shoes.png"}}
+    {{> productCard
+      productName="Lightweight Trainers"
+      productPrice="$99.99"
+      productImage="/images/shop/green-comfy-shoes.png"}}
+    {{> productCard
+      productName="Midnight Black Kicks"
+      productPrice="$139.99"
+      productImage="/images/shop/multicolor-sneakers.png"}}
+    {{> productCard
+      productName="Sporty Slip-Ons"
+      productPrice="$79.99"
+      productImage="/images/shop/casual-beige-shoes.png"}}
   </section>
 </main>

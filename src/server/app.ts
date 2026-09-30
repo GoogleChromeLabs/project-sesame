@@ -450,10 +450,11 @@ app.get(
 
 app.get(
   '/immediate-ui-mode',
-  pageAclCheck(PageType.SignIn),
+  pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
     res.render('immediate-ui-mode.html', {
-      title: 'Credential Manager for the Web',
+      title: 'Immediate UI mode',
+      hide_drawer: true,
     });
   }
 );

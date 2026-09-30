@@ -15,67 +15,72 @@
  * limitations under the License
  */
 
-import '../layout';
-import {$, loading, redirect, toast} from '../helpers/index';
-import {capabilities, authenticate} from '../helpers/unified';
+import '~project-sesame/client/layout';
+import {ButtonIcon} from 'mdui/components/button-icon';
+import {
+  $,
+  loading,
+  redirect,
+  toast,
+} from '~project-sesame/client/helpers/index';
+import {
+  capabilities,
+  authenticate,
+} from '~project-sesame/client/helpers/unified';
 
-if (
-  //@ts-ignore
-  window.PasswordCredential &&
+const shop = $('#shop') as HTMLElement;
+let isSignedIn = shop.dataset.signedIn === 'true';
+
+const isImmediateSupported = Boolean(
+  'PasswordCredential' in window &&
   window.PublicKeyCredential &&
-  // @ts-ignore
-  // window.IdentityCredential &&
-  capabilities.immediateGet
-) {
-  $('#signin').addEventListener(
-    'click',
-    async (e: {target: HTMLButtonElement}) => {
-      try {
-        loading.start();
-        const user = await authenticate({ui_mode: 'immediate'});
-        if (user) {
-          await redirect('/home');
-        } else {
-          throw new Error('User is not found.');
-        }
-      } catch (error: any) {
-        loading.stop();
-        console.error(error);
-        // TODO: When the user is in Incognito mode, the browser should throw an
-        // `NotFoundError`. However, since it doesn't support `immediateGet`
-        // anyway, we neglect to catch it yet.
-        if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-          toast(error.message);
-        }
-      }
-    }
-  );
-} else {
-  toast(
-    "WebAuthn isn't supported on this browser. Redirecting to a passkey autofill form."
-  );
-  await redirect('/passkey-form-autofill', 3000);
-}
+  capabilities?.immediateGet
+);
 
-// // Feature detection: check if WebAuthn and conditional UI are supported.
-// if (capabilities?.conditionalGet) {
-//   try {
-//     // If a conditional UI is supported, invoke the conditional `authenticate()` immediately.
-//     const user = await authenticate('conditional');
-//     if (user) {
-//       // When the user is signed in, redirect to the home page.
-//       $('#username').value = user.username;
-//       loading.start();
-//       await redirect('/home');
-//     } else {
-//       throw new Error('User not found.');
-//     }
-//   } catch (error: any) {
-//     loading.stop();
-//     console.error(error);
-//     // `NotAllowedError` indicates a user cancellation.
-//     if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-//       toast(error.message);
-//     }
-//   }
-// }
+$('#product-grid').addEventListener('click', async (e: MouseEvent) => {
+  if (!(e.target instanceof Element)) return;
+  const button = e.target.closest<ButtonIcon>('.favorite-button');
+  if (!button) return;
+
+  if (isSignedIn) {
+    button.selected = !button.selected;
+    toast(
+      button.selected
+        ? 'Item added to favorites'
+        : 'Item removed from favorites'
+    );
+    return;
+  }
+
+  if (!isImmediateSupported) {
+    await redirect('/passkey-form-autofill?r=/immediate-ui-mode');
+    return;
+  }
+
+  try {
+    loading.start();
+    const user = await authenticate({ui_mode: 'immediate'});
+    loading.stop();
+    if (user && typeof user === 'object') {
+      isSignedIn = true;
+      shop.dataset.signedIn = 'true';
+      $('#signin').hidden = true;
+      $('#signout').hidden = false;
+      if ('picture' in user && user.picture) {
+        $('#account-avatar').src = user.picture;
+      }
+      button.selected = true;
+      toast('Signed in and added item to favorites');
+    } else {
+      throw new Error('User is not found.');
+    }
+  } catch (error: any) {
+    loading.stop();
+    console.error(error);
+    if (error.name === 'NotAllowedError') {
+      await redirect('/passkey-form-autofill?r=/immediate-ui-mode');
+    } else if (error.name !== 'AbortError') {
+      toast(error.message);
+    }
+  }
+});

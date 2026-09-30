@@ -269,9 +269,14 @@ export function initializeSession() {
     cookie: {
       path: '/',
       httpOnly: true,
-      sameSite: 'none',
-      partitioned: true,
-      secure: !config.is_localhost, // `false` on localhost
+      // In local HTTP development (npm run dev), express-session suppresses
+      // Set-Cookie if `secure: true` over unencrypted HTTP. At the same time,
+      // Chrome rejects `SameSite=None` or `Partitioned` cookies that lack
+      // `Secure`. Using `SameSite=Lax` and disabling `Partitioned` on localhost
+      // satisfies both express-session and browser security requirements.
+      sameSite: config.is_localhost ? 'lax' : 'none',
+      partitioned: !config.is_localhost,
+      secure: !config.is_localhost,
       maxAge: config.long_session_duration,
     },
   });
@@ -344,7 +349,16 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
     const sessionService = new SessionService(req.session);
 
     // 2. Enforce state transitions based on the requested PageType ACL
-    if (pageType === PageType.SignUp) {
+    if (pageType === PageType.NoAuth) {
+      if (
+        signin_status === UserSignInStatus.SigningUp ||
+        signin_status === UserSignInStatus.SigningIn
+      ) {
+        sessionService.resetSigningUp();
+        sessionService.resetSigningIn();
+        res.locals.signin_status = getSignInStatus(req, res);
+      }
+    } else if (pageType === PageType.SignUp) {
       // Clear any stale sign-up flow state.
       sessionService.resetSigningUp();
       // Signed-in users have no need to sign up again; redirect them to home.
