@@ -129,18 +129,21 @@ export function compareUrls(url1?: string, url2?: string): boolean {
  *
  * Allowlisted patterns:
  * - `localhost` and `*.localhost`
- * - Google CloudTop and internal development proxy domains (`*.corp.google.com`, `*.c.googlers.com`, `*.googlers.com`, `*.google.com`)
+ * - Additional development hostnames or domain suffixes configured via the
+ *   comma-separated `ALLOWED_DEV_HOSTS` environment variable (e.g. `dev.example.com,.proxy.example.org`)
  * - App Engine default and PR preview domains for the current project:
  *   `<project>.appspot.com`, `<version>-dot-<project>.appspot.com`,
  *   `<project>.<region>.r.appspot.com`, `<version>-dot-<project>.<region>.r.appspot.com`
  *
  * @param hostname - The lowercase hostname extracted from the HTTP request.
  * @param projectName - The configured Google Cloud project ID.
+ * @param allowedDevHosts - Optional comma-separated list of allowed dev hostnames/suffixes (defaults to `process.env.ALLOWED_DEV_HOSTS`).
  * @returns `true` if the hostname is safe to use dynamically.
  */
 export function isAllowedDynamicHostname(
   hostname: string,
-  projectName: string
+  projectName: string,
+  allowedDevHosts: string | undefined = process.env.ALLOWED_DEV_HOSTS
 ): boolean {
   const normalized = hostname.toLowerCase();
 
@@ -148,13 +151,21 @@ export function isAllowedDynamicHostname(
     return true;
   }
 
-  if (
-    normalized.endsWith('.corp.google.com') ||
-    normalized.endsWith('.c.googlers.com') ||
-    normalized.endsWith('.googlers.com') ||
-    normalized.endsWith('.google.com')
-  ) {
-    return true;
+  if (allowedDevHosts) {
+    const entries = allowedDevHosts
+      .split(',')
+      .map(entry => entry.trim().toLowerCase())
+      .filter(Boolean);
+
+    for (const entry of entries) {
+      const domain = entry.startsWith('.') ? entry.slice(1) : entry;
+      if (
+        domain &&
+        (normalized === domain || normalized.endsWith(`.${domain}`))
+      ) {
+        return true;
+      }
+    }
   }
 
   const normalizedProject = projectName.toLowerCase();
@@ -219,8 +230,8 @@ export interface RpConfigOptions {
  *
  * In production (`is_prod: true`), this always returns the static configuration
  * values to strictly enforce the canonical production domain.
- * In non-production environments (local development, CloudTop proxies, and
- * App Engine PR preview deployments), it dynamically derives the RP ID and
+ * In non-production environments (local development, custom development proxies,
+ * and App Engine PR preview deployments), it dynamically derives the RP ID and
  * origin from the request host header if it matches an allowlisted domain
  * pattern.
  *

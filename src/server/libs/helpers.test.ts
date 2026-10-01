@@ -80,19 +80,33 @@ describe('isAllowedDynamicHostname', () => {
     );
   });
 
-  it('should allow CloudTop and Google internal proxy domains', () => {
-    assert.strictEqual(
-      isAllowedDynamicHostname('agektmr2.c.googlers.com', project),
-      true
-    );
-    assert.strictEqual(
-      isAllowedDynamicHostname('8080-agektmr2.corp.google.com', project),
-      true
-    );
-    assert.strictEqual(
-      isAllowedDynamicHostname('preview.google.com', project),
-      true
-    );
+  it('should allow custom development host suffixes from ALLOWED_DEV_HOSTS', () => {
+    const originalEnv = process.env.ALLOWED_DEV_HOSTS;
+    try {
+      process.env.ALLOWED_DEV_HOSTS = 'dev.example.com, .proxy.example.org';
+      assert.strictEqual(
+        isAllowedDynamicHostname('dev.example.com', project),
+        true
+      );
+      assert.strictEqual(
+        isAllowedDynamicHostname('8080.dev.example.com', project),
+        true
+      );
+      assert.strictEqual(
+        isAllowedDynamicHostname('workstation.proxy.example.org', project),
+        true
+      );
+      assert.strictEqual(
+        isAllowedDynamicHostname('evil-dev.example.com', project),
+        false
+      );
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.ALLOWED_DEV_HOSTS;
+      } else {
+        process.env.ALLOWED_DEV_HOSTS = originalEnv;
+      }
+    }
   });
 
   it('should allow App Engine default, regional, and PR preview domains for the project', () => {
@@ -222,28 +236,34 @@ describe('getRequestContext', () => {
     assert.ok(ctx.associatedOrigins.includes('android:apk-key-hash:test'));
   });
 
-  it('should dynamically resolve CloudTop proxy domain from x-forwarded-host with port', () => {
-    const ctx = getRequestContext(
-      {
-        headers: {
-          'x-forwarded-host': 'agektmr2.c.googlers.com:8443',
-          host: 'localhost:8080',
+  it('should dynamically resolve allowed dev proxy domain from x-forwarded-host with port', () => {
+    const originalEnv = process.env.ALLOWED_DEV_HOSTS;
+    try {
+      process.env.ALLOWED_DEV_HOSTS = 'dev.example.com';
+      const ctx = getRequestContext(
+        {
+          headers: {
+            'x-forwarded-host': 'dev.example.com:8443',
+            host: 'localhost:8080',
+          },
+          hostname: 'localhost',
+          secure: false,
+          protocol: 'http',
         },
-        hostname: 'localhost',
-        secure: false,
-        protocol: 'http',
-      },
-      baseCfg
-    );
+        baseCfg
+      );
 
-    assert.strictEqual(ctx.rpId, 'agektmr2.c.googlers.com');
-    assert.strictEqual(ctx.origin, 'https://agektmr2.c.googlers.com:8443');
-    assert.ok(
-      ctx.associatedOrigins.includes('https://agektmr2.c.googlers.com:8443')
-    );
-    assert.ok(
-      ctx.associatedOrigins.includes('https://agektmr2.c.googlers.com')
-    );
+      assert.strictEqual(ctx.rpId, 'dev.example.com');
+      assert.strictEqual(ctx.origin, 'https://dev.example.com:8443');
+      assert.ok(ctx.associatedOrigins.includes('https://dev.example.com:8443'));
+      assert.ok(ctx.associatedOrigins.includes('https://dev.example.com'));
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.ALLOWED_DEV_HOSTS;
+      } else {
+        process.env.ALLOWED_DEV_HOSTS = originalEnv;
+      }
+    }
   });
 
   it('should fall back to static config when Host header is untrusted or malformed', () => {
