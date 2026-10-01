@@ -76,6 +76,7 @@ jobs:
           python3 - << 'EOF'
           import json
           import os
+          import re
           import subprocess
           import sys
           import time
@@ -173,9 +174,41 @@ jobs:
           }
           payload_data = json.dumps(payload).encode("utf-8")
 
-          candidate_models = [model]
-          if model != "gemini-2.5-flash":
-              candidate_models.append("gemini-2.5-flash")
+          # Dynamically discover available stable gemini-*-flash models sorted newest-first
+          discovered_models = []
+          try:
+              list_req = urllib.request.Request(
+                  "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100",
+                  headers={"x-goog-api-key": api_key},
+              )
+              with urllib.request.urlopen(list_req, timeout=30) as list_res:
+                  models_data = json.loads(list_res.read().decode("utf-8"))
+                  for m in models_data.get("models", []):
+                      name = m.get("name", "")
+                      methods = m.get("supportedGenerationMethods", [])
+                      if "generateContent" not in methods:
+                          continue
+                      match = re.match(r"^models/(gemini-(\d+)(?:\.(\d+))?-flash)$", name)
+                      if match:
+                          model_id = match.group(1)
+                          major = int(match.group(2))
+                          minor = int(match.group(3) or 0)
+                          discovered_models.append(((major, minor), model_id))
+              discovered_models.sort(key=lambda x: x[0], reverse=True)
+          except Exception as e:
+              print(f"Warning: ListModels discovery failed ({e}); using static fallbacks.", file=sys.stderr)
+
+          candidate_models = [m_id for _, m_id in discovered_models]
+          for fallback in (
+              "gemini-3.8-flash",
+              "gemini-3.7-flash",
+              "gemini-3.6-flash",
+              "gemini-3.5-flash",
+              model,
+          ):
+              if fallback and fallback not in candidate_models:
+                  candidate_models.append(fallback)
+          print(f"Candidate Gemini Flash models (newest first): {candidate_models}")
 
           review_text = None
           used_model = model
