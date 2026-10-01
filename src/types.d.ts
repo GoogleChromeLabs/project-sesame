@@ -18,7 +18,6 @@ import {
   AttestationFormat,
   AttestationStatement,
   AuthenticatorAttachment,
-  AuthenticatorTransportFuture,
   CredentialDeviceType,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
