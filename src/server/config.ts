@@ -251,6 +251,7 @@ export const config = {
   views_root_file_path: path.join(dist_root_file_path, 'shared', 'views'),
   helps_root_file_path: path.join(dist_root_file_path, 'shared', 'helps'),
   is_localhost,
+  is_prod: env === 'prod',
   port,
   origin,
   hostname,

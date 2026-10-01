@@ -39,6 +39,7 @@ import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import {swaggerSpec} from '~project-sesame/server/swagger.ts';
@@ -46,6 +47,7 @@ import fs from 'node:fs/promises';
 import {marked} from 'marked';
 
 const app = express();
+app.set('trust proxy', true);
 
 app.use((req, res, next) => {
   logContextStorage.run({path: req.path}, () => {
@@ -382,7 +384,8 @@ app.get(
   (req: Request, res: Response): void => {
     const nonce = new SessionService(req.session).setChallenge();
     const iframe_origin = config.primary_idp_origin;
-    const parent_origin = encodeURIComponent(config.origin);
+    const {origin} = getRequestContext(req);
+    const parent_origin = encodeURIComponent(origin);
     return res.render('passkey-iframe.html', {
       title: 'Passkey within iframe',
       nonce,

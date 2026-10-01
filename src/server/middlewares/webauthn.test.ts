@@ -196,6 +196,24 @@ describe('WebAuthn Middlewares', () => {
     );
   });
 
+  test('signinRequest dynamically resolves rpId for App Engine PR preview host', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/webauthn/signinRequest`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Forwarded-Host': 'pr-123-dot-project-sesame-426206.appspot.com',
+        'X-Forwarded-Proto': 'https',
+      },
+    });
+
+    const body = (await res.json()) as {rpId?: string};
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(
+      body.rpId,
+      'pr-123-dot-project-sesame-426206.appspot.com'
+    );
+  });
+
   /**
    * `/webauthn/signinResponse` passes `config.csp.frame_ancestors` as
    * `expectedTopOrigin`, which SimpleWebAuthn v14 enforces for cross-origin
