@@ -14,41 +14,45 @@
  limitations under the License
 -->
 
-## Integrate FedCM active mode
+## Integrating FedCM active mode
 
-To implement a user-initiated federated sign-in flow, you can use FedCM's
-**active mode**. This mode is designed for scenarios where the authentication
-request is triggered by an explicit user gesture, such as clicking a "Sign-in"
-button.
+To implement an explicit, user-initiated federated login flow, you can integrate the [Federated Credential Management (FedCM) API](https://developer.chrome.com/docs/identity/fedcm) in **active mode**.
 
-### Implementation Guide
+Unlike passive mode, active mode is designed for explicit user intent (such as clicking a "Sign in with IdP" button). It presents a prominent modal dialog and enables the browser to handle users who are not yet logged in to the identity provider (IdP).
 
-In active mode, you call `navigator.credentials.get()` and specify `mode:
-'active'` within the `identity` options. Because active mode requires user
-intent, this call must be executed within a user gesture handler (e.g., a button
-click event listener).
+### Implementation guide
+
+To initiate active mode, call `navigator.credentials.get()` with `mode: 'active'` inside a user gesture event listener (such as a button click):
+
+```javascript
+button.addEventListener('click', async () => {
+  const credential = await navigator.credentials.get({
+    identity: {
+      providers: [
+        {
+          configURL: 'https://idp.example/fedcm.json',
+          clientId: 'YOUR_CLIENT_ID',
+        },
+      ],
+      mode: 'active',
+    },
+  });
+  // Send credential.token to the server for verification
+});
+```
 
 ### Best practices checklist
 
-When implementing FedCM active mode, follow the best practices:
+When implementing FedCM active mode, follow these best practices:
 
-- **Graceful degradation:** Always implement a fallback mechanism (such as
-  showing standard sign-in buttons) in case the browser does not support
-  `IdentityCredential` or the passive request is rejected.
-- **User gesture requirement:** Ensure that `navigator.credentials.get()` with
-  `mode: 'active'` is invoked directly inside a user interaction handler (like a
-  `click` event). If called without a user gesture, the browser will reject the
-  request.
-- **Credential verification:** Ensure the returned credential is sent to the
-  backend and verified. Note that as FedCM is protocol agnostic, follow the
-  IdP's instructions on how to verify the credential. If it is built on OpenID
-  Connect, the credential is typically an ID token that can be verified against
-  the IdP's public key.
-- **Provide clear entry points:** Clearly label button UI (e.g., "Sign-in with
-  _IdP_") so the user understands that clicking the button will initiate a
-  federated login flow.
+- **User gesture requirement:** Always invoke `navigator.credentials.get()` with `mode: 'active'` inside a direct user interaction handler (such as a `click` event). Calling active mode without a valid user activation will cause the browser to reject the request.
+- **Signed-out IdP flow (login_url):** Take advantage of active mode's ability to handle signed-out users. When an IdP marks its status as logged-out or returns an empty accounts list, the browser can open the IdP's `login_url` in a secure popup window, allowing the user to sign in to the IdP and seamlessly continue the RP sign-in.
+- **Graceful degradation:** Always provide an alternative sign-in fallback (such as a redirect-based OAuth flow or username/password sign-in) if the browser does not support `IdentityCredential` or if the user cancels the dialog.
+- **Server-side credential verification:** Send the returned identity token to your backend and verify its cryptographic signature, audience (`aud`), issuer (`iss`), and expiration (`exp`) before creating an authenticated session.
+- **Clear button labeling:** Clearly label the button UI (for example, "Sign in with IdP") so users understand that clicking it initiates a federated authentication flow.
 
-### Developer Resources
+### Developer resources
 
 - **Guide:** [Implement an identity solution with FedCM on the Relying Party side](https://developer.chrome.com/docs/identity/fedcm/implement/relying-party) (Chrome Developer)
 - **Guide:** [Implement an identity solution with FedCM on the Identity Provider side](https://developer.chrome.com/docs/identity/fedcm/implement/identity-provider) (Chrome Developer)
+- **Guide:** [FedCM active mode and login status](https://developer.chrome.com/docs/identity/fedcm/active-mode) (Chrome Developer)

@@ -14,28 +14,19 @@
  limitations under the License
 -->
 
-In this page, you can experience and learn FedCM and its "delegation flow". With
-FedCM delegation flow, you can sign up to the website with a verified email
-address.
+## Account creation with FedCM delegation
 
-_The SD JWT is not verified at the moment. The resulting account is static to be
-`me@sgo.to` with name 'Sam Goto'._
+On this page, you can experience account registration using FedCM delegation with Verifiable Credentials.
 
-## Prerequisites
+### What is FedCM delegation
 
-- Chrome desktop 137 or later with the following flags:
-  - "FedCM with delegation support" flag: `chrome://flags/#fedcm-delegation`
-  - "FedCmWithoutWellKnownEnforcement" flag: `chrome://flags/#fedcm-without-well-known-enforcement`
-  - "FedCmMultiIdP" flag: `chrome://flags/#fedcm-multi-idp`
-  - "FedCM with IdP Registration support" flag: `chrome://flags/#fedcm-idp-registration`
-  - "FedCMAutofill" flag: `chrome://flags/#fedcm-autofill`
+Traditional sign-up forms require users to manually type their name, email address, and profile details. With **FedCM delegation**, the relying party requests verified identity attributes directly from an identity provider (IdP) using Verifiable Credentials (such as SD-JWT format).
 
-Last updated: 2025/05/18
+When combined with form autofill (`autocomplete="email webidentity"`), users can select their federated identity directly from the browser's autofill dropdown to instantly populate their registration information.
 
-Just put your cursor on the input field. You should see `me@sgo.to` acount in
-the autofill suggestion. It may take a few seconds for the account to show up.
+### How to test it
 
-By clicking on it, you can sign up to the website using SD JWT that contains a
-verified email address. This means the website doesn't have to send an email to
-the registered email address, the user doesn't have to open it and click a link
-in the email, to verify the email address.
+- **Check browser support:** Ensure you are using a Chromium-based browser with FedCM enabled.
+- **Focus the username field:** Click or tap the username input to trigger browser autofill suggestions showing available identity provider credentials.
+- **Select an identity:** Choose a federated identity from the dropdown to automatically retrieve your verified credentials (such as name, email, and picture).
+- **Manual sign-up:** Alternatively, enter a username and click **Create your account** to proceed through the standard demo registration flow.
