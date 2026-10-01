@@ -52,8 +52,10 @@ jobs:
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
         (
-          contains(github.event.comment.body, '/review') ||
-          contains(github.event.comment.body, '/gemini review')
+          startsWith(github.event.comment.body, '/review') ||
+          startsWith(github.event.comment.body, '/gemini review') ||
+          contains(github.event.comment.body, fromJSON('"\n/review"')) ||
+          contains(github.event.comment.body, fromJSON('"\n/gemini review"'))
         ) &&
         (
           github.event.comment.author_association == 'OWNER' ||
@@ -72,6 +74,7 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
           TRIGGER_COMMENT_ID: ${{ github.event.comment.id || '' }}
+          TRIGGER_COMMENT_BODY: ${{ github.event.comment.body || '' }}
         run: |
           python3 - << 'EOF'
           import json
@@ -97,9 +100,13 @@ jobs:
           pr_number = os.environ["PR_NUMBER"].strip()
           model = os.environ.get("GEMINI_MODEL", "gemini-flash-latest").strip()
           trigger_comment_id = os.environ.get("TRIGGER_COMMENT_ID", "").strip()
+          trigger_comment_body = os.environ.get("TRIGGER_COMMENT_BODY", "")
 
-          # Acknowledge slash-command trigger with an eyes reaction
+          # Ensure slash command is at the start of a line and not a prefix like /reviews
           if trigger_comment_id:
+              if not re.search(r"(?m)^\s*/(?:gemini\s+)?review(?:\s|$)", trigger_comment_body):
+                  print("Comment does not contain a standalone /review or /gemini review command. Skipping.")
+                  sys.exit(0)
               subprocess.run(
                   [
                       "gh",
