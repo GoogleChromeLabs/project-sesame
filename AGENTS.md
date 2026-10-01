@@ -27,7 +27,7 @@ Project Sesame is an open-source demo web application built with Node.js, design
 ## Tech Stack
 
 - **Language**: TypeScript (used seamlessly across client and server).
-- **Runtime**: Node.js (v22+).
+- **Runtime**: Node.js (v24.7+, required by `@simplewebauthn/server` v14 for PQC ML-DSA passkey verification).
 - **Backend**: Express.js (handling routing and middleware), `@simplewebauthn/server` (for server-side Passkey verification).
 - **Database**: Google Cloud Firestore (via `firebase-admin`). Emulated locally via Firebase Emulator Suite. Mock seed data is loaded from and automatically preserved back to `./.data` using emulator import/export flags (`--import=./.data --export-on-exit`).
 - **Session Management**: `express-session` persisted to Firestore using `@google-cloud/connect-firestore`.

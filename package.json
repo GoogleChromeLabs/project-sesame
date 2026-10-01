@@ -108,7 +108,7 @@
     "@types/node": "26.6.3"
   },
   "engines": {
-    "node": ">=22.x"
+    "node": ">=24.7.0"
   },
   "allowScripts": {
     "@scarf/scarf@1.4.0": true,
