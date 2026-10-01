@@ -25,7 +25,7 @@ patterns.
 
 ### Prerequisites
 
-- [Node.js 22+](https://nodejs.org/)
+- [Node.js 24.7+](https://nodejs.org/)
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install)
 - [Java JDK 21+](https://jdk.java.net/)
 
