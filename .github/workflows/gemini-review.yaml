@@ -78,6 +78,7 @@ jobs:
           import os
           import subprocess
           import sys
+          import time
           import urllib.error
           import urllib.request
 
@@ -161,7 +162,6 @@ jobs:
           - If the changes look solid and have no meaningful issues, briefly summarize what the PR does and state "LGTM 👍".
           """
 
-          url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
           payload = {
               "contents": [
                   {
@@ -171,29 +171,57 @@ jobs:
                   }
               ]
           }
+          payload_data = json.dumps(payload).encode("utf-8")
 
-          req = urllib.request.Request(
-              url,
-              data=json.dumps(payload).encode("utf-8"),
-              headers={
-                  "Content-Type": "application/json",
-                  "x-goog-api-key": api_key,
-              },
-          )
+          candidate_models = [model]
+          if model != "gemini-2.5-flash":
+              candidate_models.append("gemini-2.5-flash")
 
-          try:
-              with urllib.request.urlopen(req, timeout=120) as res:
-                  body = json.loads(res.read().decode("utf-8"))
-                  review_text = body["candidates"][0]["content"]["parts"][0]["text"]
-          except urllib.error.HTTPError as e:
-              err_msg = e.read().decode("utf-8", errors="replace")
-              print(f"Gemini API error ({e.code}): {err_msg}", file=sys.stderr)
+          review_text = None
+          used_model = model
+          last_error = None
+
+          for candidate in candidate_models:
+              url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate}:generateContent"
+              for attempt in range(1, 4):
+                  req = urllib.request.Request(
+                      url,
+                      data=payload_data,
+                      headers={
+                          "Content-Type": "application/json",
+                          "x-goog-api-key": api_key,
+                      },
+                  )
+                  try:
+                      with urllib.request.urlopen(req, timeout=120) as res:
+                          body = json.loads(res.read().decode("utf-8"))
+                          review_text = body["candidates"][0]["content"]["parts"][0]["text"]
+                          used_model = candidate
+                          break
+                  except urllib.error.HTTPError as e:
+                      err_msg = e.read().decode("utf-8", errors="replace")
+                      last_error = f"Gemini API error ({e.code}) on {candidate}: {err_msg}"
+                      if e.code in (429, 500, 502, 503, 504) and attempt < 3:
+                          wait_sec = 5 * attempt
+                          print(
+                              f"Transient error ({e.code}) on {candidate} (attempt {attempt}/3). Retrying in {wait_sec}s...",
+                              file=sys.stderr,
+                          )
+                          time.sleep(wait_sec)
+                          continue
+                      print(last_error, file=sys.stderr)
+                      break
+              if review_text is not None:
+                  break
+
+          if review_text is None:
+              print(last_error or "Failed to obtain review from Gemini API.", file=sys.stderr)
               sys.exit(1)
 
           marker = "<!-- sesame-gemini-review -->"
           header = (
               f"{marker}\n"
-              f"### 🤖 Gemini Code Review (`{model}` @ `{head_sha}`)\n\n"
+              f"### 🤖 Gemini Code Review (`{used_model}` @ `{head_sha}`)\n\n"
           )
           full_comment = header + review_text
 
