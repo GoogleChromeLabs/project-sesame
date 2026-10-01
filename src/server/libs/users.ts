@@ -19,6 +19,7 @@ import {Base64URLString} from '@simplewebauthn/server';
 import {Timestamp} from 'firebase-admin/firestore';
 
 import {
+  deleteDocuments,
   generateRandomString,
   getGravatarUrl,
 } from '~project-sesame/server/libs/helpers.ts';
@@ -30,10 +31,21 @@ import {
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
 import {store} from '~project-sesame/server/config.ts';
 import {FederationMappings} from './federation-mappings.ts';
+import {sessionStore} from '~project-sesame/server/libs/custom-firestore-session.ts';
 import {logger} from '~project-sesame/server/libs/logger.ts';
 
 export type UserId = Base64URLString;
 export type PasskeyUserId = Base64URLString;
+
+/**
+ * How long (in milliseconds) a passkey may exist without an account before
+ * it's considered orphaned.
+ *
+ * During a passkey sign-up, the passkey is stored right before its account is
+ * created, so a passkey that was registered moments ago may legitimately have
+ * no account yet. The grace period keeps such passkeys from being swept away.
+ */
+const PASSKEY_ORPHAN_GRACE_PERIOD = 1000 * 60 * 10;
 
 /**
  * Interface representing a user as stored in Firestore.
@@ -358,55 +370,122 @@ export class Users {
   /**
    * Deletes a user account and all of its associated data.
    *
-   * This is a destructive operation that removes the user document from Firestore,
-   * as well as their federation mappings and WebAuthn public key credentials.
-   * We do this to ensure full cleanup and honor "Right to be Forgotten" requests.
+   * Besides the user document, this removes the account's passkeys stored on
+   * the server, its federation mappings and every session it's signed in with,
+   * which signs the user out of all devices. Nothing that refers to the account
+   * is supposed to outlive it.
    *
    * @param user_id - The unique ID of the user to delete (Base64URLString).
    * @returns A promise that resolves when all related data has been deleted.
+   * @throws If the user doesn't exist or any of the data couldn't be deleted.
    */
   static async delete(user_id: Base64URLString): Promise<void> {
     const user = await Users.findById(user_id);
     if (!user) {
       throw new Error('User not found.');
     }
-
-    // Cleanup linked data sources.
-    logger.info(`Federation mapping is being deleted for ${user.username}.`);
-    await FederationMappings.deleteByUserId(user.id);
-
-    const passkey_user_id = user?.passkeyUserId;
-    if (passkey_user_id) {
-      // Remove all passkeys associated with this user.
-      logger.info(`Passkeys are being deleted for ${user.username}.`);
-      await PublicKeyCredentials.deleteByPasskeyUserId(passkey_user_id);
-    }
-
-    // Final removal of the user profile.
-    logger.info(`The user account "${user.username}" has been deleted.`);
-    await store.collection(Users.collection).doc(user_id).delete();
-    return;
+    await Users.deleteAccount(user);
   }
 
   /**
-   * Deletes users whose registration has expired based on the retention duration.
-   * This is used to maintain a clean database and respect privacy/ttl constraints.
+   * Deletes accounts that have expired, along with all of their associated
+   * data, and then deletes data whose account no longer exists.
+   *
+   * Accounts are selected by `expiresAt` rather than by `registeredAt`, so
+   * that allowlisted accounts, which expire far in the future, are kept.
    *
    * @returns A promise that resolves when the eviction process is complete.
    */
   static async deleteOldUsers(): Promise<void> {
-    logger.info('All users eviction started...');
-    const retentionDuration = new Date(
-      Date.now() - config.account_retention_duration
-    );
+    logger.info('Expired account eviction started...');
+    const now = getTime();
+    const snapshot = await store
+      .collection(Users.collection)
+      .where('expiresAt', '<=', Timestamp.fromMillis(now))
+      .get();
+    const expired = snapshot.docs;
+    for (const doc of expired) {
+      await Users.deleteAccount({
+        id: doc.id,
+        username: doc.get('username'),
+        passkeyUserId: doc.get('passkeyUserId'),
+      });
+    }
+    const orphans = await Users.deleteOrphanedData();
+    logger.info('Eviction ended successfully.', {
+      expiredAccounts: expired.length,
+      orphanedDocuments: orphans,
+    });
+  }
+
+  /**
+   * Deletes passkeys, sessions and federation mappings whose account no longer
+   * exists.
+   *
+   * Accounts aren't always deleted through `Users.delete()`. In production,
+   * the Firestore TTL policy on `expiresAt` evicts them, which only removes
+   * the user document itself. This catches whatever such evictions, or a
+   * deletion that failed midway, left behind.
+   *
+   * The candidates are listed before the accounts are. Associated data is only
+   * written once its account exists, so data listed first can't be mistaken
+   * for an orphan because its account was created in the meantime. The
+   * exception is a passkey registered during a sign-up, which is stored right
+   * before its account is created, so recent passkeys get a grace period.
+   *
+   * @returns A promise that resolves to the number of deleted documents.
+   */
+  static async deleteOrphanedData(): Promise<number> {
+    const [passkeys, sessions, mappings] = await Promise.all([
+      PublicKeyCredentials.listOwnedDocuments(
+        getTime(-PASSKEY_ORPHAN_GRACE_PERIOD)
+      ),
+      sessionStore.listOwnedDocuments(),
+      FederationMappings.listOwnedDocuments(),
+    ]);
     const users = await store
       .collection(Users.collection)
-      .where('registeredAt', '<', Timestamp.fromDate(retentionDuration))
+      .select('passkeyUserId')
       .get();
-    for (const user of users.docs) {
-      await Users.delete(user.id);
-    }
-    logger.info('Eviction ended successfully.');
-    return;
+    const userIds = new Set<unknown>(users.docs.map(doc => doc.id));
+    const passkeyUserIds = new Set<unknown>(
+      users.docs.map(doc => doc.get('passkeyUserId'))
+    );
+    const orphans = [
+      ...passkeys.filter(({ownerId}) => !passkeyUserIds.has(ownerId)),
+      ...sessions.filter(({ownerId}) => !userIds.has(ownerId)),
+      ...mappings.filter(({ownerId}) => !userIds.has(ownerId)),
+    ];
+    return deleteDocuments(orphans.map(({ref}) => ref));
+  }
+
+  /**
+   * Deletes an account along with all of its associated data.
+   *
+   * The associated data is deleted before the user document. If anything
+   * fails midway, the account still exists and deleting it can simply be
+   * retried, instead of leaving data behind that no account refers to.
+   *
+   * @param user - The account to delete.
+   * @returns A promise that resolves when the account and its data are gone.
+   */
+  private static async deleteAccount(
+    user: Pick<User, 'id' | 'username' | 'passkeyUserId'>
+  ): Promise<void> {
+    const [passkeys, sessions, mappings] = await Promise.all([
+      PublicKeyCredentials.deleteByPasskeyUserId(user.passkeyUserId),
+      sessionStore.destroyAllByUserId(user.id),
+      FederationMappings.deleteByUserId(user.id),
+    ]);
+    await store.collection(Users.collection).doc(user.id).delete();
+    // The username goes into the structured data, which the logger redacts
+    // outside of debugging.
+    logger.info('The user account has been deleted along with its data.', {
+      userId: user.id,
+      username: user.username,
+      passkeys,
+      sessions,
+      federationMappings: mappings,
+    });
   }
 }

@@ -27,7 +27,7 @@ Project Sesame is an open-source demo web application built with Node.js, design
 ## Tech Stack
 
 - **Language**: TypeScript (used seamlessly across client and server).
-- **Runtime**: Node.js (v22+).
+- **Runtime**: Node.js (v24.7+, required by `@simplewebauthn/server` v14 for PQC ML-DSA passkey verification).
 - **Backend**: Express.js (handling routing and middleware), `@simplewebauthn/server` (for server-side Passkey verification).
 - **Database**: Google Cloud Firestore (via `firebase-admin`). Emulated locally via Firebase Emulator Suite. Mock seed data is loaded from and automatically preserved back to `./.data` using emulator import/export flags (`--import=./.data --export-on-exit`).
 - **Session Management**: `express-session` persisted to Firestore using `@google-cloud/connect-firestore`.
@@ -100,6 +100,19 @@ Project Sesame is an open-source demo web application built with Node.js, design
     - `caddy.sh` requires `sudo` privileges to bind to standard ports and manage TLS certificates.
 4.  **Frontend Components (MDUI)**:
     - Standard UI components must leverage the [MDUI library](https://www.mdui.org/) (Material Design 3 elements) imported via `src/client/layout.ts` and inside Lit template strings (e.g. `<mdui-button>`). Avoid introducing other UI component frameworks to keep payload sizes lean and UI consistent.
+5.  **Git Worktree Workflow for Parallel Development**:
+    - When working on feature development, bug fixes, or task execution, you **MUST** use Git Worktrees under the `.worktree/` directory to prevent branch switching conflicts when multiple agents or sessions run concurrently.
+    - Never switch or check out feature branches directly in the repository root.
+    - Create and check out a dedicated worktree for the task:
+      ```bash
+      git worktree add .worktree/<branch-name> -b <branch-name> origin/main
+      ```
+    - Carry out all file modifications, local testing (`npm run check`), and git commits inside the corresponding `.worktree/<branch-name>` directory.
+    - After the work is completed or the pull request is merged, clean up the worktree:
+      ```bash
+      git worktree remove .worktree/<branch-name>
+      ```
+    - **Firestore Emulator Port Contention**: Local test execution (`npm test` / `npm run check`) boots the Firestore emulator on port `8081` via `firebase emulators:exec`. If multiple agents or worktrees run `npm run check` simultaneously, a port conflict may occur. If port `8081` is busy, wait briefly for the active test run to finish and retry.
 
 ---
 

@@ -22,12 +22,10 @@ import {
   AuthenticationResponseJSON,
   AuthenticatorAssertionResponseJSON,
   Base64URLString,
-  GenerateAuthenticationOptionsOpts,
   generateAuthenticationOptions,
   generateRegistrationOptions,
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
-  VerifyAuthenticationResponseOpts,
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
   WebAuthnCredential,
@@ -48,6 +46,7 @@ import {
 } from '~project-sesame/server/libs/session.ts';
 
 import {SessionService} from '~project-sesame/server/libs/session.ts';
+import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
 import aaguids from '~project-sesame/shared/public/aaguids.json' with {type: 'json'};
 
 interface AAGUIDs {
@@ -103,7 +102,7 @@ router.post(
     const credentials = await PublicKeyCredentials.findByPasskeyUserId(
       user.passkeyUserId
     );
-    const rpId = config.hostname;
+    const {rpId} = getRequestContext(req);
     const userId = user.passkeyUserId;
     if (credentials && credentials.length > 0) {
       for (const credential of credentials) {
@@ -301,11 +300,12 @@ router.post(
       }
 
       const attestationType = 'none';
+      const {rpId} = getRequestContext(req);
 
       // Use SimpleWebAuthn's handy function to create registration options.
       const options = await generateRegistrationOptions({
         rpName: config.project_name,
-        rpID: config.hostname,
+        rpID: rpId,
         userID: isoBase64URL.toBuffer(passkeyUserId),
         userName: username,
         userDisplayName: displayName || username,
@@ -436,8 +436,8 @@ router.post(
     const conditional = 'conditional' in req.query;
     const response = req.body as RegistrationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
-    const expectedOrigin = config.associated_origins;
-    const expectedRPID = config.hostname;
+    const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
+      getRequestContext(req);
 
     logger.debug('WebAuthn registration response', response);
 
@@ -604,11 +604,12 @@ router.post(
       }
     }
     try {
+      const {rpId} = getRequestContext(req);
       // Use SimpleWebAuthn's handy function to create a new authentication request.
       const options = await generateAuthenticationOptions({
-        rpID: config.hostname,
+        rpID: rpId,
         allowCredentials,
-      } as GenerateAuthenticationOptionsOpts);
+      });
 
       const challenge = new SessionService(req.session).getChallenge();
       if (!challenge) {
@@ -706,9 +707,19 @@ router.post(
     // Set expected values.
     const response = req.body as AuthenticationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
-    const expectedOrigin = config.associated_origins;
-    const expectedTopOrigin = config.csp.frame_ancestors;
-    const expectedRPID = config.hostname;
+    const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
+      getRequestContext(req);
+    // Cross-origin iframe responses (e.g. the IdP iframe embedded by
+    // `/passkey-iframe`) carry `crossOrigin: true` and the embedding page's
+    // `topOrigin`. Since SimpleWebAuthn v14, `verifyAuthenticationResponse()`
+    // rejects such responses unless `topOrigin` is one of `expectedTopOrigin`,
+    // so only the origins allowed to embed this server (CSP `frame-ancestors`)
+    // are accepted. Same-origin responses are unaffected. When no embedders are
+    // configured, pass `undefined` so cross-origin responses are rejected with
+    // an explicit "`expectedTopOrigin` was not specified" error.
+    const expectedTopOrigin = config.csp.frame_ancestors.length
+      ? config.csp.frame_ancestors
+      : undefined;
 
     logger.debug('WebAuthn sign-in response', response);
 
@@ -770,7 +781,7 @@ router.post(
         expectedRPID,
         credential,
         requireUserVerification: false,
-      } as VerifyAuthenticationResponseOpts);
+      });
 
       const {verified, authenticationInfo} = verification;
 

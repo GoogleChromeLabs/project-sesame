@@ -1,0 +1,155 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: PR Preview Deployment
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    name: Deploy PR Preview to App Engine
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
+        with:
+          credentials_json: ${{ secrets.DEV_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
+        with:
+          project_id: ${{ secrets.DEV_PROJECT_ID }}
+
+      - name: Deploy preview version to App Engine
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gcloud app deploy staging.yaml \
+            --version="pr-${PR_NUMBER}" \
+            --no-promote \
+            --quiet
+
+      - name: Comment preview URL on Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          PROJECT_ID: ${{ secrets.DEV_PROJECT_ID }}
+        run: |
+          COMMENT_MARKER="<!-- sesame-pr-preview -->"
+          VERSION="pr-${PR_NUMBER}"
+          PREVIEW_URL="https://${VERSION}-dot-${PROJECT_ID}.appspot.com"
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+
+          BODY=$(cat <<EOF
+          ${COMMENT_MARKER}
+          ### 🚀 PR Preview Deployed
+
+          Your preview environment for **PR #${PR_NUMBER}** is ready!
+
+          - **Preview URL**: [${PREVIEW_URL}](${PREVIEW_URL})
+          - **App Engine Version**: \`${VERSION}\`
+          - **Commit**: \`${SHORT_SHA}\`
+          EOF
+          )
+
+          echo "${BODY}" >> "${GITHUB_STEP_SUMMARY}"
+
+          COMMENT_ID=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | contains(\"${COMMENT_MARKER}\")) | .id" | head -n 1)
+
+          if [ -n "${COMMENT_ID}" ]; then
+            jq -n --arg body "${BODY}" '{body: $body}' | \
+              gh api --method PATCH "repos/${REPO}/issues/comments/${COMMENT_ID}" --input -
+          else
+            jq -n --arg body "${BODY}" '{body: $body}' | \
+              gh api --method POST "repos/${REPO}/issues/${PR_NUMBER}/comments" --input -
+          fi
+
+  cleanup-preview:
+    name: Clean Up PR Preview on App Engine
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
+        with:
+          credentials_json: ${{ secrets.DEV_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
+        with:
+          project_id: ${{ secrets.DEV_PROJECT_ID }}
+
+      - name: Delete preview version from App Engine
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          VERSION="pr-${PR_NUMBER}"
+          if gcloud app versions describe "${VERSION}" --service=default >/dev/null 2>&1; then
+            gcloud app versions delete "${VERSION}" --service=default --quiet
+          else
+            echo "Version ${VERSION} does not exist; skipping deletion."
+          fi
+
+      - name: Update preview comment on Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          COMMENT_MARKER="<!-- sesame-pr-preview -->"
+          VERSION="pr-${PR_NUMBER}"
+
+          COMMENT_ID=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | contains(\"${COMMENT_MARKER}\")) | .id" | head -n 1)
+
+          if [ -n "${COMMENT_ID}" ]; then
+            BODY=$(cat <<EOF
+          ${COMMENT_MARKER}
+          ### 🧹 PR Preview Cleaned Up
+
+          The preview environment (\`${VERSION}\`) for **PR #${PR_NUMBER}** has been deleted because the pull request was closed.
+          EOF
+          )
+            jq -n --arg body "${BODY}" '{body: $body}' | \
+              gh api --method PATCH "repos/${REPO}/issues/comments/${COMMENT_ID}" --input -
+          fi

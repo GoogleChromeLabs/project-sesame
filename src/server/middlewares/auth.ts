@@ -29,6 +29,7 @@ import {
   setSignedOut, // Keeping this for now as it handles headers too
 } from '~project-sesame/server/libs/session.ts';
 import {SessionService} from '~project-sesame/server/libs/session.ts';
+import {logger} from '~project-sesame/server/libs/logger.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
 const router = Router();
@@ -554,13 +555,15 @@ router.post(
  * /auth/delete-user:
  *   post:
  *     summary: Delete user account
- *     description: Deletes the currently signed-in user's account. Requires recent authentication.
+ *     description: Deletes the currently signed-in user's account along with its passkeys, federation mappings and sessions on all devices. Requires recent authentication.
  *     tags: [Auth]
  *     responses:
  *       200:
  *         description: Account deleted successfully
  *       401:
  *         description: User not signed in or session too old
+ *       500:
+ *         description: The account couldn't be deleted
  */
 router.post(
   '/delete-user',
@@ -572,7 +575,15 @@ router.post(
       return;
     }
     const {user} = res.locals;
-    await Users.delete(user.id);
+    try {
+      await Users.delete(user.id);
+    } catch (error) {
+      // Keep the details in the server log. The account is deleted last, so it
+      // still exists and the user can try again.
+      logger.error('Failed to delete the account.', error);
+      res.status(500).json({error: 'Failed to delete the account.'});
+      return;
+    }
 
     await setSignedOut(req, res);
 

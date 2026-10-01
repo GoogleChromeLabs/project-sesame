@@ -18,6 +18,7 @@ node_modules/
 .data/
 .cache/
 .npm/
+.worktree/
 *.log
 *.lock
 coverage/
