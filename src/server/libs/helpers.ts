@@ -16,11 +16,19 @@
  */
 
 import crypto from 'crypto';
+import type {Request} from 'express';
 import {isoBase64URL} from '@simplewebauthn/server/helpers';
 import type {
   DocumentReference,
   QueryDocumentSnapshot,
 } from 'firebase-admin/firestore';
+import {config} from '../config.js';
+
+/**
+ * Regex matching a valid DNS label (RFC 1123): 1-63 lowercase alphanumeric
+ * characters or hyphens, starting and ending with an alphanumeric character.
+ */
+const VALID_DNS_LABEL_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 /**
  * The number of deletions to commit in a single batched write.
@@ -113,4 +121,213 @@ export function compareUrls(url1?: string, url2?: string): boolean {
   const origin1 = new URL(url1).origin;
   const origin2 = new URL(url2).origin;
   return origin1 === origin2;
+}
+
+/**
+ * Checks whether a request hostname is permitted for dynamic RP ID resolution
+ * in non-production environments.
+ *
+ * Allowlisted patterns:
+ * - `localhost` and `*.localhost`
+ * - Google CloudTop and internal development proxy domains (`*.corp.google.com`, `*.c.googlers.com`, `*.googlers.com`, `*.google.com`)
+ * - App Engine default and PR preview domains for the current project:
+ *   `<project>.appspot.com`, `<version>-dot-<project>.appspot.com`,
+ *   `<project>.<region>.r.appspot.com`, `<version>-dot-<project>.<region>.r.appspot.com`
+ *
+ * @param hostname - The lowercase hostname extracted from the HTTP request.
+ * @param projectName - The configured Google Cloud project ID.
+ * @returns `true` if the hostname is safe to use dynamically.
+ */
+export function isAllowedDynamicHostname(
+  hostname: string,
+  projectName: string
+): boolean {
+  const normalized = hostname.toLowerCase();
+
+  if (normalized === 'localhost' || normalized.endsWith('.localhost')) {
+    return true;
+  }
+
+  if (
+    normalized.endsWith('.corp.google.com') ||
+    normalized.endsWith('.c.googlers.com') ||
+    normalized.endsWith('.googlers.com') ||
+    normalized.endsWith('.google.com')
+  ) {
+    return true;
+  }
+
+  const normalizedProject = projectName.toLowerCase();
+  if (!normalized.endsWith('.appspot.com') || !normalizedProject) {
+    return false;
+  }
+
+  const withoutAppspot = normalized.slice(0, -'.appspot.com'.length);
+  let serviceAndProject = withoutAppspot;
+  if (withoutAppspot.endsWith('.r')) {
+    const withoutR = withoutAppspot.slice(0, -'.r'.length);
+    const lastDotIndex = withoutR.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return false;
+    }
+    const region = withoutR.slice(lastDotIndex + 1);
+    if (!VALID_DNS_LABEL_REGEX.test(region)) {
+      return false;
+    }
+    serviceAndProject = withoutR.slice(0, lastDotIndex);
+  }
+
+  if (serviceAndProject === normalizedProject) {
+    return true;
+  }
+
+  const dotProjectSuffix = `-dot-${normalizedProject}`;
+  if (serviceAndProject.endsWith(dotProjectSuffix)) {
+    const versionOrService = serviceAndProject.slice(
+      0,
+      -dotProjectSuffix.length
+    );
+    return VALID_DNS_LABEL_REGEX.test(versionOrService);
+  }
+
+  return false;
+}
+
+/**
+ * Resolved Relying Party context for an incoming HTTP request.
+ */
+export interface RequestContext {
+  rpId: string;
+  origin: string;
+  associatedOrigins: string[];
+}
+
+/**
+ * Configuration subset used by `getRequestContext`.
+ */
+export interface RpConfigOptions {
+  is_prod?: boolean;
+  hostname: string;
+  origin: string;
+  associated_origins: string[];
+  project_name: string;
+}
+
+/**
+ * Resolves the WebAuthn Relying Party ID, origin, and associated origins for the
+ * incoming HTTP request.
+ *
+ * In production (`is_prod: true`), this always returns the static configuration
+ * values to strictly enforce the canonical production domain.
+ * In non-production environments (local development, CloudTop proxies, and
+ * App Engine PR preview deployments), it dynamically derives the RP ID and
+ * origin from the request host header if it matches an allowlisted domain
+ * pattern.
+ *
+ * @param req - The incoming Express request (or request-like object).
+ * @param cfg - Optional configuration override (defaults to global server config).
+ * @returns The resolved `rpId`, `origin`, and `associatedOrigins`.
+ */
+export function getRequestContext(
+  req: Pick<Request, 'headers' | 'hostname' | 'secure' | 'protocol'>,
+  cfg: RpConfigOptions = config
+): RequestContext {
+  if (cfg.is_prod) {
+    return {
+      rpId: cfg.hostname,
+      origin: cfg.origin,
+      associatedOrigins: cfg.associated_origins,
+    };
+  }
+
+  const forwardedHostHeader = req.headers?.['x-forwarded-host'];
+  const rawForwardedHost = Array.isArray(forwardedHostHeader)
+    ? forwardedHostHeader[0]
+    : forwardedHostHeader;
+  const rawHost =
+    rawForwardedHost?.split(',')[0]?.trim() ||
+    req.headers?.host?.trim() ||
+    req.hostname ||
+    '';
+
+  if (!rawHost) {
+    return {
+      rpId: cfg.hostname,
+      origin: cfg.origin,
+      associatedOrigins: cfg.associated_origins,
+    };
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(`http://${rawHost}`);
+  } catch {
+    return {
+      rpId: cfg.hostname,
+      origin: cfg.origin,
+      associatedOrigins: cfg.associated_origins,
+    };
+  }
+
+  if (
+    parsedUrl.username ||
+    parsedUrl.password ||
+    parsedUrl.pathname !== '/' ||
+    parsedUrl.search ||
+    parsedUrl.hash
+  ) {
+    return {
+      rpId: cfg.hostname,
+      origin: cfg.origin,
+      associatedOrigins: cfg.associated_origins,
+    };
+  }
+
+  const hostname = parsedUrl.hostname.toLowerCase();
+  const host = parsedUrl.host.toLowerCase();
+
+  if (!isAllowedDynamicHostname(hostname, cfg.project_name)) {
+    return {
+      rpId: cfg.hostname,
+      origin: cfg.origin,
+      associatedOrigins: cfg.associated_origins,
+    };
+  }
+
+  const forwardedProtoHeader = req.headers?.['x-forwarded-proto'];
+  const rawForwardedProto = Array.isArray(forwardedProtoHeader)
+    ? forwardedProtoHeader[0]
+    : forwardedProtoHeader;
+  const forwardedProto = rawForwardedProto
+    ?.split(',')[0]
+    ?.trim()
+    ?.toLowerCase();
+
+  let protocol: 'http' | 'https';
+  if (forwardedProto === 'https' || forwardedProto === 'http') {
+    protocol = forwardedProto;
+  } else if (req.secure || req.protocol === 'https') {
+    protocol = 'https';
+  } else if (hostname === 'localhost') {
+    protocol = 'http';
+  } else {
+    protocol = 'https';
+  }
+
+  const dynamicOrigin = `${protocol}://${host}`;
+  const origins = new Set<string>([
+    dynamicOrigin,
+    `https://${host}`,
+    `https://${hostname}`,
+    ...(hostname === 'localhost'
+      ? [`http://${host}`, `http://${hostname}`]
+      : []),
+    ...cfg.associated_origins,
+  ]);
+
+  return {
+    rpId: hostname,
+    origin: dynamicOrigin,
+    associatedOrigins: Array.from(origins),
+  };
 }
