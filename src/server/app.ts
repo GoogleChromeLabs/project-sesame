@@ -456,7 +456,7 @@ app.get(
     new SessionService(req.session).setEntrancePath('/immediate-ui-mode');
 
     res.render('immediate-ui-mode.html', {
-      title: 'Immediate UI mode',
+      title: 'Quick sign-in (Immediate UI mode)',
       hide_drawer: true,
     });
   }

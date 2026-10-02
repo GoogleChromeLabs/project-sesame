@@ -14,7 +14,7 @@
  limitations under the License
 -->
 
-## Immediate UI mode
+## Quick sign-in (Immediate UI mode)
 
 [Immediate UI
 mode](https://developer.chrome.com/docs/identity/immediate-ui-mode) is a web
