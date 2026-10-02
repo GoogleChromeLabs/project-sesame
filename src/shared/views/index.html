@@ -21,6 +21,8 @@
     <li><a href="/signup-form">Sign-up Form</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-signup')}}
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp')}}
+    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
     {{/if}}
   </ul>
   <h3>Sign-in</h3>
@@ -43,6 +45,10 @@
     <li><a href="/fedcm-passive-mode">FedCM passive mode</a></li>
     {{/if}} {{#if (isPageEnabled '/fedcm-form-autofill')}}
     <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp')}}
+    <li>
+      <a href="https://rowan.fyi/made/email-provider" target="_blank">EVP Email Provider (Issuer)</a>
+    </li>
     {{/if}}
   </ul>
 </main>
