@@ -30,6 +30,7 @@ import {
 
 const shop = $('#shop') as HTMLElement;
 let isSignedIn = shop.dataset.signedIn === 'true';
+let isAuthenticating = false;
 
 const isImmediateSupported = Boolean(
   'PasswordCredential' in window &&
@@ -57,10 +58,12 @@ $('#product-grid').addEventListener('click', async (e: MouseEvent) => {
     return;
   }
 
+  if (isAuthenticating) return;
+  isAuthenticating = true;
+
   try {
     loading.start();
     const user = await authenticate({ui_mode: 'immediate'});
-    loading.stop();
     if (user && typeof user === 'object') {
       isSignedIn = true;
       shop.dataset.signedIn = 'true';
@@ -75,12 +78,14 @@ $('#product-grid').addEventListener('click', async (e: MouseEvent) => {
       throw new Error('User is not found.');
     }
   } catch (error: any) {
-    loading.stop();
     console.error(error);
     if (error.name === 'NotAllowedError') {
       await redirect('/passkey-form-autofill?r=/immediate-ui-mode');
     } else if (error.name !== 'AbortError') {
       toast(error.message);
     }
+  } finally {
+    loading.stop();
+    isAuthenticating = false;
   }
 });
