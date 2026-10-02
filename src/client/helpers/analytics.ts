@@ -28,14 +28,14 @@ declare global {
 export function initAnalytics() {
   if (window.self !== window.top) {
     return;
-  } else if (window.glue.CookieNotificationBar) {
-    new window.glue.CookieNotificationBar();
   }
 
   window.dataLayer = window.dataLayer || [];
 
-  function gtag(...args: any[]) {
-    window.dataLayer.push(args);
+  function gtag(..._args: any[]) {
+    // gtag.js requires an Arguments object in dataLayer rather than a plain Array.
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer.push(arguments);
   }
 
   // Default to denied for Google Analytics storage
@@ -97,5 +97,9 @@ export function initAnalytics() {
     initCookieBar();
   } else {
     window.glueCookieNotificationBarLoaded = initCookieBar;
+    if (window.glue?.CookieNotificationBar) {
+      window.glue.CookieNotificationBar.instance =
+        new window.glue.CookieNotificationBar();
+    }
   }
 }
