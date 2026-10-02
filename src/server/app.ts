@@ -318,6 +318,37 @@ app.get(
 );
 
 app.get(
+  '/one-time-code',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    // Signed-in users have no need to verify an email address to sign up.
+    if (res.locals.signin_status >= UserSignInStatus.SignedIn) {
+      return res.redirect(307, '/home');
+    }
+    // This page only makes sense after `POST /evp/otp/request` stored the
+    // claimed address. Send anyone who lands here directly back to the start.
+    const email = new SessionService(req.session).getPendingEmail();
+    if (!email) {
+      return res.redirect(307, '/evp-passkey-signup');
+    }
+    res.render('one-time-code.html', {
+      title: 'Enter the code',
+      email,
+    });
+  }
+);
+
+app.get(
+  '/new-passkey',
+  pageAclCheck(PageType.SigningUp),
+  (req: Request, res: Response): void => {
+    res.render('new-passkey.html', {
+      title: 'Create a passkey',
+    });
+  }
+);
+
+app.get(
   '/password',
   pageAclCheck(PageType.FirstCredential),
   (req: Request, res: Response): void => {
@@ -418,6 +449,60 @@ app.get(
 
     res.render('passkey-signup.html', {
       title: 'Passkey sign-up',
+    });
+  }
+);
+
+/**
+ * Passwordless sign-up: verify the email address with the Email Verification
+ * Protocol (or a one-time code fallback), then create a passkey.
+ * @swagger
+ * /evp-passkey-signup:
+ *   get:
+ *     summary: Passwordless sign-up page
+ *     description: Renders the sign-up page that verifies an email address with the Email Verification Protocol and then creates a passkey.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML page
+ */
+app.get(
+  '/evp-passkey-signup',
+  pageAclCheck(PageType.SignUp),
+  (req: Request, res: Response): void => {
+    const sessionService = new SessionService(req.session);
+    // This is a sign-up page, so point the entrance at a sign-in page that can
+    // use the passkey created at the end of this flow once the user signs out.
+    sessionService.setEntrancePath('/passkey-form-autofill');
+    const nonce = sessionService.setChallenge();
+    res.render('evp-passkey-signup.html', {
+      title: 'Passwordless sign-up',
+      nonce,
+    });
+  }
+);
+
+/**
+ * EVP verifier demo: verify an email address with the Email Verification
+ * Protocol and print how the token was validated.
+ * @swagger
+ * /evp:
+ *   get:
+ *     summary: EVP verifier page
+ *     description: Renders the demo page that verifies an email address with the Email Verification Protocol.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML page
+ */
+app.get(
+  '/evp',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
+    res.render('evp.html', {
+      title: 'EVP Verifier',
+      nonce,
     });
   }
 );

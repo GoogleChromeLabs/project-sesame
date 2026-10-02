@@ -84,6 +84,9 @@ declare module 'express-session' {
     // Claimed user info.
     // TODO: Move this out to a database.
     signup_user?: SignUpUser;
+    // Claimed email address waiting for one-time code verification before the
+    // sign-up can start.
+    pending_email?: string;
     // A new passkey user ID upon sign-up.
     passkey_user_id?: string;
     // User information if the user is signed in.
