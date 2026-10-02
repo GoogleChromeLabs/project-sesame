@@ -28,6 +28,7 @@ export default tseslint.config(
       'node_modules/**/*',
       'coverage/**/*',
       'firebase-export-*/**/*',
+      '.worktree/**/*',
     ],
   },
   js.configs.recommended,

@@ -16,15 +16,6 @@
  */
 import './styles/main.scss';
 
-import {setColorScheme} from 'mdui/functions/setColorScheme.js';
-
-const themeColor =
-  document.documentElement.dataset.themeColor ||
-  document.querySelector('meta[name="theme-color"]')?.getAttribute('content') ||
-  '#fedbd0';
-
-setColorScheme(themeColor);
-
 import '~project-sesame/client/helpers/analytics';
 import {initAnalytics} from '~project-sesame/client/helpers/analytics';
 

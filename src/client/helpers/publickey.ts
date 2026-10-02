@@ -16,14 +16,15 @@
  */
 
 import {post} from '~project-sesame/client/helpers/index';
+// The `PublicKeyCredential*Options` and `PublicKeyCredential*OptionsJSON`
+// types intentionally come from the DOM lib, because they are the exact types
+// used by `PublicKeyCredential.parse*OptionsFromJSON()`. SimpleWebAuthn v14's
+// JSON variants type `extensions` with binary `BufferSource` values and are not
+// assignable to them.
 import {
   Base64URLString,
   RegistrationCredential,
   AuthenticationCredential,
-  PublicKeyCredentialCreationOptions,
-  PublicKeyCredentialCreationOptionsJSON,
-  PublicKeyCredentialRequestOptions,
-  PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/server';
 import {SesamePublicKeyCredential} from '~project-sesame/server/libs/public-key-credentials';
 import 'webauthn-polyfills';

@@ -267,4 +267,70 @@ describe('CustomFirestoreStore', () => {
       await destroySession(sidOther).catch(() => {});
     }
   });
+
+  it('should delete every session of the user when destroyAllByUserId is called', async () => {
+    const userId = `user-all-${Date.now()}`;
+    const otherUserId = `other-user-all-${Date.now()}`;
+
+    const sid1 = `sid1-all-${Date.now()}`;
+    const sid2 = `sid2-all-${Date.now()}`;
+    const sidOther = `sid-other-all-${Date.now()}`;
+
+    try {
+      await setSession(sid1, {user: {id: userId, username: 'testuser'}});
+      await setSession(sid2, {user: {id: userId, username: 'testuser'}});
+      await setSession(sidOther, {
+        user: {id: otherUserId, username: 'otheruser'},
+      });
+
+      // An empty user ID must not match any session.
+      assert.strictEqual(await sessionStore.destroyAllByUserId(''), 0);
+
+      const destroyed = await sessionStore.destroyAllByUserId(userId);
+
+      assert.strictEqual(destroyed, 2);
+      assert.strictEqual(
+        await getSession(sid1),
+        undefined,
+        'sid1 should be deleted'
+      );
+      assert.strictEqual(
+        await getSession(sid2),
+        undefined,
+        'sid2 should be deleted'
+      );
+      assert.ok(await getSession(sidOther), 'sidOther should still exist');
+    } finally {
+      await destroySession(sid1).catch(() => {});
+      await destroySession(sid2).catch(() => {});
+      await destroySession(sidOther).catch(() => {});
+    }
+  });
+
+  it('should list only signed-in sessions along with their user ID', async () => {
+    const userId = `user-list-${Date.now()}`;
+
+    const sidSignedIn = `sid-signed-in-${Date.now()}`;
+    const sidSigningIn = `sid-signing-in-${Date.now()}`;
+
+    try {
+      await setSession(sidSignedIn, {user: {id: userId, username: 'testuser'}});
+      // A session in the middle of signing in doesn't belong to an account.
+      await setSession(sidSigningIn, {signin_username: 'testuser'});
+
+      const owned = await sessionStore.listOwnedDocuments();
+
+      assert.strictEqual(
+        owned.find(({ref}) => ref.id === sidSignedIn)?.ownerId,
+        userId
+      );
+      assert.ok(
+        !owned.some(({ref}) => ref.id === sidSigningIn),
+        'Sessions without a user should not be listed'
+      );
+    } finally {
+      await destroySession(sidSignedIn).catch(() => {});
+      await destroySession(sidSigningIn).catch(() => {});
+    }
+  });
 });

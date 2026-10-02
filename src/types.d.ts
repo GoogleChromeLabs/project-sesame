@@ -18,14 +18,13 @@ import {
   AttestationFormat,
   AttestationStatement,
   AuthenticatorAttachment,
-  AuthenticatorTransportFuture,
   CredentialDeviceType,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/server';
 import {JwtPayload} from 'jsonwebtoken';
 import {StringDecoder} from 'string_decoder';
-import {UserSignInStatus} from './server/middlewares/session.js';
+import {UserSignInStatus} from './server/libs/session.js';
 import {User, SignUpUser} from './server/libs/users.js';
 
 interface AppLocals {
@@ -104,24 +103,6 @@ declare module 'express-session' {
 declare module 'jwt' {
   interface jwtPayload {
     email: string;
-  }
-}
-
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      ANDROID_PACKAGENAME: string;
-      ANDROID_SHA256HASH: string;
-      FIRESTORE_EMULATOR_HOST: string;
-      FIRESTORE_DATABASENAME: string;
-      ID_TOKEN_LIFETIME: number;
-      SHORT_SESSION_DURATION: number;
-      LONG_SESSION_DURATION: number;
-      NODE_ENV: string;
-      PROJECT_NAME: string;
-      SECRET: string;
-      PORT: number;
-    }
   }
 }
 

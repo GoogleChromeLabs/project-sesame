@@ -16,6 +16,7 @@
  */
 import express, {Request, Response} from 'express';
 import {config} from '~project-sesame/server/config.ts';
+import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
 import helmet from 'helmet';
 const router = express.Router();
 
@@ -96,13 +97,14 @@ router.get('/assetlinks.json', (req: Request, res: Response): void => {
  *                     type: string
  */
 router.get('/web-identity', (req: Request, res: Response): void => {
-  const url = new URL(config.origin);
+  const {origin} = getRequestContext(req);
+  const url = new URL(origin);
   url.pathname = '/fedcm/config.json';
   const web_endpoint = url.toString();
   res.json({
     provider_urls: [web_endpoint],
-    accounts_endpoint: `${config.origin}/fedcm/accounts`,
-    login_url: `${config.origin}${config.idp_login_path}`,
+    accounts_endpoint: `${origin}/fedcm/accounts`,
+    login_url: `${origin}${config.idp_login_path}`,
   });
 });
 
@@ -128,7 +130,8 @@ router.get('/web-identity', (req: Request, res: Response): void => {
  *                   type: string
  */
 router.get('/passkey-endpoints', (req: Request, res: Response): void => {
-  const url = new URL(config.origin);
+  const {origin} = getRequestContext(req);
+  const url = new URL(origin);
   url.pathname = '/settings/passkeys';
   const web_endpoint = url.toString();
   res.json({enroll: web_endpoint, manage: web_endpoint});

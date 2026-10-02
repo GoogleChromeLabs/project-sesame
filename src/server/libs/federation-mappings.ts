@@ -16,7 +16,12 @@
  */
 
 import {Base64URLString} from '@simplewebauthn/server';
-import {generateRandomString} from './helpers.ts';
+import {
+  deleteDocuments,
+  generateRandomString,
+  OwnedDocument,
+  toOwnedDocuments,
+} from './helpers.ts';
 import {store} from '../config.ts';
 import {JwtPayload} from 'jsonwebtoken';
 import {UserId} from './users.ts';
@@ -88,12 +93,41 @@ export class FederationMappings {
     return ref.set(map);
   }
 
-  static async deleteByUserId(
-    user_id: Base64URLString
-  ): Promise<FirebaseFirestore.WriteResult> {
-    return store
+  /**
+   * Deletes all federation mappings that belong to the given user.
+   *
+   * Mapping documents have random IDs and reference their account through the
+   * `user_id` field, so they have to be looked up by querying that field.
+   *
+   * @param user_id - The ID of the user whose mappings should be deleted.
+   * @returns A promise that resolves to the number of deleted mappings.
+   */
+  static async deleteByUserId(user_id: UserId): Promise<number> {
+    // Never run the query with an empty ID. It must not match anything.
+    if (!user_id) {
+      return 0;
+    }
+    const snapshot = await store
       .collection(FederationMappings.collection)
-      .doc(user_id)
-      .delete();
+      .where('user_id', '==', user_id)
+      .get();
+    return deleteDocuments(snapshot.docs.map(doc => doc.ref));
+  }
+
+  /**
+   * Lists federation mappings along with the ID of the user who owns them, so
+   * that mappings whose account no longer exists can be detected.
+   *
+   * Only the fields required for that are loaded. Mappings without a user ID
+   * are left out, as it's unknown which account they belong to.
+   *
+   * @returns A promise that resolves to the list of mapping references.
+   */
+  static async listOwnedDocuments(): Promise<OwnedDocument[]> {
+    const snapshot = await store
+      .collection(FederationMappings.collection)
+      .select('user_id')
+      .get();
+    return toOwnedDocuments(snapshot.docs, 'user_id');
   }
 }

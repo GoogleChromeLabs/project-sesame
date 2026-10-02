@@ -140,7 +140,10 @@ export function toast(text: string): void {
  * @param payload The payload JSON object.
  * @returns
  */
-export async function get(path: string, payload: object = {}): Promise<any> {
+export async function get(
+  path: string,
+  payload: Record<string, any> = {}
+): Promise<any> {
   const headers: {[key: string]: string} = {
     'X-Requested-With': 'XMLHttpRequest',
   };

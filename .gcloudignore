@@ -30,6 +30,7 @@
 # Node.js dependencies:
 node_modules/
 
+.worktree/
 .data/
 firebase-export-*
 .env.template

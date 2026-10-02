@@ -19,11 +19,11 @@ import {Session} from 'express-session';
 import {User, SignUpUser} from '../libs/users.js';
 import {generateRandomString} from '../libs/helpers.js';
 import {getTime} from '../middlewares/common.js';
-import {config, store} from '../config.js';
+import {config} from '../config.js';
 import {Request, Response, NextFunction} from 'express';
 import {RequestHandlerParams} from 'express-serve-static-core';
 import session from 'express-session';
-import {CustomFirestoreStore} from '../libs/custom-firestore-session.js';
+import {sessionStore} from '../libs/custom-firestore-session.js';
 import {logger} from '../libs/logger.js';
 
 export enum UserSignInStatus {
@@ -297,10 +297,7 @@ export function initializeSession() {
     saveUninitialized: false,
     proxy: true,
     name: config.session_cookie_name,
-    store: new CustomFirestoreStore({
-      dataset: store,
-      kind: 'sessions',
-    }),
+    store: sessionStore,
     cookie: {
       path: '/',
       httpOnly: true,

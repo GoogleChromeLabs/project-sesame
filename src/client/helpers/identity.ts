@@ -143,8 +143,8 @@ export class SesameIdP {
    * @param options Configuration options for the delegation request.
    * @returns A promise that resolves to the verified token or undefined.
    */
-  async delegate(options: FedCmOptions = {}): Promise<string | undefined> {
-    let {mode = '', nonce, fields, mediation, params = {}} = options;
+  async delegate(options: FedCmOptions = {}): Promise<User | undefined> {
+    let {nonce, fields, mediation, params = {}} = options;
     if (!nonce) {
       nonce = (<HTMLMetaElement>$('meta[name="nonce"]'))?.content;
     }
@@ -222,7 +222,7 @@ export class SesameIdP {
    * @returns The verified user object.
    */
   // @ts-ignore
-  private async verifyIdToken(cred: IdentityCredential): User {
+  private async verifyIdToken(cred: IdentityCredential): Promise<User> {
     const idp = this.idps.find(idp => {
       // @ts-ignore
       return idp.configURL === cred?.configURL;
@@ -251,7 +251,7 @@ export class SesameIdP {
    * @returns The verified user object or token.
    */
   // @ts-ignore
-  private async verifySdJwt(cred: IdentityCredential): User {
+  private async verifySdJwt(cred: IdentityCredential): Promise<User> {
     const idp = this.idps.find(idp => {
       // @ts-ignore
       return idp.configURL === cred?.configURL;
