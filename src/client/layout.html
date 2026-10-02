@@ -20,12 +20,42 @@
   </head>
   <body>
     <mdui-top-app-bar scroll-behavior="elevate" scroll-target="main">
-      <mdui-button-icon id="menu-button">
+      <mdui-button-icon
+        id="menu-button"
+        {{#if hide_drawer}}{{#if show_home_link}}href="/"{{/if}}{{/if}}>
         <img id="nav-brand-icon" src="/images/icon.svg">
       </mdui-button-icon>
       <mdui-top-app-bar-title>SHRINE</mdui-top-app-bar-title>
+      {{#if hide_drawer}}
+      <div style="flex-grow: 1"></div>
+      <mdui-dropdown id="account-dropdown" placement="bottom-end">
+        <mdui-button-icon id="account-button" slot="trigger" aria-label="Account">
+          <mdui-avatar
+            id="account-avatar"
+            icon="person--outlined"
+            {{#if (isSignedIn)}}{{#if user.picture}}src="{{user.picture}}"{{/if}}{{/if}}></mdui-avatar>
+        </mdui-button-icon>
+        <mdui-menu>
+          <mdui-menu-item
+            id="signin"
+            icon="login--outlined"
+            href="/passkey-form-autofill?r=/immediate-ui-mode"
+            {{#if (isSignedIn)}}hidden{{/if}}>Sign in</mdui-menu-item>
+          <mdui-menu-item
+            id="signup"
+            icon="person_add--outlined"
+            href="/signup-form?r=/immediate-ui-mode"
+            {{#if (isSignedIn)}}hidden{{/if}}>Create account</mdui-menu-item>
+          <mdui-menu-item
+            id="signout"
+            icon="logout--outlined"
+            {{#unless (isSignedIn)}}hidden{{/unless}}>Sign out</mdui-menu-item>
+        </mdui-menu>
+      </mdui-dropdown>
+      {{/if}}
       <mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
     </mdui-top-app-bar>
+    {{#unless hide_drawer}}
     <mdui-navigation-drawer
       class="sidebar"
       close-on-overlay-click
@@ -41,6 +71,7 @@
       {{/if}}>
       {{> sidebar this}}
     </mdui-navigation-drawer>
+    {{/unless}}
     {{{body}}}
     <mdui-bottom-app-bar style="z-index: 900">
       {{#if usage_help}}

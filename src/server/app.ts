@@ -454,10 +454,14 @@ app.get(
 
 app.get(
   '/immediate-ui-mode',
-  pageAclCheck(PageType.SignIn),
+  pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
+    // Manually set the entrance path as this is a public page
+    new SessionService(req.session).setEntrancePath('/immediate-ui-mode');
+
     res.render('immediate-ui-mode.html', {
-      title: 'Credential Manager for the Web',
+      title: 'Quick sign-in (Immediate UI mode)',
+      hide_drawer: true,
     });
   }
 );

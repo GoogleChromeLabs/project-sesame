@@ -100,33 +100,47 @@ export const redirect = async (
  * @param domQuery A CSS selector string used to find the target anchor element
  *              whose href needs to be updated.
  */
-export const setRedirect = (domQuery: string): string => {
+export const setRedirect = (domQuery?: string): string => {
   // Get redirect parameter 'r'
   const currentUrl = new URL(location.href);
   const r = currentUrl.searchParams.get('r');
-
-  // Update the alternative sign-in link
-  const alternativeLink = $(domQuery);
-
-  if (alternativeLink && r) {
-    try {
-      // Construct the target URL, preserving existing params if any
-      const targetUrl = new URL(alternativeLink.href, location.origin); // Use base URL for relative links
-      targetUrl.searchParams.set('r', r); // Add or update the 'r' parameter
-      alternativeLink.href = targetUrl.toString(); // Set the updated href
-      console.log(`Updated alternative link href to: ${alternativeLink.href}`);
-
-      return new URL(r, location.origin).pathname;
-    } catch (error) {
-      console.error("Failed to update alternative sign-in link's href:", error);
-      // Avoid breaking the page if URL parsing fails
-    }
-  } else if (!alternativeLink) {
-    console.warn(
-      'Could not find the alternative sign-in link element to update its href.'
-    );
+  if (!r) {
+    return '';
   }
-  return '';
+
+  if (domQuery) {
+    // Update the alternative sign-in link
+    const alternativeLink = $(domQuery);
+
+    if (alternativeLink) {
+      try {
+        // Construct the target URL, preserving existing params if any
+        const targetUrl = new URL(alternativeLink.href, location.origin); // Use base URL for relative links
+        targetUrl.searchParams.set('r', r); // Add or update the 'r' parameter
+        alternativeLink.href = targetUrl.toString(); // Set the updated href
+        console.log(
+          `Updated alternative link href to: ${alternativeLink.href}`
+        );
+      } catch (error) {
+        console.error(
+          "Failed to update alternative sign-in link's href:",
+          error
+        );
+        // Avoid breaking the page if URL parsing fails
+      }
+    } else {
+      console.warn(
+        'Could not find the alternative sign-in link element to update its href.'
+      );
+    }
+  }
+
+  try {
+    return new URL(r, location.origin).pathname;
+  } catch (error) {
+    console.error("Failed to parse redirect parameter 'r':", error);
+    return '';
+  }
 };
 
 export function toast(text: string): void {

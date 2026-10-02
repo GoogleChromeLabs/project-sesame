@@ -21,12 +21,15 @@ import {
   redirect,
   postForm,
   toast,
+  setRedirect,
 } from '~project-sesame/client/helpers/index';
+
+const r = setRedirect('a[href="/signup-form"]');
 
 postForm(
   async () => {
     loading.stop();
-    await redirect('/home');
+    await redirect(r || '/home');
   },
   (error: Error) => {
     loading.stop();
