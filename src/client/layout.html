@@ -42,6 +42,11 @@
             href="/passkey-form-autofill?r=/immediate-ui-mode"
             {{#if (isSignedIn)}}hidden{{/if}}>Sign in</mdui-menu-item>
           <mdui-menu-item
+            id="signup"
+            icon="person_add--outlined"
+            href="/signup-form"
+            {{#if (isSignedIn)}}hidden{{/if}}>Create account</mdui-menu-item>
+          <mdui-menu-item
             id="signout"
             icon="logout--outlined"
             {{#unless (isSignedIn)}}hidden{{/unless}}>Sign out</mdui-menu-item>

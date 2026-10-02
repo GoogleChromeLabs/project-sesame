@@ -68,6 +68,7 @@ $('#product-grid').addEventListener('click', async (e: MouseEvent) => {
       isSignedIn = true;
       shop.dataset.signedIn = 'true';
       $('#signin').hidden = true;
+      $('#signup').hidden = true;
       $('#signout').hidden = false;
       if ('picture' in user && user.picture) {
         $('#account-avatar').src = user.picture;
