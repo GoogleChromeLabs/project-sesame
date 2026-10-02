@@ -29,7 +29,7 @@ import {
   authenticate,
 } from '~project-sesame/client/helpers/publickey';
 
-const r = setRedirect();
+const r = setRedirect('a[href="/signup-form"]');
 
 postForm(
   async () => {

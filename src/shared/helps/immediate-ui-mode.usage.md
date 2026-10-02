@@ -41,8 +41,10 @@ guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
   supports immediate UI mode.
 - **Save test credentials:** Make sure you have at least one account with a
   password or passkey saved in your password manager for this demo website. If
-  you do not have any saved credentials yet, visit the [sign-up
-  form](/signup-form) page to create an account, sign out, and return here.
+  you do not have any saved credentials yet, select **Create account** from the
+  avatar menu in the top-right corner (or visit the [sign-up
+  form](/signup-form?r=/immediate-ui-mode) page) to create an account, then sign
+  out from the avatar menu.
 - **Click a favorite button while signed out:** Click the heart icon on any
   product card to launch the unified credential picker immediately.
 - **Select your account:** Choose a saved passkey or password from the native
