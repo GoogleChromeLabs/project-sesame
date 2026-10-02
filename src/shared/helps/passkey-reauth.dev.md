@@ -14,39 +14,24 @@
  limitations under the License
 -->
 
-## Integrating Passkey Reauthentication
+## Integrating passkey reauthentication
 
-To secure high-risk actions (such as updating account details or initiating
-sensitive transactions), you can implement **passkey reauthentication** (also
-known as step-up authentication) using the [WebAuthn
-API](https://www.w3.org/TR/webauthn/).
+To secure high-risk actions (such as updating account settings, changing credentials, or performing financial transactions), you can implement **passkey reauthentication** (also known as step-up authentication) using the [WebAuthn API](https://www.w3.org/TR/webauthn/).
 
-While the implementation is similar to a standard passkey sign-in flow,
-reauthentication requires strict constraints to ensure that the currently
-signed-in user is verifying themselves, rather than another user signing in.
+While reauthentication uses `navigator.credentials.get()` similar to standard sign-in, it requires specific constraints to verify that the currently signed-in user—and not another person—is providing verification.
 
-### Implementation Best Practices Checklist
+### Implementation best practices checklist
 
-To implement a secure and robust passkey reauthentication flow, follow these
-critical guidelines:
+When implementing passkey reauthentication, follow these critical guidelines:
 
-- **Restrict Eligible Credentials:** Populate the
-  [`allowCredentials`](https://web.dev/articles/webauthn-discoverable-credentials#allow-credentials)
-  array in the `PublicKeyCredentialRequestOptions` passed to
-  `navigator.credentials.get()`. This array must contain only the credential IDs
-  associated with the currently signed-in user's account, preventing them from
-  accidentally or maliciously verifying with a different user's passkey.
-- **Match Server-Side Session:** On the server, strictly verify that the
-  credential ID and user ID returned in the WebAuthn assertion match the
-  credentials registered to the currently authenticated session user. This
-  prevents token injection or credential substitution attacks.
-- **Manage Reauth Expiry:** Store a timestamp of the successful reauthentication
-  in the user's session. Treat the reauthenticated state as valid only for a
-  short window (e.g., 5 to 15 minutes) before requiring another verification for
-  subsequent sensitive actions.
+- **Restrict eligible credentials:** In the `PublicKeyCredentialRequestOptions` passed to `navigator.credentials.get()`, populate the `allowCredentials` array strictly with credential IDs belonging to the currently signed-in user. This prevents another user from accidentally or intentionally authenticating with an unrelated passkey on a shared device.
+- **Enforce user verification:** Set `userVerification: 'required'` in the authentication options to guarantee that the authenticator performs biometric or device PIN verification, rather than merely verifying physical presence (`UP`).
+- **Validate server-side session binding:** On the server, strictly verify that the returned credential ID and user handle match the user associated with the active session. Never allow a reauthentication response to switch or overwrite the existing session user.
+- **Manage reauthentication validity window:** Record a timestamp upon successful reauthentication and verify it before executing sensitive actions. Treat the reauthenticated state as valid only for a short time window (e.g., 5 to 15 minutes) before requiring re-verification.
+- **Provide graceful password fallback:** Provide an explicit option for users who cannot access their passkey to verify with their password or another registered secondary credential.
 
-### Developer Resources
+### Developer resources
 
-- **Codelab:** [Build your first WebAuthn
-  app](https://developers.google.com/codelabs/webauthn-reauth) (Google
-  Developers)
+- **Guide:** [Sign in with a passkey through form autofill](https://web.dev/articles/passkey-form-autofill) (web.dev)
+- **Codelab:** [Build your first WebAuthn app](https://developers.google.com/codelabs/webauthn-reauth) (Google Developers)
+- **Specification:** [Web Authentication: An API for accessing Public Key Credentials - Level 3](https://www.w3.org/TR/webauthn-3/) (W3C)

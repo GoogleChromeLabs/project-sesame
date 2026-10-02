@@ -16,25 +16,18 @@
 
 ## FedCM active mode
 
-On this page, you can experience FedCM's **active mode**.
+On this page, you can experience the Federated Credential Management (FedCM) API running in **active mode**.
 
-### Active vs. passive Mode
+### Active vs. passive mode
 
-The Federated Credential Management (FedCM) API supports two distinct UX modes:
+The FedCM API provides two distinct user experience modes:
 
-- **Active Mode**: The FedCM prompt is triggered by a direct user interaction,
-  such as clicking a "Sign-in" button.
-- **Passive Mode**: The FedCM prompt is initiated automatically when the page
-  loads, without requiring any prior user interaction.
+- **Active mode:** The authentication request is triggered by an explicit user gesture, such as clicking a dedicated "Sign in with..." button. This mode provides a prominent modal prompt and allows users who are currently signed out of the identity provider (IdP) to sign in to the IdP directly via a browser popup.
+- **Passive mode:** The authentication prompt is initiated automatically when the page loads, without requiring user interaction.
 
-### How to test it:
+### How to test it
 
-1. **Browser Prerequisite:** Ensure you are using a Chromium-based browser that
-   supports FedCM.
-2. **Trigger the flow:** Click the **Sign-in with FedCM Demo IdP** button.
-3. **Complete the sign-in:** A browser-native FedCM dialog will appear. Follow
-   the prompts to select your account and complete the sign-in flow.
-4. **Sign in to the IdP:** If you are not signed in to the IdP yet, a popup
-   window will appear so you can sign in to [the
-   IdP](https://sesame-identity-provider.appspot.com). As soon as you are signed
-   in, you'll be able to sign in to the RP.
+- **Check browser support:** Ensure you are using a Chromium-based browser that supports FedCM.
+- **Trigger the sign-in flow:** Click the **Sign-in with FedCM Demo IdP** button.
+- **Authenticate with the IdP (if signed out):** If you are not currently signed in to the IdP, the browser automatically opens an IdP sign-in popup window pointing to [the demo IdP](https://sesame-identity-provider.appspot.com). Sign in to the IdP within that window; once authenticated, the popup closes and the FedCM flow resumes.
+- **Select an account:** A modal dialog appears presenting your identity provider account. Select your account to sign in to this demo application.

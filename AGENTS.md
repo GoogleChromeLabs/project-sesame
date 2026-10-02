@@ -64,9 +64,8 @@ Project Sesame is an open-source demo web application built with Node.js, design
   - `app.ts`: Main entry point. Initializes Express, configures Handlebars, and mounts middlewares/sub-apps.
   - `config.ts`: Loads and merges environment configurations.
   - `middlewares/`: Routing, access control, and business logic. Includes:
-    - `session.ts`: Handles user session state and persistence.
     - Feature sub-apps: `webauthn`, `fedcm`, `auth`, `federation` mounted as sub-apps for specific flows.
-  - `libs/`: Database abstractions and helper services.
+  - `libs/`: Database abstractions, helper services, and session management (`session.ts`).
 - `src/client/`: Frontend code compiled via Rsbuild.
   - `pages/`: TypeScript files corresponding to specific server-rendered views to add client-side Lit interactivity.
   - `helpers/`: Shared client-side utilities.
@@ -87,7 +86,7 @@ Project Sesame is an open-source demo web application built with Node.js, design
 
 ## 📜 Project-Specific Rules
 
-1.  **License Headers**: You **MUST** add the Apache 2.0 license header to the top of every new source file (TypeScript, JavaScript, SCSS, HTML, etc.). Use the standard Google Inc. Apache 2.0 template found in `.agent/rules/license-headers.md`.
+1.  **License Headers**: You **MUST** add the Apache 2.0 license header to the top of every new source file (TypeScript, JavaScript, SCSS, HTML, etc.). Use the standard Google Inc. Apache 2.0 template found in existing source files or `LICENSE`.
 2.  **Adding a New Sign-in/Sign-up Page**:
     - Add the HTML template to `src/shared/views/`.
     - Add the corresponding TypeScript logic to `src/client/pages/`.

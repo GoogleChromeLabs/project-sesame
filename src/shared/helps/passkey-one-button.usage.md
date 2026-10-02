@@ -14,32 +14,20 @@
  limitations under the License
 -->
 
-## Passkey Sign-in Button
+## Passkey sign-in button
 
-On this page, you can experience a dedicated, one-click authentication flow
-using a **Sign-in with a passkey** button. This flow simplifies the entry point
-by prioritizing passkeys while maintaining a fallback path for users without
-them. This page also demonstrates how the WebAuthn [Signal
-API](https://developer.chrome.com/docs/identity/webauthn-signal-api) keeps the
-browser's credential manager clean.
+On this page, you can experience a dedicated, one-click authentication flow using a **Sign-in with a passkey** button. This flow simplifies the entry point by prioritizing passkeys while maintaining a fallback path for users without them. This page also demonstrates how the WebAuthn [Signal API](https://developer.chrome.com/docs/identity/webauthn-signal-api) keeps the browser's credential manager clean.
 
-### How to test it:
+### How to test it
 
-1. **Click or tap the "Sign in with a passkey" button.**
-2. Depending on whether you have a saved passkey for this site:
-   - **If you have a saved passkey:** The browser's passkey verification prompt
-     will appear immediately, allowing you to sign in with your biometric scan
-     or screen lock.
-   - **If you do NOT have a saved passkey:** The browser will display a QR code
-     dialog, allowing you to scan it with your mobile device to sign in using a
-     passkey stored there.
+- **Click or tap the "Sign in with a passkey" button.**
+- **If you have a saved passkey:** The browser's passkey verification prompt appears immediately, allowing you to sign in with your biometric scan or screen lock.
+- **If you do not have a saved passkey:** The browser displays a QR code dialog, allowing you to scan it with your mobile device to sign in using a passkey stored there.
 
 If you want to bypass the QR code dialog entirely, try [immediate UI mode](/immediate-ui-mode).
 
-### WebAuthn Signal API Demo:
+### How the Signal API handles invalid passkeys
 
-If a passkey sign-in attempt is rejected by the server because the corresponding
-public key is not found (e.g., if the credential was deleted on the server but
-still remains in the browser's password manager), the server uses the WebAuthn
-Signal API to signal the browser. The browser will then delete the invalid
-passkey from its credential manager, preventing future invalid sign-in attempts.
+A passkey can remain in your password manager even after you delete its corresponding credential from your account settings. If you try to sign in with that passkey, the server rejects the attempt because it can no longer find the matching public key.
+
+The page then uses the WebAuthn Signal API to notify the passkey provider that the credential is no longer recognized. A supporting password manager can remove the invalid passkey so it is no longer offered for sign-in.

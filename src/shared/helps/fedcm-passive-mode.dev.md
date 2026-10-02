@@ -14,33 +14,42 @@
  limitations under the License
 -->
 
-## Integrate FedCM passive mode
+## Integrating FedCM passive mode
 
-To create a frictionless federated authentication flow, you can use FedCM's
-**passive mode** to trigger the identity provider (IdP) prompt automatically
-upon page load without requiring a direct user gesture.
+To create a frictionless, zero-click sign-in experience for returning users, you can integrate the [Federated Credential Management (FedCM) API](https://developer.chrome.com/docs/identity/fedcm) in **passive mode**.
 
-### Implementation Guide
+In passive mode, the browser attempts to display the identity provider (IdP) prompt immediately upon page load without requiring an explicit user gesture.
 
-In passive mode, you call `navigator.credentials.get()` and specify `mode:
-'passive'` within the `identity` options.
+### Implementation guide
+
+To initiate passive mode, call `navigator.credentials.get()` with `mode: 'passive'` inside the `identity` configuration object:
+
+```javascript
+const credential = await navigator.credentials.get({
+  identity: {
+    providers: [
+      {
+        configURL: 'https://idp.example/fedcm.json',
+        clientId: 'YOUR_CLIENT_ID',
+      },
+    ],
+    mode: 'passive',
+  },
+  mediation: 'required',
+});
+```
 
 ### Best practices checklist
 
-When implementing FedCM passive mode, follow the best practices:
+When implementing FedCM passive mode, follow these best practices:
 
-- **Graceful degradation:** Always implement a fallback mechanism (such as
-  showing standard sign-in buttons) in case the browser does not support
-  `IdentityCredential` or the passive request is rejected.
-- **Credential verification:** Ensure the returned credential is sent to the
-  backend and verified. Note that as FedCM is protocol agnostic, follow IdP's
-  instructions how to verify the credential. If it's built based on OpenID
-  Connect, the credential is typically and ID token so that you can verify
-  against IdP's public key.
-- **Mediation Control:** Use `mediation` option (such as `'required'` or
-  `'optional'`) to balance user convenience and user control.
+- **Graceful degradation:** Always provide an explicit sign-in fallback (such as standard buttons or username/password fields) if the browser does not support `IdentityCredential`, if the passive request fails, or if the user is not currently signed in to the IdP.
+- **Server-side credential verification:** Send the returned credential token to your backend for cryptographic verification. Because FedCM is protocol-agnostic, verification depends on the token format (for example, validating an OpenID Connect JWT against the IdP's JSON Web Key Set).
+- **Mediation control:** Choose the appropriate `mediation` setting (`'required'` or `'optional'`). In passive mode, `'required'` ensures that the user is always prompted to select or confirm an account, avoiding unexpected silent account switching.
+- **Respect IdP login status:** Ensure the IdP implements the [FedCM Login Status API](https://developer.chrome.com/docs/identity/fedcm/login-status-api). If the browser knows the user is logged out of the IdP, it suppresses the passive prompt without making unnecessary network requests.
 
-### Developer Resources
+### Developer resources
 
 - **Guide:** [Implement an identity solution with FedCM on the Relying Party side](https://developer.chrome.com/docs/identity/fedcm/implement/relying-party) (Chrome Developer)
 - **Guide:** [Implement an identity solution with FedCM on the Identity Provider side](https://developer.chrome.com/docs/identity/fedcm/implement/identity-provider) (Chrome Developer)
+- **API Reference:** [Federated Credential Management API](https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API) (MDN)

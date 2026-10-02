@@ -14,7 +14,18 @@
  limitations under the License
 -->
 
-In this page, you can experience and learn a sign-in flow using a
-`PasswordCredential` and `FederatedCredential` through Credential Management API
+## Legacy Credential Management API
 
-TBD
+On this page, you can experience sign-in using the legacy Credential Management API (`PasswordCredential` and `FederatedCredential`).
+
+### What is the legacy Credential Management API
+
+Before modern passkeys (WebAuthn) and the Federated Credential Management (FedCM) API, the Credential Management API allowed websites to retrieve stored username/password credentials (`PasswordCredential`) and federated provider tokens (`FederatedCredential`) directly through `navigator.credentials.get()`.
+
+Modern browsers are deprecating and removing `PasswordCredential` and `FederatedCredential` due to privacy and architectural limitations, in favor of [passkey form autofill](/passkey-form-autofill) (WebAuthn Conditional UI) and [FedCM](/fedcm-passive-mode).
+
+### How to test it
+
+- **Check browser support:** If your browser does not support `PasswordCredential` or `FederatedCredential`, an informational notification appears and you are automatically redirected to the passkey autofill demo.
+- **Select sign-in:** If supported, click the **Sign-in** button to invoke the legacy credential retrieval prompt.
+- **Fallback to form:** Select **Sign in with a form instead** to navigate to the standard password sign-in form.
