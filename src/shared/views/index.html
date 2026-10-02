@@ -23,6 +23,8 @@
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
     {{/if}} {{#if (isPageEnabled '/evp-passkey-signup')}}
     <li><a href="/evp-passkey-signup">Passwordless sign-up with email verification</a></li>
+    {{/if}} {{#if (isPageEnabled '/evp')}}
+    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
     {{/if}}
   </ul>
   <h3>Sign-in</h3>

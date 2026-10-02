@@ -242,12 +242,11 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.steps.step4.status, 'success');
     assert.strictEqual(body.steps.step5.status, 'success');
     assert.strictEqual(body.steps.step6.status, 'success');
-    assert.strictEqual(mockSession.challenge, undefined);
     assert.strictEqual(mockSession.user, undefined);
-    // The verified email starts a passwordless sign-up.
-    assert.strictEqual(mockSession.signup_user.username, 'test@gmail.com');
-    assert.strictEqual(mockSession.signup_user.email, 'test@gmail.com');
-    assert.ok(mockSession.signup_user.passkeyUserId);
+    // Plain verification changes no state, so the nonce is kept for another
+    // attempt and no sign-up is started.
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+    assert.strictEqual(mockSession.signup_user, undefined);
   });
 
   test('POST /evp/verify fails when sd_hash omits disclosures', async () => {
@@ -561,7 +560,7 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(mockSession.signup_user, undefined);
   });
 
-  test('POST /evp/verify rejects an email that already has an account', async () => {
+  test('POST /evp/verify verifies a registered email without signing up', async () => {
     const evt = prepareValidToken('test-session-challenge');
     vi.mocked(Users.findByUsername).mockResolvedValue({
       id: 'existing',
@@ -569,6 +568,38 @@ describe('EVP Middlewares', () => {
     } as any);
 
     const res = await postJson('/evp/verify', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true, body.error);
+    assert.strictEqual(body.verifiedEmail, 'test@gmail.com');
+    assert.strictEqual(mockSession.signup_user, undefined);
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+  });
+
+  test('POST /evp/signup verifies the token and starts a passwordless sign-up', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+
+    const res = await postJson('/evp/signup', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true, body.error);
+    assert.strictEqual(body.verifiedEmail, 'test@gmail.com');
+    assert.strictEqual(body.steps.step6.status, 'success');
+    assert.strictEqual(mockSession.signup_user.username, 'test@gmail.com');
+    assert.strictEqual(mockSession.signup_user.email, 'test@gmail.com');
+    assert.ok(mockSession.signup_user.passkeyUserId);
+    // The nonce is consumed once it has granted a sign-up.
+    assert.strictEqual(mockSession.challenge, undefined);
+  });
+
+  test('POST /evp/signup rejects an email that already has an account', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+    vi.mocked(Users.findByUsername).mockResolvedValue({
+      id: 'existing',
+      username: 'test@gmail.com',
+    } as any);
+
+    const res = await postJson('/evp/signup', {email: 'test@gmail.com', evt});
 
     const body = (await res.json()) as any;
     assert.strictEqual(body.success, false);

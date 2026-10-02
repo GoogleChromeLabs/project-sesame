@@ -20,7 +20,7 @@ import {$, post, redirect, toast} from '~project-sesame/client/helpers/index';
 
 /**
  * A single step in the server-side verification trace returned by
- * `/evp/verify`.
+ * `/evp/signup`.
  */
 interface VerificationStep {
   status: 'pending' | 'success' | 'failed';
@@ -89,7 +89,7 @@ function initPage(): void {
       );
       console.log(`Token: ${evt}`);
 
-      const result = await post('/evp/verify', {email, evt});
+      const result = await post('/evp/signup', {email, evt});
       printTraceToConsole(result.steps);
 
       if (result.success) {

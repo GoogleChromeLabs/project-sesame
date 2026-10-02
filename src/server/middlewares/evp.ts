@@ -115,17 +115,20 @@ function decodeJwt(jwtString: string): DecodedJwt {
 }
 
 /**
- * Verifies an Email Verification Token (EVT) and, on success, starts a
- * passwordless sign-up for the verified email address.
+ * Creates a handler that verifies an Email Verification Token (EVT).
  *
- * The response always includes a step-by-step `steps` trace so the demo page
- * can print how the token was validated. When `success` is `true`, the session
- * is in the `SigningUp` state and the client proceeds to passkey creation.
+ * The response always includes a step-by-step `steps` trace so the demo pages
+ * can print how the token was validated.
+ *
+ * @param startSignUp - Whether to start a passwordless sign-up for the
+ *     verified address. When `true` and `success` is `true`, the session is in
+ *     the `SigningUp` state and the client proceeds to passkey creation.
+ * @returns An Express request handler.
  */
-router.post(
-  '/verify',
-  apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response): Promise<void> => {
+function verifyTokenHandler(
+  startSignUp: boolean
+): (req: Request, res: Response) => Promise<void> {
+  return async (req: Request, res: Response): Promise<void> => {
     const {email, evt} = req.body;
 
     if (!email || !evt) {
@@ -432,13 +435,20 @@ router.post(
       steps.step6.outputs = {keyBindingPassed: true};
       steps.step6.status = 'success';
 
-      // The nonce is single-use: consume it as soon as the token has been
-      // accepted so the same token can't be replayed within this session.
-      new SessionService(req.session).deleteChallenge();
+      if (startSignUp) {
+        // The nonce is single-use when it grants something: consume it as
+        // soon as the token has been accepted so the same token can't be
+        // replayed to start another sign-up within this session.
+        new SessionService(req.session).deleteChallenge();
 
-      // Email ownership is proven. Start the passwordless sign-up so the
-      // client can move on to passkey creation.
-      verifiedEmail = await startPasskeySignUp(req.session, tokenEmail);
+        // Email ownership is proven. Start the passwordless sign-up so the
+        // client can move on to passkey creation.
+        verifiedEmail = await startPasskeySignUp(req.session, tokenEmail);
+      } else {
+        // Plain verification changes no state, so the nonce is kept and the
+        // verifier demo can verify again without reloading the page.
+        verifiedEmail = tokenEmail;
+      }
       success = true;
     } catch (error: any) {
       logger.error('EVP Verification error:', error);
@@ -461,8 +471,19 @@ router.post(
       error: errorMsg,
       steps,
     });
-  }
-);
+  };
+}
+
+/**
+ * Verifies an Email Verification Token for the `/evp` verifier demo.
+ */
+router.post('/verify', apiAclCheck(ApiType.NoAuth), verifyTokenHandler(false));
+
+/**
+ * Verifies an Email Verification Token and starts a passwordless sign-up for
+ * the verified address (`/evp-passkey-signup`).
+ */
+router.post('/signup', apiAclCheck(ApiType.NoAuth), verifyTokenHandler(true));
 
 /**
  * Starts the one-time code fallback when the browser didn't supply an Email

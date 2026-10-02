@@ -482,6 +482,31 @@ app.get(
   }
 );
 
+/**
+ * EVP verifier demo: verify an email address with the Email Verification
+ * Protocol and print how the token was validated.
+ * @swagger
+ * /evp:
+ *   get:
+ *     summary: EVP verifier page
+ *     description: Renders the demo page that verifies an email address with the Email Verification Protocol.
+ *     tags: [Pages]
+ *     responses:
+ *       200:
+ *         description: HTML page
+ */
+app.get(
+  '/evp',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge();
+    res.render('evp.html', {
+      title: 'EVP Verifier',
+      nonce,
+    });
+  }
+);
+
 app.get('/iframe-federation', (req: Request, res: Response): void => {
   return res.render('iframe-federation.html', {
     title: 'Sign-in form within an iframe',
