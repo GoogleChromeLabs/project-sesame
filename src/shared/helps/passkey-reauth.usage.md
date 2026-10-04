@@ -14,26 +14,22 @@
  limitations under the License
 -->
 
-## Reauthentication with a Passkey
+## Reauthentication with a passkey
 
-On this page, you can experience how passkeys simplify and secure the
-reauthentication process (often called "step-up authentication").
+On this page, you can experience how passkeys simplify and secure reauthentication (often called "step-up authentication").
 
-Reauthentication is typically required when a user attempts to perform
-high-risk actions or access sensitive sections of their account, such as:
+Reauthentication is required when a user attempts to perform sensitive actions or access protected account areas, such as:
 
-- Changing their email address or password.
-- Managing security settings or linked accounts.
-- Accessing highly personal or financial information.
+- Changing an email address or password.
+- Managing security credentials or linked accounts.
+- Accessing personal or financial information.
 
-Instead of forcing users to re-enter a complex password, passkeys allow them to
-securely verify their identity in seconds using their device's biometric sensor
-(like fingerprint or facial recognition) or screen lock PIN.
+Instead of prompting users to re-enter a complex password, passkeys allow them to verify their identity in seconds using their device's biometric sensor (such as a fingerprint or facial recognition) or device lock PIN.
 
-### How to test it:
+### How to test it
 
-1. **Click the "Reauthenticate" button** on the page.
-2. When prompted by the browser, **verify your identity** using your passkey
-   (e.g., via Touch ID, Face ID, or your device's PIN/pattern).
-3. Once the verification is successful, you will be seamlessly redirected to the
-   sensitive page or action.
+- **Prerequisites:** Sign in to an existing account that has at least one registered passkey. If you don't have an account with a passkey, register one first on the home or account settings page.
+- **Select the verification button:** Click the **Verify** button to initiate the passkey reauthentication prompt.
+- **Verify your identity:** When prompted by the browser, complete user verification with your passkey (e.g., via Touch ID, Face ID, or Windows Hello).
+- **Alternative verification:** If needed, you can select **Verify with a password instead** to fall back to traditional password-based reauthentication.
+- **Resume sensitive flow:** Once verified, you are redirected back to your original destination with an elevated session status.

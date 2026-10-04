@@ -64,9 +64,8 @@ Project Sesame is an open-source demo web application built with Node.js, design
   - `app.ts`: Main entry point. Initializes Express, configures Handlebars, and mounts middlewares/sub-apps.
   - `config.ts`: Loads and merges environment configurations.
   - `middlewares/`: Routing, access control, and business logic. Includes:
-    - `session.ts`: Handles user session state and persistence.
     - Feature sub-apps: `webauthn`, `fedcm`, `auth`, `federation` mounted as sub-apps for specific flows.
-  - `libs/`: Database abstractions and helper services.
+  - `libs/`: Database abstractions, helper services, and session management (`session.ts`).
 - `src/client/`: Frontend code compiled via Rsbuild.
   - `pages/`: TypeScript files corresponding to specific server-rendered views to add client-side Lit interactivity.
   - `helpers/`: Shared client-side utilities.
@@ -87,7 +86,7 @@ Project Sesame is an open-source demo web application built with Node.js, design
 
 ## 📜 Project-Specific Rules
 
-1.  **License Headers**: You **MUST** add the Apache 2.0 license header to the top of every new source file (TypeScript, JavaScript, SCSS, HTML, etc.). Use the standard Google Inc. Apache 2.0 template found in `.agent/rules/license-headers.md`.
+1.  **License Headers**: You **MUST** add the Apache 2.0 license header to the top of every new source file (TypeScript, JavaScript, SCSS, HTML, etc.). Use the standard Google Inc. Apache 2.0 template found in existing source files or `LICENSE`.
 2.  **Adding a New Sign-in/Sign-up Page**:
     - Add the HTML template to `src/shared/views/`.
     - Add the corresponding TypeScript logic to `src/client/pages/`.
@@ -100,19 +99,6 @@ Project Sesame is an open-source demo web application built with Node.js, design
     - `caddy.sh` requires `sudo` privileges to bind to standard ports and manage TLS certificates.
 4.  **Frontend Components (MDUI)**:
     - Standard UI components must leverage the [MDUI library](https://www.mdui.org/) (Material Design 3 elements) imported via `src/client/layout.ts` and inside Lit template strings (e.g. `<mdui-button>`). Avoid introducing other UI component frameworks to keep payload sizes lean and UI consistent.
-5.  **Git Worktree Workflow for Parallel Development**:
-    - When working on feature development, bug fixes, or task execution, you **MUST** use Git Worktrees under the `.worktree/` directory to prevent branch switching conflicts when multiple agents or sessions run concurrently.
-    - Never switch or check out feature branches directly in the repository root.
-    - Create and check out a dedicated worktree for the task:
-      ```bash
-      git worktree add .worktree/<branch-name> -b <branch-name> origin/main
-      ```
-    - Carry out all file modifications, local testing (`npm run check`), and git commits inside the corresponding `.worktree/<branch-name>` directory.
-    - After the work is completed or the pull request is merged, clean up the worktree:
-      ```bash
-      git worktree remove .worktree/<branch-name>
-      ```
-    - **Firestore Emulator Port Contention**: Local test execution (`npm test` / `npm run check`) boots the Firestore emulator on port `8081` via `firebase emulators:exec`. If multiple agents or worktrees run `npm run check` simultaneously, a port conflict may occur. If port `8081` is busy, wait briefly for the active test run to finish and retry.
 
 ---
 

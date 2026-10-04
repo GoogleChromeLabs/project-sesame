@@ -52,7 +52,8 @@ npm run dev:local
 Caddy should proxy from https://rp.localhost to `localhost:8080` and https://idp.localhost to `localhost:8000`,
 or other ports that you specify in the `rp-localhost.config.json` and `idp-localhost.config.json` config files.
 
-> [!NOTE] > `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
+> [!NOTE]
+> `sudo` is required to run the Caddy scripts. You may need to enter your password during the command.
 
 ### Useful Chrome flags (optional)
 
@@ -106,12 +107,15 @@ sign-in flow, follow the instructions below.
 4. Layout template is `src/client/layout.html`. The partial templates are under `src/shared/views/partials`.
 5. Add a server behavior at `src/server/app.ts`. e.g.
    ```ts
-   app.get('/sign-in', pageAclCheck(PageType.SignIn), (req: Request, res: Response)) => {
-     res.render('sign-in.html', {
-       title: 'Password',
-       layout: 'password',
-     });
-   });
+   app.get(
+     '/sign-in',
+     pageAclCheck(PageType.SignIn),
+     (req: Request, res: Response) => {
+       res.render('sign-in.html', {
+         title: 'Sign In',
+       });
+     }
+   );
    ```
 
 ### Use `pageAclCheck` middleware for pages
@@ -163,7 +167,7 @@ endpoint in `src/server/middlewares/auth.ts`.
 ```ts
 router.post(
   '/sign-in',
-  apiAclCheck(ApiType.Authentication),
+  apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response) => {
     const {username, password} = req.body;
     // TODO: Validate entered parameter.
@@ -174,7 +178,7 @@ router.post(
     const user = await Users.validatePassword(username, password);
     if (user) {
       // Set the user as a signed in status
-      new SessionService(req.session).setSessionUser(user);
+      setSignedIn(user, req, res);
 
       return res.json(user);
     } else {
