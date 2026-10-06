@@ -40,6 +40,7 @@ import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
 import {evp} from '~project-sesame/server/middlewares/evp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
+import {getCatalogData} from '~project-sesame/server/libs/demos.ts';
 import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
@@ -220,8 +221,12 @@ app.get(
   '/',
   pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
+    const {categories, apis, demos} = getCatalogData(config.enabled_pages);
     return res.render('index.html', {
       title: 'Welcome!',
+      categories,
+      apis,
+      demos,
     });
   }
 );

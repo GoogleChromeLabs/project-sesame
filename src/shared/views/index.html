@@ -13,42 +13,96 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<main class="content center">
-  <h2>Welcome to Project Sesame</h2>
-  <h3>Sign-up</h3>
-  <ul>
-    {{#if (isPageEnabled '/signup-form')}}
-    <li><a href="/signup-form">Sign-up Form</a></li>
-    {{/if}} {{#if (isPageEnabled '/passkey-signup')}}
-    <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
-    {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
-    {{/if}}
-  </ul>
-  <h3>Sign-in</h3>
-  <ul>
-    {{#if (isPageEnabled '/signin-form')}}
-    <li><a href="/signin-form">Sign-in Form</a></li>
-    {{/if}} {{#if (isPageEnabled '/automatic-passkey-creation')}}
-    <li><a href="/automatic-passkey-creation">Automatic Passkey Creation</a></li>
-    {{/if}} {{#if (isPageEnabled '/passkey-form-autofill')}}
-    <li><a href="/passkey-form-autofill">Passkey form autofill</a></li>
-    {{/if}} {{#if (isPageEnabled '/passkey-one-button')}}
-    <li><a href="/passkey-one-button">Passkey one button</a></li>
-    {{/if}} {{#if (isPageEnabled '/passkey-iframe')}}
-    <li><a href="/passkey-iframe">Passkey within iframe</a></li>
-    {{/if}} {{#if (isPageEnabled '/immediate-ui-mode')}}
-    <li><a href="/immediate-ui-mode">Immediate UI mode</a></li>
-    {{/if}} {{#if (isPageEnabled '/fedcm-active-mode')}}
-    <li><a href="/fedcm-active-mode">FedCM active mode</a></li>
-    {{/if}} {{#if (isPageEnabled '/fedcm-passive-mode')}}
-    <li><a href="/fedcm-passive-mode">FedCM passive mode</a></li>
-    {{/if}} {{#if (isPageEnabled '/fedcm-form-autofill')}}
-    <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
-    {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li>
-      <a href="https://rowan.fyi/made/email-provider" target="_blank">EVP Email Provider (Issuer)</a>
-    </li>
-    {{/if}}
-  </ul>
+<main class="content catalog">
+  <div class="catalog-header">
+    <h2>Welcome to Project Sesame</h2>
+    <p class="instructions">
+      Explore authentication user journeys and browser identity APIs.
+    </p>
+  </div>
+
+  <div class="filters-container">
+    <div class="filter-row" id="category-filter-bar">
+      <span class="filter-label">Category:</span>
+      <mdui-chip data-category="all" selected>All</mdui-chip>
+      {{#each categories}}
+      <mdui-chip data-category="{{this}}">{{this}}</mdui-chip>
+      {{/each}}
+    </div>
+    <div class="filter-row" id="api-filter-bar">
+      <span class="filter-label">API:</span>
+      <mdui-chip class="api-chip" data-api="all" selected>All APIs</mdui-chip>
+      {{#each apis}}
+      <mdui-chip class="api-chip" data-api="{{this}}">{{this}}</mdui-chip>
+      {{/each}}
+    </div>
+  </div>
+
+  <section class="demo-grid" id="demo-grid">
+    {{#each demos}}
+    <mdui-card
+      class="demo-card"
+      variant="outlined"
+      clickable
+      data-categories="{{categoriesAttr}}"
+      data-apis="{{apisAttr}}">
+      <div class="demo-thumbnail">
+        <div
+          class="mini-window{{#if thumbnail.dashed}} mini-window-dashed{{/if}}">
+          {{#each thumbnail.rows}} {{#if input}}
+          <div class="mini-input">
+            <span>{{input.text}}</span>
+            {{#if input.verified}}
+            <span class="mini-verified">{{input.verified}}</span>
+            {{/if}}
+          </div>
+          {{/if}} {{#if button}}
+          <div class="mini-row">
+            <span class="mini-btn">{{button}}</span>
+          </div>
+          {{/if}} {{#if pill}} {{#if pill.center}}
+          <div class="mini-row mini-row-center">
+            <span class="mini-pill">{{pill.text}}</span>
+          </div>
+          {{else}}
+          <div class="mini-pill{{#if pill.trailing}} mini-row{{/if}}">
+            <span>{{pill.text}}</span>
+            {{#if pill.trailing}}
+            <span>{{pill.trailing}}</span>
+            {{/if}}
+          </div>
+          {{/if}} {{/if}} {{#if header}}
+          <div class="mini-row">
+            <span{{#if header.strong}} class="mini-strong"{{/if}}
+              >{{header.text}}</span
+            >
+            {{#if header.pill}}
+            <span class="mini-pill">{{header.pill}}</span>
+            {{/if}} {{#if header.heart}}
+            <span class="mini-heart">♥</span>
+            {{/if}}
+          </div>
+          {{/if}} {{/each}}
+        </div>
+      </div>
+      <div class="demo-categories">
+        {{#each categories}}
+        <span class="category-tag" data-cat="{{this}}">{{this}}</span>
+        {{/each}}
+      </div>
+      <h3 class="demo-title">
+        <a class="demo-card-link" href="{{path}}">{{title}}</a>
+      </h3>
+      <p class="demo-description">{{description}}</p>
+      <div class="demo-apis">
+        {{#each apis}}
+        <span class="api-badge" data-api="{{this}}">{{this}}</span>
+        {{/each}}
+      </div>
+    </mdui-card>
+    {{/each}}
+    <div class="empty-message" id="empty-message" hidden>
+      No demos match the selected Category and API filters.
+    </div>
+  </section>
 </main>
