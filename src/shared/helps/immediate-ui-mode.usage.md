@@ -14,34 +14,45 @@
  limitations under the License
 -->
 
-## Immediate UI mode
+## Quick sign-in (Immediate UI mode)
 
 [Immediate UI
 mode](https://developer.chrome.com/docs/identity/immediate-ui-mode) is a web
-platform capability designed to streamline the sign-in experience. It allows
-users to authenticate simply by selecting their account from a unified, native
-browser dialog. This dialog aggregates all credentials saved in their password
-manager, including both traditional passwords and modern passkeys.
+platform capability designed to streamline contextual sign-in experiences. On
+this page, anyone can browse the product catalog, but saving an item to
+favorites requires an account. When a signed-out user clicks a favorite (heart)
+button, the browser immediately displays a native account picker aggregating all
+saved passwords and passkeys for this website, signing the user in and saving
+the item without leaving the page.
 
 Unlike the standard passkey prompt, immediate UI mode fails fast. If a user
-cancels the biometric verification or if no matching credentials are found, the
-API throws an exception immediately without falling back to a QR code or
-external security key dialog.
+cancels the verification prompt, if no matching credentials are found, or if the
+browser does not support immediate UI mode, the API throws an exception
+immediately without falling back to a QR code or external security key dialog,
+and this demo redirects you to the standard sign-in screen.
 
-### How to test this feature
+For design recommendations and UX best practices for contextual authentication,
+see the [quick sign-ins UX
+guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
 
-1. **Browser prerequisite:** Ensure you are using a Chromium-based browser that
-   supports immediate UI mode (available from June 2026 onwards).
-2. **Save test credentials:** You must have at least one account with a password
-   and a passkey saved in your password manager for this demo website. If you do
-   not have any saved credentials, visit the [passkey form
-   autofill](/passkey-form-autofill) page to save a password and register a new
-   passkey, then return here. Creating a second account will show you how the UI
-   let you pick an account.
-3. **Trigger the sign-in prompt:** Click the **Sign-in** button on this page to
-   launch the unified credential picker.
-4. **Select your account:** Choose the saved account you want to sign in with
-   from the native dialog.
-5. **Complete user verification:** Perform the required verification (such as
-   biometric scanning or entering your device PIN) if prompted. Once verified,
-   you will be signed in immediately.
+### Prerequisites
+
+- **Browser support:** Ensure you are using a Chromium-based browser that
+  supports immediate UI mode.
+- **Saved credentials:** Make sure you have at least one account with a
+  password or passkey saved in your password manager for this demo website. If
+  you do not have any saved credentials yet, select **Create account** from the
+  avatar menu in the top-right corner (or visit the [sign-up
+  form](/signup-form?r=/immediate-ui-mode) page) to create an account, then sign
+  out from the avatar menu.
+
+### How to test it
+
+- **Click a favorite button while signed out:** Click the heart icon on any
+  product card to launch the unified credential picker immediately.
+- **Select your account:** Choose a saved passkey or password from the native
+  dialog and complete verification if prompted. You will be signed in in place,
+  your avatar will appear in the top-right corner, and the item will be added to
+  your favorites.
+- **Sign out from the avatar menu:** Click your avatar in the top-right corner
+  and select **Sign out** to return to the signed-out state.

@@ -22,15 +22,18 @@ import {
   redirect,
   postForm,
   toast,
+  setRedirect,
 } from '~project-sesame/client/helpers/index';
 import {
   capabilities,
   authenticate,
 } from '~project-sesame/client/helpers/publickey';
 
+const r = setRedirect('a[href="/signup-form"]');
+
 postForm(
   async () => {
-    await redirect('/password');
+    await redirect(r ? `/password?r=${encodeURIComponent(r)}` : '/password');
   },
   (error: Error) => {
     console.log(error);
@@ -53,7 +56,7 @@ async function initAutofill() {
           // @ts-ignore
           IdentityProvider.close();
         }
-        await redirect('/home');
+        await redirect(r || '/home');
       } else {
         throw new Error('User not found.');
       }

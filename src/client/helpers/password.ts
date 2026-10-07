@@ -20,13 +20,12 @@ import {post} from '~project-sesame/client/helpers/index';
 export async function verifyPassword(
   // @ts-ignore
   cred: PasswordCredential
-): Promise<boolean> {
-  await post('/auth/username-password', {
+): Promise<any> {
+  return post('/auth/username-password', {
     username: cred.id,
     // @ts-ignore
     password: cred.password,
   });
-  return true;
 }
 
 export async function authenticate(): Promise<
