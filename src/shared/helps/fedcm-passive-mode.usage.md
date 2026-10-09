@@ -28,6 +28,6 @@ The FedCM API provides two distinct user experience modes:
 ### How to test it
 
 - **Check browser support:** Ensure you are using a Chromium-based browser that supports FedCM.
-- **Sign in to the IdP first (if necessary):** In passive mode, the browser only displays the prompt if you are already signed in to a supported IdP. If you haven't signed in yet, open the demo identity provider at [https://sesame-identity-provider.appspot.com](https://sesame-identity-provider.appspot.com) in another tab, sign in to your account, and reload this page.
+- **Sign in to the IdP first:** In passive mode, the browser only displays the prompt if you are already signed in to a supported IdP. If you haven't signed in yet, open <a href="https://sesame-identity-provider.appspot.com/signup-form" target="_blank">the demo identity provider</a>, create an account, close the tab and reload this page.
 - **Observe the browser prompt:** As soon as this page loads, a native sign-in dialog appears in the top-right corner of the browser window.
 - **Confirm to sign in:** Select your account and confirm the prompt to complete the federated sign-in immediately.

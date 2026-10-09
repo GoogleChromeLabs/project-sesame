@@ -16,26 +16,32 @@
 
 ## Email Verification Protocol
 
-On this page, you can experience a secure registration flow that instantly verifies your email address using the experimental **Email Verification Protocol (EVP)**.
+On this page, you can experience **Email Verification Protocol (EVP)** that instantly verifies your email address.
 
 EVP allows browsers to securely share cryptographically verified email addresses with websites using verifiable credentials, eliminating the friction of waiting for OTP codes or clicking verification links in your inbox.
 
+### Prerequisites
+
+- **Browser support:** Ensure you are using a compatible browser (**Requires
+  Chrome 150+**).
+- **Log in to the email provider:** Visit the [EVP Email
+  Provider](https://rowan.fyi/made/email-provider) and log in with the demo
+  email address (**`demo@rowan.fyi`**) via our demo email provider.
+- **(Optional) Add to your browser autofill:** In Chrome, navigate to
+  `chrome://settings/addresses`, click **Add**, enter **`demo@rowan.fyi`** in
+  the **Email** field, and save. Leave other fields blank.
+
 ### How to test the demo:
 
-- **Browser prerequisites:**
-  1. Ensure you are using a compatible browser version (**Requires Chrome 150+**).
-  2. Enable the Email Verification Protocol flag: `chrome://flags/#email-verification-protocol`.
-- **Log in to the email provider:**
-  For this demo, we expect you to log in with the provided demo email address (**`demo@rowan.fyi`**) via our demo email provider.
-  1. Open a new tab and visit the [EVP Email Provider](https://rowan.fyi/made/email-provider).
-  2. Follow the provider's instructions to ensure your browser is logged in as `demo@rowan.fyi`.
-- **Add to your browser autofill:**
-  To test the cryptographic flow smoothly, you must add the demo email to your browser's autofill addresses.
-  1. In Chrome, navigate to `chrome://settings/addresses`.
-  2. Click **Add**, enter **`demo@rowan.fyi`** in the **Email** field, and save. Leave other fields blank.
-- **Select the email from autofill:**
-  Return to this page, click the email input field, and choose **`demo@rowan.fyi`** from the browser's autofill dropdown.
-- **Submit the form:**
-  Click the **Continue** button. The browser will retrieve a signed cryptographic Email Verification Token (EVT) from the email provider and supply it to the page, completing the verification instantly.
-- **Observe the console:** Open your browser's Developer Tools (Console tab) to inspect the step-by-step cryptographic verification trace and data outputs in real time.
-- **Fallback to OTP:** If you type any other email address manually (or decline the browser prompt), the browser won't supply a token, and the page will smoothly fall back to simulating a traditional 6-digit verification code.
+- **Enter the email address to the form:** Enter the email address
+  **`demo@rowan.fyi`** to the input field, or click the email input field and
+  choose **`demo@rowan.fyi`** from the browser's autofill dropdown.
+- **Submit the form:** Click the **Continue** button. The browser will retrieve
+  a signed cryptographic Email Verification Token (EVT) from the email provider
+  and supply it to the page, completing the verification instantly.
+- **Observe the console:** Open your browser's Developer Tools (Console tab) to
+  inspect the step-by-step cryptographic verification trace and data outputs in
+  real time.
+- **Fallback to OTP:** If you type any other email address manually (or decline
+  the browser prompt), the browser won't supply a token, and the page will fall
+  back to simulating a traditional 6-digit verification code.

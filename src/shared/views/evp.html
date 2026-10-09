@@ -15,10 +15,15 @@
 -->
 
 <main class="content center">
-  <h2>Sign-up</h2>
+  <h2>Email Verification Protocol</h2>
 
   <div id="email-form-container">
     <form id="evp-form" class="center">
+      <p class="instructions">
+        Enter <code>demo@rowan.fyi</code> to the input field and press <strong>Continue</strong>.<br/>
+        Make sure you are logged in with the <a href="https://rowan.fyi/made/email-provider" target="_blank">email provider</a>.<br>
+      </p>
+
       <input
         type="email"
         id="email"
@@ -41,10 +46,6 @@
       />
 
       <mdui-button type="submit" variant="filled" id="submit-btn">Continue</mdui-button>
-      <p class="instructions">
-        Make sure you are logged in with the <a href="https://rowan.fyi/made/email-provider" target="_blank">email provider</a>.<br>
-        For this demo, please use <strong>demo@rowan.fyi</strong>.
-      </p>
     </form>
   </div>
 
