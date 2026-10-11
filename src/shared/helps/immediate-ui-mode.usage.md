@@ -21,19 +21,19 @@ mode](https://developer.chrome.com/docs/identity/immediate-ui-mode) is a web
 platform feature that lets users sign in at the point where they need an
 account, without leaving the page. On this page, anyone can browse the product
 catalog, but saving an item to favorites requires an account. When a signed-out
-user clicks a favorite (heart) button, the browser immediately displays an
-account picker listing all saved passwords and passkeys for this website.
+user clicks a favorite (heart) button, the browser immediately displays a
+credential picker listing all saved passwords and passkeys for this website.
 After the user picks an account, they're signed in and the item is saved.
 
 Unlike the standard passkey prompt, immediate UI mode fails fast. If the user
-cancels the account picker or verification prompt, or no matching credentials
-are found, the API throws an exception right away instead of falling back to a
-QR code or external security key dialog. In these cases, or if your browser
-doesn't support immediate UI mode, this demo redirects you to the standard
-sign-in page.
+cancels the credential picker or verification prompt, or no matching
+credentials are found, the API throws an exception right away instead of
+falling back to a QR code or external security key dialog. In these cases, or
+if your browser doesn't support immediate UI mode, this demo redirects you to
+the standard sign-in page.
 
-To learn about design and UX best practices for this kind of sign-in, see the
-[quick sign-ins UX guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
+To learn about design and UX best practices for contextual authentication, see
+the [quick sign-ins UX guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
 
 ### Prerequisites
 
@@ -48,10 +48,10 @@ To learn about design and UX best practices for this kind of sign-in, see the
 ### How to test it
 
 1. **Click a favorite button while signed out:** Click the heart icon on any
-   product card. The account picker opens immediately.
-2. **Select your account:** Choose a saved passkey or password from the picker
-   and complete verification if prompted. You're signed in on the same page,
-   your avatar appears in the top-right corner, and the item is added to your
-   favorites.
+   product card. The credential picker opens immediately.
+2. **Select your account:** Choose a saved passkey or password from the
+   credential picker and complete verification if prompted. You're signed in on
+   the same page, your avatar appears in the top-right corner, and the item is
+   added to your favorites.
 3. **Sign out from the avatar menu:** Click your avatar in the top-right corner
    and select **Sign out** to return to the signed-out state.
