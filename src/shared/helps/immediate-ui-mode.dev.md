@@ -29,19 +29,19 @@ page when the call fails.
   [`PasswordCredential`](https://web.dev/articles/security-credential-management-retrieve-credentials),
   `PublicKeyCredential`, and the
   [`immediateGet` client capability](https://web.dev/articles/webauthn-client-capabilities)
-  before you start the flow.
+  before you start the immediate UI flow.
 - **Request passwords and passkeys together:** Pass `password: true` and
   `publicKey` options in a single `navigator.credentials.get()` call.
 - **Set immediate UI mode in a user gesture:** Pass `uiMode: 'immediate'` from
   a user gesture handler (such as a click on a favorite button). The browser
-  then shows a native account picker straight away.
+  then shows an account picker straight away.
 - **Complete the action in place:** After you verify the credential, update the
   page to the signed-in state and finish the user's action.
 - **Fall back when the call fails:** The call throws a `NotAllowedError` if no
-  matching credentials are saved or the user dismisses the picker. When this
-  happens, or the browser doesn't support the feature, redirect to a standard
-  sign-in page (such as [passkey form autofill](/passkey-form-autofill)). See
-  the
+  matching credentials are saved or the user dismisses the account picker.
+  When this happens, or the browser doesn't support the feature, redirect to a
+  standard sign-in page (such as
+  [passkey form autofill](/passkey-form-autofill)). See the
   [quick sign-ins UX guide](https://developer.chrome.com/docs/identity/ux-quick-signins)
   for recommended fallback flows.
 
@@ -50,8 +50,8 @@ page when the call fails.
 - **Sign in without leaving the page:** Users sign in when they use an
   account-gated feature (such as saving an item to favorites), and their action
   completes right away.
-- **Passwords and passkeys in one picker:** The browser shows all the
-  credentials saved in the user's password manager in a single native dialog.
+- **Passwords and passkeys together:** The browser lists everything saved in
+  the user's password manager in a single account picker.
 - **Fast fallback:** Unlike standard WebAuthn prompts, immediate UI mode doesn't
   offer security keys or QR code scanning. If no matching credentials are
   saved or the user cancels, the call fails straight away, so you can show your
