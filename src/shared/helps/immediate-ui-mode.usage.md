@@ -18,41 +18,40 @@
 
 [Immediate UI
 mode](https://developer.chrome.com/docs/identity/immediate-ui-mode) is a web
-platform capability designed to streamline contextual sign-in experiences. On
-this page, anyone can browse the product catalog, but saving an item to
-favorites requires an account. When a signed-out user clicks a favorite (heart)
-button, the browser immediately displays a native account picker aggregating all
-saved passwords and passkeys for this website, signing the user in and saving
-the item without leaving the page.
+platform feature that lets users sign in at the point where they need an
+account, without leaving the page. On this page, anyone can browse the product
+catalog, but saving an item to favorites requires an account. When a signed-out
+user clicks a favorite (heart) button, the browser immediately displays an
+account picker listing all saved passwords and passkeys for this website.
+After the user picks an account, they're signed in and the item is saved.
 
-Unlike the standard passkey prompt, immediate UI mode fails fast. If a user
-cancels the verification prompt, if no matching credentials are found, or if the
-browser does not support immediate UI mode, the API throws an exception
-immediately without falling back to a QR code or external security key dialog,
-and this demo redirects you to the standard sign-in screen.
+Unlike the standard passkey prompt, immediate UI mode fails fast. If the user
+cancels the account picker or verification prompt, or no matching credentials
+are found, the API throws an exception right away instead of falling back to a
+QR code or external security key dialog. In these cases, or if your browser
+doesn't support immediate UI mode, this demo redirects you to the standard
+sign-in page.
 
-For design recommendations and UX best practices for contextual authentication,
-see the [quick sign-ins UX
-guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
+To learn about design and UX best practices for this kind of sign-in, see the
+[quick sign-ins UX guide](https://developer.chrome.com/docs/identity/ux-quick-signins).
 
 ### Prerequisites
 
-- **Browser support:** Ensure you are using a Chromium-based browser that
-  supports immediate UI mode.
-- **Saved credentials:** Make sure you have at least one account with a
-  password or passkey saved in your password manager for this demo website. If
-  you do not have any saved credentials yet, select **Create account** from the
-  avatar menu in the top-right corner (or visit the [sign-up
-  form](/signup-form?r=/immediate-ui-mode) page) to create an account, then sign
-  out from the avatar menu.
+- **Chromium-based browser:** Make sure your browser supports immediate UI
+  mode.
+- **Saved password or passkey:** You need at least one saved for this website
+  in your password manager. If you don't have one yet, select
+  **Create account** from the avatar menu in the top-right corner, or use the
+  [sign-up form](/signup-form?r=/immediate-ui-mode). Then sign out from the
+  avatar menu.
 
 ### How to test it
 
-- **Click a favorite button while signed out:** Click the heart icon on any
-  product card to launch the unified credential picker immediately.
-- **Select your account:** Choose a saved passkey or password from the native
-  dialog and complete verification if prompted. You will be signed in in place,
-  your avatar will appear in the top-right corner, and the item will be added to
-  your favorites.
-- **Sign out from the avatar menu:** Click your avatar in the top-right corner
-  and select **Sign out** to return to the signed-out state.
+1. **Click a favorite button while signed out:** Click the heart icon on any
+   product card. The account picker opens immediately.
+2. **Select your account:** Choose a saved passkey or password from the picker
+   and complete verification if prompted. You're signed in on the same page,
+   your avatar appears in the top-right corner, and the item is added to your
+   favorites.
+3. **Sign out from the avatar menu:** Click your avatar in the top-right corner
+   and select **Sign out** to return to the signed-out state.
