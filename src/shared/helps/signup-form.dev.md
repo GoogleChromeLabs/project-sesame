@@ -16,42 +16,44 @@
 
 ## Integrate a password-based sign-up form
 
-This page demonstrates a traditional registration form built in accordance with
-modern web standards and accessibility guidelines.
+This page demonstrates a password-based registration form built in accordance
+with web standards and accessibility guidelines.
 
 ### Best practices & form optimization checklist
 
-When implementing password-based sign-up, ensure your form implements the following architectural, UX, and security patterns:
+When implementing password-based sign-up, make sure your form implements the
+following structural, UX, and security patterns:
 
 - **Semantic HTML:** Build the form using native `<form>`, `<input>`, and
-  `<button>` elements. This guarantees accessibility, native keyboard
+  `<button>` elements. This provides built-in accessibility, native keyboard
   navigation, and seamless integration with browser extensions and password
   managers.
-- **Autofill compatibility:** Assist credential managers by providing explicit `autocomplete` attributes:
+- **Autofill compatibility:** Assist password managers by providing explicit
+  `autocomplete` attributes:
   - Configure the username/identifier field with `autocomplete="username"`.
   - Configure both the password and password confirmation fields with
-    `autocomplete="new-password"`. This signals to browser password managers to
+    `autocomplete="new-password"`. This tells browser password managers to
     suggest a strong, unique, auto-generated password instead of autofilling
     existing credentials.
 - **Form simplicity:** Ask only for essential information during registration
-  (e.g., username, password, and optionally a display name). Minimizing form
-  fields reduces cognitive load and significantly decreases cart/form
-  abandonment rates.
+  (such as username, password, and optionally a display name). Minimizing form
+  fields reduces cognitive load and significantly decreases form abandonment
+  rates.
 - **Unrestricted password validation:** Avoid overly restrictive password rules
-  (such as banning special characters, restricting length, or blocking
-  copy/paste) that interfere with password managers' ability to generate strong,
-  complex passwords.
+  (such as banning special characters, capping length, or blocking copy/paste)
+  that interfere with password managers' ability to generate strong, complex
+  passwords.
 - **Paste enablement:** Never disable copy-and-paste functionality on password
   fields. Users must be allowed to paste secure credentials directly from
   external password managers.
-- **Password visibility control:** Include a visibility toggle (switching the
-  input type between `password` and `text`) to help users verify their input,
-  which reduces typing errors and friction.
+- **Password visibility control:** Include a toggle that switches the password
+  input type between `password` and `text` so users can check what they typed.
+  This reduces typing errors and friction.
 
 ### Developer resources
 
 - **Guide:** [Sign-up form best
   practices](https://web.dev/articles/sign-up-form-best-practices) (web.dev)
 - **Guide:** [Help users sign in with
-  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome
+  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome for
   Developers)
