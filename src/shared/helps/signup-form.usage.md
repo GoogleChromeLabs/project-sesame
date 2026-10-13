@@ -16,12 +16,16 @@
 
 ## Password-based sign-up form
 
-On this page, you can experience a traditional form-based sign-up flow to register a new account using a username and a password.
+On this page, you can try a form-based sign-up flow to register a new account
+using a username and a password.
 
 ### How to test it
 
-- **Enter a username:** Type a username you would like to use.
-- **Enter a password:** Type a password and then re-enter it in the confirmation field.
-- **Submit the form:** Click **Sign up** to complete the registration process.
+1. **Enter a username:** Type a username you'd like to use.
+2. **Enter a password:** Type a password and then re-enter it in the
+   confirmation field.
+3. **Submit the form:** Click **Sign up** to complete the registration process.
 
-\* _This is a demo application. Passwords are not saved on the server, and you can sign in on the sign-in page using any username and password without registering first._
+\* _This is a demo application, so don't use a real password. You can sign in
+on the sign-in page using any username and password without registering
+first._
