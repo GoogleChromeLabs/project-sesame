@@ -16,15 +16,15 @@
 
 ## Password-based sign-in form
 
-On this page, you can experience a traditional form-based sign-in flow using a
-username and password.
+On this page, you can try a form-based sign-in flow using a username and
+password.
 
-### How to test it:
+### How to test it
 
-- **Register an account first**: If you do not have an account yet, click
-  **Register now** to create one.
-- **Sign in with your password**: Enter your username and password, then click
-  **Login** to authenticate and access the home page.
+1. **Register an account first:** If you don't have an account yet, click
+   **Register now** to create one.
+2. **Sign in with your password:** Enter your username and password, then click
+   **Login** to authenticate and access the home page.
 
-\* In fact, you can sign in on this page without creating a new account at
-[/signup-form](/signup-form) because this demo ignores the password.
+\* _You can sign in without creating an account at [/signup-form](/signup-form)
+first. The demo creates one for any new username and ignores the password._
