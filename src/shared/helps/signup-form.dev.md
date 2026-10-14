@@ -14,41 +14,38 @@
  limitations under the License
 -->
 
-## Integrate a password-based sign-up form
+## Integrating a password-based sign-up form
 
-This page demonstrates a password-based registration form built in accordance
-with web standards and accessibility guidelines.
+To integrate a **password-based sign-up form** that works seamlessly with
+browser password managers, you need to structure your form with semantic HTML
+and configure the appropriate input attributes.
 
-### Best practices & form optimization checklist
+- **Use semantic HTML:** Build the form using native `<form>`, `<input>`, and
+  `<button type="submit">` elements to ensure accessibility, keyboard
+  navigation, and reliable integration with browser password managers.
+- **Configure username autocomplete:** Set `autocomplete="username"` on the
+  username or identifier `<input>` element so password managers associate the
+  correct identifier with the saved password.
+- **Configure new-password autocomplete:** Set `autocomplete="new-password"` on
+  both the password and password confirmation `<input>` elements. This signals
+  browser password managers to suggest a strong, auto-generated password instead
+  of autofilling an existing credential.
 
-When implementing password-based sign-up, make sure your form implements the
-following structural, UX, and security patterns:
+### Best practices & advanced UX
 
-- **Semantic HTML:** Build the form using native `<form>`, `<input>`, and
-  `<button>` elements. This provides built-in accessibility, native keyboard
-  navigation, and seamless integration with browser extensions and password
-  managers.
-- **Autofill compatibility:** Assist password managers by providing explicit
-  `autocomplete` attributes:
-  - Configure the username/identifier field with `autocomplete="username"`.
-  - Configure both the password and password confirmation fields with
-    `autocomplete="new-password"`. This tells browser password managers to
-    suggest a strong, unique, auto-generated password instead of autofilling
-    existing credentials.
+Consider these patterns to improve the sign-up experience:
+
 - **Form simplicity:** Ask only for essential information during registration
-  (such as username, password, and optionally a display name). Minimizing form
-  fields reduces cognitive load and significantly decreases form abandonment
-  rates.
-- **Unrestricted password validation:** Avoid overly restrictive password rules
-  (such as banning special characters, capping length, or blocking copy/paste)
-  that interfere with password managers' ability to generate strong, complex
-  passwords.
-- **Paste enablement:** Never disable copy-and-paste functionality on password
-  fields. Users must be allowed to paste secure credentials directly from
-  external password managers.
-- **Password visibility control:** Include a toggle that switches the password
-  input type between `password` and `text` so users can check what they typed.
-  This reduces typing errors and friction.
+  (such as a username, password, and optional display name) to reduce cognitive
+  load and form abandonment.
+- **Unrestricted password rules:** Avoid overly restrictive password composition
+  rules (such as banning special characters or limiting maximum length) that
+  interfere with password managers generating strong, complex passwords.
+- **Allow pasting passwords:** Never disable copy-and-paste on password fields
+  so users can paste credentials from external password managers.
+- **Password visibility toggle:** Provide a control that switches the password
+  `<input>` `type` between `password` and `text` so users can verify their entry
+  and avoid typing errors.
 
 ### Developer resources
 

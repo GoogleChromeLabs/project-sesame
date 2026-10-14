@@ -16,16 +16,18 @@
 
 ## Password-based sign-up form
 
-On this page, you can try a form-based sign-up flow to register a new account
-using a username and a password.
+This page demonstrates a **password-based sign-up form**, which lets users
+register a new account with a username and password while allowing browser
+password managers to suggest and save strong credentials.
 
 ### How to test it
 
-1. **Enter a username:** Type a username you'd like to use.
-2. **Enter a password:** Type a password and then re-enter it in the
-   confirmation field.
-3. **Submit the form:** Click **Sign up** to complete the registration process.
-
-\* _This is a demo application, so don't use a real password. You can sign in
-on the sign-in page using any username and password without registering
-first._
+1. Enter any username in the **Username** field (and optionally a **Display
+   name**).
+2. Click or tap the **New password** field. Enter any password—or choose a
+   strong password suggested by your browser's password manager—and re-enter it
+   in the **Confirm password** field.
+3. Select **Sign up** to create a demo account. The password is ignored; this
+   step simulates a traditional sign-up flow and prompts your browser's password
+   manager to save the credentials. Demo accounts are automatically deleted
+   after 48 hours.
