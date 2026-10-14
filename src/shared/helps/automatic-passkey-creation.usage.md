@@ -16,31 +16,35 @@
 
 ## Automatic passkey creation
 
-On this page, you can experience a traditional form-based sign-in flow with
-**automatic passkey creation** that helps you transition to passkeys.
+This page demonstrates **automatic passkey creation** (also known as
+Conditional Create), which creates a passkey for you right after you sign in
+with a saved password. You get a passkey without having to set one up from a
+settings page.
 
 ### Prerequisites
 
-- **Browser support**: Automatic passkey creation requires a Chromium based
-  browser or Apple Safari.
-- **Saved credentials**: You must have a saved password for this site in your
-  browser's password manager in advance.
-- **No existing passkeys**: The browser's password manager must not already
-  contain a passkey for this account.
+To see a passkey created, you need:
 
-### How to test it:
+- A Chromium-based browser or Apple Safari.
+- A password for this site saved in your browser's password manager.
+- No existing passkey for this account in that password manager.
 
-- **Save a password first**: If you haven't already, sign up to this website (or
-  sign in and save a password to your browser's password manager).
-- **Sign in with your saved password**: Enter your saved username and matching
-  password, then click **Login**.
-- **Trigger the passkey upgrade**: Upon successful authentication, the browser
-  will detect that the entered password matches the saved one and automatically
-  create a new passkey.
-- **Find the dialog**: You'll be notified when a passkey is successfully
-  created.
+### How to test it
 
-\* To test this successfully, the password you enter must match a password
-already saved in your browser's password manager for this site. The demo backend
-accepts any password to log you in, but the browser's password manager requires
-a matching saved password to trigger the passkey upgrade.
+1. **Save a password first:** Select **Register now** to create an account,
+   and make sure the password is saved to your browser's password manager. If
+   you already have a saved password, skip this step.
+2. **Sign out:** If you're signed in, select **Sign out** in the sidebar and
+   return to this page.
+3. **Sign in with your saved password:** Select the username field, choose
+   your saved account from the autofill suggestions, then select **Login**.
+4. **Trigger the passkey upgrade:** After you sign in, the password manager
+   creates a passkey for this account in the background.
+5. **Find the confirmation:** Your browser shows a notification when the
+   passkey is created. You can also open **Passkey Management** to see the new
+   passkey listed.
+
+\* _The password manager only creates a passkey when the password you enter
+matches the one it has saved and the account doesn't already have a passkey.
+However, the demo signs you in with any password, so you're still signed in
+even when no passkey is created._
