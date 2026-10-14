@@ -19,6 +19,8 @@ import {ALLOW_LISTED_FOREVER, getTime} from '../middlewares/common.ts';
 import {SessionData} from 'express-session';
 import {config, store} from '../config.ts';
 import {FirestoreStore, StoreOptions} from '@google-cloud/connect-firestore';
+import type {DocumentReference} from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 import {deleteDocuments, OwnedDocument, toOwnedDocuments} from './helpers.ts';
 
 /**
@@ -140,6 +142,40 @@ export class CustomFirestoreStore extends FirestoreStore {
       .select('user.id')
       .get();
     return toOwnedDocuments(snapshot.docs, 'user.id');
+  }
+
+  /**
+   * Deletes all expired sessions from the store.
+   *
+   * Sessions expire when their `expiresAt` timestamp has passed, regardless of
+   * whether they belong to an existing user or an unauthenticated session.
+   *
+   * Range filters in Firestore are type-bounded, so sessions with numeric
+   * timestamps and Firestore Timestamps are queried separately to ensure all
+   * expired sessions are found and removed.
+   *
+   * @param now - Optional timestamp in milliseconds representing the current time (defaults to Date.now()).
+   * @returns A promise that resolves to the number of deleted expired sessions.
+   */
+  async deleteExpired(now: number = getTime()): Promise<number> {
+    const [numericSnapshot, timestampSnapshot] = await Promise.all([
+      this.db.collection(this.kind).where('expiresAt', '<=', now).get(),
+      this.db
+        .collection(this.kind)
+        .where('expiresAt', '<=', Timestamp.fromMillis(now))
+        .get(),
+    ]);
+
+    const seen = new Set<string>();
+    const refs: DocumentReference[] = [];
+    for (const doc of [...numericSnapshot.docs, ...timestampSnapshot.docs]) {
+      if (!seen.has(doc.id)) {
+        seen.add(doc.id);
+        refs.push(doc.ref);
+      }
+    }
+
+    return deleteDocuments(refs);
   }
 }
 

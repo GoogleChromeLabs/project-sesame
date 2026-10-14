@@ -235,6 +235,24 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
     const activeSession = await createSession({user: active});
     const activeMapping = await createMapping(active.id);
 
+    // Create an expired session for the active user, plus an unauthenticated expired session.
+    const activeExpiredSession = generateRandomString();
+    await store
+      .collection(SESSIONS_COLLECTION)
+      .doc(activeExpiredSession)
+      .set({
+        user: active,
+        expiresAt: getTime(-5000),
+      });
+    const unauthExpiredSession = generateRandomString();
+    await store
+      .collection(SESSIONS_COLLECTION)
+      .doc(unauthExpiredSession)
+      .set({
+        challenge: 'orphan-challenge',
+        expiresAt: getTime(-10000),
+      });
+
     await Users.deleteOldUsers();
 
     assert.strictEqual(await Users.findById(expired.id), undefined);
@@ -245,6 +263,16 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
     assert.strictEqual(
       await exists(SESSIONS_COLLECTION, expiredSession),
       false
+    );
+    assert.strictEqual(
+      await exists(SESSIONS_COLLECTION, activeExpiredSession),
+      false,
+      'Expired session of active user should be deleted'
+    );
+    assert.strictEqual(
+      await exists(SESSIONS_COLLECTION, unauthExpiredSession),
+      false,
+      'Unauthenticated expired session should be deleted'
     );
     assert.strictEqual(
       await exists(FederationMappings.collection, expiredMapping),
