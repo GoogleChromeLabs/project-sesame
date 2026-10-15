@@ -218,6 +218,10 @@ main section {
   max-width: 400px;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .center {
   display: flex;
   flex-direction: column;

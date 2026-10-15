@@ -1,0 +1,55 @@
+<!--
+ Copyright 2026 Google Inc. All rights reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<main class="content center">
+  <h2>Passwordless sign-up</h2>
+
+  <!-- Step 1: Enter an email address. EVP verifies it without leaving the page. -->
+  <div id="email-form-container">
+    <form id="evp-form" class="center">
+      <p class="instructions narrow">
+        Enter your email address. Once it's verified, you'll create a passkey
+        to finish signing up. No password needed.
+      </p>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        autocomplete="email"
+        placeholder="demo@rowan.fyi"
+        required
+        autofocus
+        class="native-textfield-input"
+      />
+
+      <!-- Hidden input for the EVP token -->
+      <input
+        type="hidden"
+        name="evt"
+        id="evt"
+        nonce="{{nonce}}"
+        data-nonce="{{nonce}}"
+        autocomplete="email-verification-token"
+      />
+
+      <mdui-button type="submit" variant="filled" id="submit-btn">Continue</mdui-button>
+      <p class="instructions narrow">
+        Make sure you are logged in with the <a href="https://rowan.fyi/made/email-provider" target="_blank">email provider</a>.<br>
+        For this demo, please use <strong>demo@rowan.fyi</strong>.
+      </p>
+    </form>
+  </div>
+</main>

@@ -16,19 +16,80 @@
  */
 
 import {Router, Request, Response} from 'express';
+import {Session} from 'express-session';
 import dns from 'node:dns/promises';
 import crypto from 'node:crypto';
-import {
-  SessionService,
-  PageType,
-  ApiType,
-  pageAclCheck,
-  apiAclCheck,
-} from '../libs/session.ts';
+import {SessionService, ApiType, apiAclCheck} from '../libs/session.ts';
+import {Users, generatePasskeyUserId} from '../libs/users.ts';
 import {logger} from '../libs/logger.ts';
-import {generateRandomString} from '../libs/helpers.ts';
+import {csrfCheck} from './common.ts';
 
 const router = Router();
+
+router.use(csrfCheck);
+
+/**
+ * A deliberately loose email shape check. The address is either
+ * cryptographically verified through EVP or (in the simulated fallback) typed
+ * by the user, so this only guards against obviously malformed input. String
+ * operations are used instead of a regular expression to avoid super-linear
+ * backtracking on crafted input.
+ *
+ * @param email - The normalized email address.
+ * @returns `true` if the address has a local part and a dotted domain.
+ */
+function isPlausibleEmail(email: string): boolean {
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  return (
+    local.length > 0 &&
+    domain.includes('.') &&
+    !domain.startsWith('.') &&
+    !domain.endsWith('.')
+  );
+}
+
+/**
+ * Puts a verified email address into the sign-up session so the user can
+ * finish creating the account by registering a passkey.
+ *
+ * The account itself is not created here. The existing
+ * `/webauthn/registerRequest` and `/webauthn/registerResponse` endpoints
+ * accept users in the `SigningUp` state and create the account only after a
+ * passkey has been registered successfully. That keeps the flow passwordless:
+ * no account exists without a passkey.
+ *
+ * @param session - The Express session of the current request.
+ * @param email - The email address whose ownership has been verified.
+ * @returns The normalized email address used as the username.
+ * @throws Error if the address can't be used or is already registered.
+ */
+async function startPasskeySignUp(
+  session: Session,
+  email: string
+): Promise<string> {
+  const username = email.trim().toLowerCase();
+  if (!isPlausibleEmail(username) || !Users.isValidUsername(username)) {
+    throw new Error('This email address cannot be used to sign up.');
+  }
+  // Only check for an existing account after ownership has been verified
+  // (through EVP, or through a real one-time code in production) so that the
+  // endpoint can't be used to probe which addresses are registered.
+  const existingUser = await Users.findByUsername(username);
+  if (existingUser) {
+    throw new Error(
+      'An account with this email address already exists. Sign in instead.'
+    );
+  }
+  new SessionService(session).setSigningUp({
+    username,
+    email: username,
+    displayName: '',
+    passkeyUserId: generatePasskeyUserId(),
+  });
+  return username;
+}
 
 /**
  * Helper to decode JWT parts
@@ -54,29 +115,20 @@ function decodeJwt(jwtString: string): DecodedJwt {
 }
 
 /**
- * Render the EVP page
+ * Creates a handler that verifies an Email Verification Token (EVT).
+ *
+ * The response always includes a step-by-step `steps` trace so the demo pages
+ * can print how the token was validated.
+ *
+ * @param startSignUp - Whether to start a passwordless sign-up for the
+ *     verified address. When `true` and `success` is `true`, the session is in
+ *     the `SigningUp` state and the client proceeds to passkey creation.
+ * @returns An Express request handler.
  */
-router.get(
-  '/',
-  pageAclCheck(PageType.NoAuth),
-  (req: Request, res: Response) => {
-    const nonce = new SessionService(req.session).setChallenge(
-      generateRandomString(24)
-    );
-    res.render('evp.html', {
-      title: 'EVP Verifier',
-      nonce,
-    });
-  }
-);
-
-/**
- * Verify the EVP token
- */
-router.post(
-  '/verify',
-  apiAclCheck(ApiType.NoAuth),
-  async (req: Request, res: Response): Promise<void> => {
+function verifyTokenHandler(
+  startSignUp: boolean
+): (req: Request, res: Response) => Promise<void> {
+  return async (req: Request, res: Response): Promise<void> => {
     const {email, evt} = req.body;
 
     if (!email || !evt) {
@@ -186,7 +238,14 @@ router.post(
         );
       }
 
-      if (expectedNonce && tokenNonce !== expectedNonce) {
+      // Fail closed: without a session-bound nonce there is nothing to bind the
+      // token to, so a token issued for another session could be replayed.
+      if (!expectedNonce) {
+        throw new Error(
+          'No verification challenge found in the session. Reload the page and try again.'
+        );
+      }
+      if (tokenNonce !== expectedNonce) {
         throw new Error(
           `Nonce mismatch: Expected "${expectedNonce}", Token contained "${tokenNonce}"`
         );
@@ -376,9 +435,21 @@ router.post(
       steps.step6.outputs = {keyBindingPassed: true};
       steps.step6.status = 'success';
 
+      if (startSignUp) {
+        // The nonce is single-use when it grants something: consume it as
+        // soon as the token has been accepted so the same token can't be
+        // replayed to start another sign-up within this session.
+        new SessionService(req.session).deleteChallenge();
+
+        // Email ownership is proven. Start the passwordless sign-up so the
+        // client can move on to passkey creation.
+        verifiedEmail = await startPasskeySignUp(req.session, tokenEmail);
+      } else {
+        // Plain verification changes no state, so the nonce is kept and the
+        // verifier demo can verify again without reloading the page.
+        verifiedEmail = tokenEmail;
+      }
       success = true;
-      verifiedEmail = tokenEmail;
-      new SessionService(req.session).deleteChallenge();
     } catch (error: any) {
       logger.error('EVP Verification error:', error);
       errorMsg = error.message || 'Verification failed';
@@ -400,6 +471,97 @@ router.post(
       error: errorMsg,
       steps,
     });
+  };
+}
+
+/**
+ * Verifies an Email Verification Token for the `/evp` verifier demo.
+ */
+router.post('/verify', apiAclCheck(ApiType.NoAuth), verifyTokenHandler(false));
+
+/**
+ * Verifies an Email Verification Token and starts a passwordless sign-up for
+ * the verified address (`/evp-passkey-signup`).
+ */
+router.post('/signup', apiAclCheck(ApiType.NoAuth), verifyTokenHandler(true));
+
+/**
+ * Starts the one-time code fallback when the browser didn't supply an Email
+ * Verification Token. The claimed address is kept in the session as pending
+ * so that the `/one-time-code` page and `POST /evp/otp` can verify it without
+ * trusting the client to send it again.
+ *
+ * SIMULATED: this demo doesn't send any email. A real implementation must
+ * generate a random code here, deliver it to the address, and store it with a
+ * short expiry.
+ */
+router.post(
+  '/otp/request',
+  apiAclCheck(ApiType.NoAuth),
+  (req: Request, res: Response): void => {
+    const {email} = req.body;
+    const sessionService = new SessionService(req.session);
+
+    // Require the challenge set by the sign-up page so that this endpoint is
+    // only reachable from a freshly loaded page in the same session.
+    if (!sessionService.getChallenge()) {
+      res.status(400).json({
+        error: 'No sign-up in progress. Reload the page and try again.',
+      });
+      return;
+    }
+
+    const normalized =
+      typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!isPlausibleEmail(normalized) || !Users.isValidUsername(normalized)) {
+      res.status(400).json({error: 'Enter a valid email address.'});
+      return;
+    }
+
+    sessionService.setPendingEmail(normalized);
+    res.json({success: true});
+  }
+);
+
+/**
+ * Verifies the one-time code for the pending email address, then starts a
+ * passwordless sign-up.
+ *
+ * SIMULATED: this demo doesn't send any email, so any 6-digit code is
+ * accepted. A real implementation must compare the code with the one stored
+ * by `POST /evp/otp/request`, honor its expiry, and rate-limit attempts.
+ */
+router.post(
+  '/otp',
+  apiAclCheck(ApiType.NoAuth),
+  async (req: Request, res: Response): Promise<void> => {
+    const {otp} = req.body;
+    const sessionService = new SessionService(req.session);
+
+    // Verify only the address stored by `POST /evp/otp/request`. Never take
+    // it from the request body.
+    const email = sessionService.getPendingEmail();
+    if (!email) {
+      res.status(400).json({
+        error: 'No email address is waiting for verification. Start over.',
+      });
+      return;
+    }
+
+    if (typeof otp !== 'string' || !/^\d{6}$/.test(otp.trim())) {
+      res.status(400).json({error: 'Enter the 6-digit code.'});
+      return;
+    }
+
+    try {
+      const verifiedEmail = await startPasskeySignUp(req.session, email);
+      // The EVP nonce is no longer needed once the address is verified.
+      sessionService.deleteChallenge();
+      res.json({success: true, verifiedEmail});
+    } catch (error: any) {
+      logger.error('OTP fallback error:', error);
+      res.status(400).json({error: error.message || 'Verification failed.'});
+    }
   }
 );
 

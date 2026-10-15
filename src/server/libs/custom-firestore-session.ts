@@ -69,16 +69,16 @@ export class CustomFirestoreStore extends FirestoreStore {
       expiresAt = getTime(config.long_session_duration);
     }
 
+    // Replace the whole document rather than merging into it. `sess` is the
+    // complete session, and merging would keep properties that have been
+    // deleted from it (e.g. by `SessionService.resetSigningUp()`).
     this.db
       .collection(this.kind)
       .doc(sid)
-      .set(
-        {
-          ...sess,
-          expiresAt,
-        },
-        {merge: true}
-      )
+      .set({
+        ...sess,
+        expiresAt,
+      })
       .then(() => {
         if (typeof callback === 'function') {
           callback();

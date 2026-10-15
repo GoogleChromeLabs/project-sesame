@@ -18,7 +18,10 @@
 import '~project-sesame/client/layout';
 import {$, post, toast} from '~project-sesame/client/helpers/index';
 
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Wires up the EVP verifier demo and restores the nonce attribute.
+ */
+function initPage(): void {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
   let emailInput = $('#email') as HTMLInputElement;
@@ -226,4 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.groupEnd();
     console.groupEnd();
   }
-});
+}
+
+// This module may evaluate after DOMContentLoaded has fired (e.g. if any
+// imported module uses top-level await), so run the initializer immediately
+// when the DOM is already parsed.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPage);
+} else {
+  initPage();
+}

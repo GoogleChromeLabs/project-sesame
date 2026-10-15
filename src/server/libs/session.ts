@@ -99,6 +99,8 @@ export class SessionService {
    * @param user - The sign-up user object.
    */
   setSigningUp(user: SignUpUser): void {
+    // The email address has been verified, so it's no longer pending.
+    this.resetPendingEmail();
     this.session.signup_username = user.username; // TODO: deprecate
     this.session.signup_user = user;
   }
@@ -114,10 +116,40 @@ export class SessionService {
 
   /**
    * Resets the sign-up state by deleting the `signup_username` from the session.
+   * An email address waiting for one-time code verification is discarded as
+   * well.
    */
   resetSigningUp(): void {
     delete this.session.signup_username;
     delete this.session.signup_user;
+    this.resetPendingEmail();
+  }
+
+  /**
+   * Remembers an email address that the user claimed but hasn't verified yet,
+   * so that the one-time code step can verify it without trusting the client
+   * to send the address again.
+   *
+   * @param email - The normalized email address.
+   */
+  setPendingEmail(email: string): void {
+    this.session.pending_email = email;
+  }
+
+  /**
+   * Retrieves the email address waiting for one-time code verification.
+   *
+   * @returns The pending email address, or undefined if there is none.
+   */
+  getPendingEmail(): string | undefined {
+    return this.session.pending_email;
+  }
+
+  /**
+   * Discards the email address waiting for one-time code verification.
+   */
+  resetPendingEmail(): void {
+    delete this.session.pending_email;
   }
 
   /**

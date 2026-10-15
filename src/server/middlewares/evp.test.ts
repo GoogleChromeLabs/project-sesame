@@ -19,6 +19,7 @@ import {test, describe, beforeAll, afterAll, beforeEach, vi} from 'vitest';
 import assert from 'node:assert';
 import express, {Request, Response, NextFunction} from 'express';
 import {evp} from './evp.ts';
+import {Users} from '../libs/users.ts';
 import http from 'http';
 import dns from 'node:dns/promises';
 import crypto from 'node:crypto';
@@ -29,6 +30,13 @@ vi.mock('node:dns/promises', () => ({
     resolveTxt: vi.fn(),
   },
 }));
+
+// The EVP router enforces `csrfCheck`, which requires this header on every
+// API request (the client-side `post()` helper always sends it).
+const JSON_XHR_HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest',
+};
 
 describe('EVP Middlewares', () => {
   let app: express.Express;
@@ -76,6 +84,7 @@ describe('EVP Middlewares', () => {
   afterAll(() => {
     server.close();
     global.fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   beforeEach(() => {
@@ -83,21 +92,14 @@ describe('EVP Middlewares', () => {
       challenge: 'test-session-challenge',
     };
     vi.clearAllMocks();
-  });
-
-  test('GET /evp/ renders page and sets challenge', async () => {
-    const res = await originalFetch(`http://127.0.0.1:${port}/evp/`);
-    assert.strictEqual(res.status, 200);
-    const text = await res.text();
-    assert.strictEqual(text, 'rendered-html');
-    assert.ok(mockSession.challenge);
-    assert.notStrictEqual(mockSession.challenge, 'test-session-challenge');
+    // By default, no account exists for the email being signed up.
+    vi.spyOn(Users, 'findByUsername').mockResolvedValue(undefined);
   });
 
   test('POST /evp/verify returns 400 on missing parameters', async () => {
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({email: 'test@gmail.com'}),
     });
     assert.strictEqual(res.status, 400);
@@ -108,7 +110,7 @@ describe('EVP Middlewares', () => {
   test('POST /evp/verify fails on invalid token format (Step 1 fail)', async () => {
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({
         email: 'test@gmail.com',
         evt: 'invalid-token-no-tilde',
@@ -217,7 +219,7 @@ describe('EVP Middlewares', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
     });
 
@@ -240,8 +242,11 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.steps.step4.status, 'success');
     assert.strictEqual(body.steps.step5.status, 'success');
     assert.strictEqual(body.steps.step6.status, 'success');
-    assert.strictEqual(mockSession.challenge, undefined);
     assert.strictEqual(mockSession.user, undefined);
+    // Plain verification changes no state, so the nonce is kept for another
+    // attempt and no sign-up is started.
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+    assert.strictEqual(mockSession.signup_user, undefined);
   });
 
   test('POST /evp/verify fails when sd_hash omits disclosures', async () => {
@@ -306,7 +311,7 @@ describe('EVP Middlewares', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
     });
 
@@ -374,7 +379,7 @@ describe('EVP Middlewares', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
     });
 
@@ -442,7 +447,7 @@ describe('EVP Middlewares', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/evp/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: JSON_XHR_HEADERS,
       body: JSON.stringify({email: 'test@gmail.com', evt: fullToken}),
     });
 
@@ -451,5 +456,239 @@ describe('EVP Middlewares', () => {
     assert.strictEqual(body.success, false);
     assert.strictEqual(body.steps.step2.status, 'failed');
     assert.ok(body.error.includes('too old'));
+  });
+
+  /**
+   * Builds a fully valid EVT + KB-JWT for `test@gmail.com` bound to `nonce`,
+   * and mocks DNS and the issuer's endpoints so every verification step
+   * passes unless the test changes something.
+   *
+   * @param nonce - The nonce to embed in the KB-JWT.
+   * @returns The `~`-joined token as submitted by the browser.
+   */
+  function prepareValidToken(nonce: string): string {
+    const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+    const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+    const idpJwk = idpKeyPair.publicKey.export({format: 'jwk'});
+    const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+    const now = Math.floor(Date.now() / 1000);
+
+    const encode = (obj: object) =>
+      Buffer.from(JSON.stringify(obj)).toString('base64url');
+
+    const evtSigningInput = `${encode({alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'})}.${encode(
+      {
+        iss: 'https://accounts.google.com',
+        email: 'test@gmail.com',
+        email_verified: true,
+        iat: now - 30,
+        exp: now + 300,
+        cnf: {jwk: browserJwk},
+      }
+    )}`;
+    const sdJwt = `${evtSigningInput}.${crypto
+      .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+      .toString('base64url')}`;
+
+    const kbSigningInput = `${encode({alg: 'EdDSA', typ: 'kb+jwt'})}.${encode({
+      aud: `http://127.0.0.1:${port}`,
+      nonce,
+      sd_hash: crypto
+        .createHash('sha256')
+        .update(`${sdJwt}~`)
+        .digest('base64url'),
+      iat: now - 10,
+    })}`;
+    const kbJwt = `${kbSigningInput}.${crypto
+      .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+      .toString('base64url')}`;
+
+    vi.mocked(dns.resolveTxt).mockResolvedValue([['iss=accounts.google.com']]);
+    vi.mocked(global.fetch).mockImplementation(async (url: any) => {
+      if (
+        url === 'https://accounts.google.com/.well-known/email-verification'
+      ) {
+        return {
+          ok: true,
+          json: async () => ({
+            jwks_uri: 'https://accounts.google.com/oauth2/v3/certs',
+          }),
+        } as any;
+      }
+      if (url === 'https://accounts.google.com/oauth2/v3/certs') {
+        return {
+          ok: true,
+          json: async () => ({keys: [{...idpJwk, kid: 'key-1'}]}),
+        } as any;
+      }
+      return {ok: false} as any;
+    });
+
+    return `${sdJwt}~${kbJwt}`;
+  }
+
+  /**
+   * Sends a JSON POST request to the test server.
+   *
+   * @param path - The request path.
+   * @param payload - The JSON body.
+   * @param headers - Request headers. Defaults to JSON + XHR headers.
+   * @returns The fetch response.
+   */
+  function postJson(
+    path: string,
+    payload: object,
+    headers: Record<string, string> = JSON_XHR_HEADERS
+  ): Promise<globalThis.Response> {
+    return originalFetch(`http://127.0.0.1:${port}${path}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+  }
+
+  test('POST /evp/verify fails closed when the session has no nonce', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+    delete mockSession.challenge;
+
+    const res = await postJson('/evp/verify', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, false);
+    assert.strictEqual(body.steps.step2.status, 'failed');
+    assert.ok(body.error.includes('No verification challenge'));
+    assert.strictEqual(mockSession.signup_user, undefined);
+  });
+
+  test('POST /evp/verify verifies a registered email without signing up', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+    vi.mocked(Users.findByUsername).mockResolvedValue({
+      id: 'existing',
+      username: 'test@gmail.com',
+    } as any);
+
+    const res = await postJson('/evp/verify', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true, body.error);
+    assert.strictEqual(body.verifiedEmail, 'test@gmail.com');
+    assert.strictEqual(mockSession.signup_user, undefined);
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+  });
+
+  test('POST /evp/signup verifies the token and starts a passwordless sign-up', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+
+    const res = await postJson('/evp/signup', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true, body.error);
+    assert.strictEqual(body.verifiedEmail, 'test@gmail.com');
+    assert.strictEqual(body.steps.step6.status, 'success');
+    assert.strictEqual(mockSession.signup_user.username, 'test@gmail.com');
+    assert.strictEqual(mockSession.signup_user.email, 'test@gmail.com');
+    assert.ok(mockSession.signup_user.passkeyUserId);
+    // The nonce is consumed once it has granted a sign-up.
+    assert.strictEqual(mockSession.challenge, undefined);
+  });
+
+  test('POST /evp/signup rejects an email that already has an account', async () => {
+    const evt = prepareValidToken('test-session-challenge');
+    vi.mocked(Users.findByUsername).mockResolvedValue({
+      id: 'existing',
+      username: 'test@gmail.com',
+    } as any);
+
+    const res = await postJson('/evp/signup', {email: 'test@gmail.com', evt});
+
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, false);
+    assert.ok(body.error.includes('already exists'));
+    assert.strictEqual(body.verifiedEmail, '');
+    assert.strictEqual(mockSession.signup_user, undefined);
+  });
+
+  test('POST /evp/verify rejects requests without the XHR header', async () => {
+    const res = await postJson(
+      '/evp/verify',
+      {email: 'test@gmail.com', evt: 'a~b'},
+      {'Content-Type': 'application/json'}
+    );
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.error, 'Invalid XHR request.');
+  });
+
+  test('POST /evp/otp/request stores the normalized email as pending', async () => {
+    const res = await postJson('/evp/otp/request', {
+      email: ' Someone@Example.com ',
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(mockSession.pending_email, 'someone@example.com');
+    assert.strictEqual(mockSession.signup_user, undefined);
+  });
+
+  test('POST /evp/otp/request requires the page challenge', async () => {
+    delete mockSession.challenge;
+
+    const res = await postJson('/evp/otp/request', {
+      email: 'someone@example.com',
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.ok(body.error.includes('Reload the page'));
+    assert.strictEqual(mockSession.pending_email, undefined);
+  });
+
+  test('POST /evp/otp/request rejects an invalid email address', async () => {
+    const res = await postJson('/evp/otp/request', {email: 'not-an-email'});
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(mockSession.pending_email, undefined);
+  });
+
+  test('POST /evp/otp accepts a 6-digit code for the pending email', async () => {
+    mockSession.pending_email = 'someone@example.com';
+
+    const res = await postJson('/evp/otp', {
+      // A client-supplied address must be ignored.
+      email: 'attacker@example.com',
+      otp: '123456',
+    });
+
+    assert.strictEqual(res.status, 200);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(body.verifiedEmail, 'someone@example.com');
+    assert.strictEqual(mockSession.signup_user.username, 'someone@example.com');
+    assert.ok(mockSession.signup_user.passkeyUserId);
+    assert.strictEqual(mockSession.pending_email, undefined);
+    assert.strictEqual(mockSession.challenge, undefined);
+  });
+
+  test('POST /evp/otp rejects a malformed code', async () => {
+    mockSession.pending_email = 'someone@example.com';
+
+    const res = await postJson('/evp/otp', {otp: '12ab'});
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(mockSession.signup_user, undefined);
+    assert.strictEqual(mockSession.pending_email, 'someone@example.com');
+  });
+
+  test('POST /evp/otp requires a pending email', async () => {
+    const res = await postJson('/evp/otp', {
+      email: 'someone@example.com',
+      otp: '123456',
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.ok(body.error.includes('Start over'));
+    assert.strictEqual(mockSession.signup_user, undefined);
   });
 });
