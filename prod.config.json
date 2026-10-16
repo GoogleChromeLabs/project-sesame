@@ -35,9 +35,7 @@
     }
   ],
   "enabled_pages": [
-    "/",
     "/signup-form",
-    "/passkey-signup",
     "/signin-form",
     "/automatic-passkey-creation",
     "/new-password",
