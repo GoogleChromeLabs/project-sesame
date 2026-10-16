@@ -16,7 +16,7 @@
 
 ## Integrating Email Verification Protocol
 
-To implement an instant, cryptographic email verification flow on your website,
+To implement a fast, in-browser email verification flow on your website,
 you can integrate the **Email Verification Protocol (EVP)**. EVP allows the
 browser to communicate directly with the user's email provider to verify email
 ownership without sending one-time passwords (OTPs) or magic links.
