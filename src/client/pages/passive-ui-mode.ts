@@ -35,7 +35,7 @@ let isAuthenticating = false;
 const isPassiveSupported = Boolean(
   'PasswordCredential' in window &&
   window.PublicKeyCredential &&
-  (capabilities?.conditionalPassive || capabilities?.ambientGet)
+  (capabilities?.conditionalPassiveGet || capabilities?.ambientGet)
 );
 
 const isImmediateSupported = Boolean(
@@ -61,7 +61,7 @@ function setSignedInState(user: Record<string, any>): void {
 
 /**
  * Initiates a passive Conditional UI credential request on page load when the
- * user is signed out and the browser supports the `conditionalPassive` (or
+ * user is signed out and the browser supports the `conditionalPassiveGet` (or
  * `ambientGet`) capability.
  */
 async function initPassiveSignIn(): Promise<void> {

@@ -20,7 +20,7 @@ To integrate **passive UI mode** ([Conditional UI without
 Autofill](https://github.com/w3c/webauthn/blob/main/explainers/conditional-ui-without-autofill.md))
 on content pages where authentication is optional and no login form is
 displayed, your application can check for the client capability
-(`conditionalPassive` in the W3C explainer, or `ambientGet` in current Chrome
+(`conditionalPassiveGet` in the W3C explainer, or `ambientGet` in current Chrome
 prototypes) and invoke a passive, conditional credential request on page
 load—while pairing it with [Immediate UI mode](/immediate-ui-mode) when the user
 performs an account-gated action.
@@ -29,7 +29,7 @@ performs an account-gated action.
 
 - **Client-side feature detection:** Check that `PublicKeyCredential` is
   available and call `await PublicKeyCredential.getClientCapabilities()` to
-  verify `capabilities?.conditionalPassive` (or `capabilities?.ambientGet`) is
+  verify `capabilities?.conditionalPassiveGet` (or `capabilities?.ambientGet`) is
   `true` before starting the passive request.
 - **Unified passive credential request:** Call `navigator.credentials.get()` on
   page load with `mediation: 'conditional'`, `uiMode: 'passive'`, `publicKey`
@@ -37,7 +37,7 @@ performs an account-gated action.
 
 ```javascript
 const capabilities = await PublicKeyCredential.getClientCapabilities();
-if (capabilities?.conditionalPassive || capabilities?.ambientGet) {
+if (capabilities?.conditionalPassiveGet || capabilities?.ambientGet) {
   const cred = await navigator.credentials.get({
     publicKey: options,
     password: true,
