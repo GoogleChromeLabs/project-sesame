@@ -52,26 +52,20 @@ hidden token field in your sign-up, sign-in, or recovery form:
 
 When the form is submitted, validate the `email-verification-token` value (a
 [Selective Disclosure JWT (`SD-JWT+KB`)](https://datatracker.ietf.org/doc/rfc9901/))
-on your backend before marking the email as verified:
+on your backend using a specification-compliant SD-JWT library (such as
+[`@sd-jwt/core`](https://www.npmjs.com/package/@sd-jwt/core)):
 
-- **Parse the SD-JWT+KB token:** Use a specification-compliant SD-JWT library
-  (such as [`@sd-jwt/core`](https://www.npmjs.com/package/@sd-jwt/core)) rather
-  than manually splitting on `~` so your verifier properly handles optional
-  selective disclosures alongside the issuer-signed JWT and Key Binding JWT
-  (`KB-JWT`).
+- **Verify DNS delegation and keys:** Confirm the
+  `_email-verification.<email-domain>` DNS `TXT` record matches the token's
+  `iss` claim, and fetch the issuer's public keys (`jwks_uri`) from
+  `/.well-known/email-verification`.
+- **Verify signatures and key binding:** Verify the issuer's EVT signature
+  against its public keys and the `KB-JWT` signature against the ephemeral
+  public key in `cnf`.
 - **Validate expected claims:** Verify that `email_verified` is `true`, `email`
-  matches the submitted email address (or its selective disclosure hash), `aud`
-  matches your site's origin, `nonce` matches your session-bound challenge, and
-  `iat` is recent.
-- **Verify key binding:** Extract the browser's ephemeral public key from the
-  `cnf` claim in the EVT and use it to verify the `KB-JWT` signature and
-  `sd_hash`.
-- **Verify DNS delegation and issuer signature:** Query the
-  `_email-verification.<email-domain>` DNS `TXT` record (e.g.,
-  `iss=accounts.google.com`) to confirm the email domain delegates authority to
-  the token's `iss` issuer, fetch the issuer's public keys (`jwks_uri`) from
-  `https://<issuer-domain>/.well-known/email-verification`, and verify the EVT
-  signature.
+  matches the submitted email address, `aud` matches your site's origin,
+  `nonce` matches your session-bound challenge, and `iat` and `exp` are within
+  a valid time window.
 
 ### Best practices & UX considerations
 
@@ -79,24 +73,17 @@ on your backend before marking the email as verified:
   field as optional—no client-side feature detection is required. If the token
   is missing or any validation step fails, gracefully fall back to your default
   OTP or magic link verification flow.
-- **Case-insensitive email matching:** Email providers may return canonical
-  email addresses containing uppercase letters (for example,
-  `Demo.User@example.com`). Always compare the submitted form email and the
-  token's `email` claim case-insensitively.
 - **Ownership vs. deliverability:** EVP confirms that the user holds an active
   session with their email provider, but it does not guarantee email
   deliverability. Continue sending welcome or onboarding emails as appropriate.
 
 ### Developer resources
 
-- **Blog Post:** [Test the Email Verification Protocol with an origin
-  trial](https://developer.chrome.com/blog/email-verification-protocol-origin-trial)
-  (Chrome for Developers)
-- **Blog Post:** [Email verification updates, August
-  2026](https://developer.chrome.com/blog/email-verification-august-2026)
+- **Documentation:** [Email
+  Verification](https://developer.chrome.com/docs/identity/email-verification)
   (Chrome for Developers)
 - **Specification:** [Email Verification API
   Explainer](https://github.com/WICG/email-verification) (WICG)
 - **Specification:** [Email Verification Protocol
-  Draft](https://datatracker.ietf.org/doc/draft-hardt-email-verification/)
+  Draft](https://dickhardt.github.io/email-verification/)
   (IETF)

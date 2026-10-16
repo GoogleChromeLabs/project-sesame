@@ -16,9 +16,9 @@
 
 ## Email Verification Protocol
 
-On this page, you can experience **Email Verification Protocol (EVP)** that instantly verifies your email address.
+On this page, you can experience **Email Verification Protocol (EVP)** that enables quick, in-browser verification of your email address.
 
-EVP allows browsers to securely share cryptographically verified email addresses with websites using verifiable credentials, eliminating the friction of waiting for OTP codes or clicking verification links in your inbox.
+EVP allows browsers to share verified email addresses with websites using a signed Email Verification Token (`SD-JWT+KB`), eliminating the friction of waiting for OTP codes or clicking verification links in your inbox.
 
 ### Prerequisites
 
@@ -38,7 +38,7 @@ EVP allows browsers to securely share cryptographically verified email addresses
   choose **`demo@rowan.fyi`** from the browser's autofill dropdown.
 - **Submit the form:** Click the **Continue** button. The browser will retrieve
   a signed cryptographic Email Verification Token (EVT) from the email provider
-  and supply it to the page, completing the verification instantly.
+  and supply it to the page in the submitted form data.
 - **Observe the console:** Open your browser's Developer Tools (Console tab) to
   inspect the step-by-step cryptographic verification trace and data outputs in
   real time.

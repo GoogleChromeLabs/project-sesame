@@ -22,7 +22,7 @@ In passive mode, the browser attempts to display the identity provider (IdP) pro
 
 ### Implementation guide
 
-To initiate passive mode, call `navigator.credentials.get()` with `mode: 'passive'` inside the `identity` configuration object:
+Passive mode is the default mode in FedCM. To initiate it, call `navigator.credentials.get()` with an `identity` configuration object:
 
 ```javascript
 const credential = await navigator.credentials.get({
@@ -33,9 +33,8 @@ const credential = await navigator.credentials.get({
         clientId: 'YOUR_CLIENT_ID',
       },
     ],
-    mode: 'passive',
   },
-  mediation: 'required',
+  mediation: 'optional',
 });
 ```
 
@@ -45,8 +44,8 @@ When implementing FedCM passive mode, follow these best practices:
 
 - **Graceful degradation:** Always provide an explicit sign-in fallback (such as standard buttons or username/password fields) if the browser does not support `IdentityCredential`, if the passive request fails, or if the user is not currently signed in to the IdP.
 - **Server-side credential verification:** Send the returned credential token to your backend for cryptographic verification. Because FedCM is protocol-agnostic, verification depends on the token format (for example, validating an OpenID Connect JWT against the IdP's JSON Web Key Set).
-- **Mediation control:** Choose the appropriate `mediation` setting (`'required'` or `'optional'`). In passive mode, `'required'` ensures that the user is always prompted to select or confirm an account, avoiding unexpected silent account switching.
-- **Respect IdP login status:** Ensure the IdP implements the [Login Status API](https://developer.chrome.com/docs/identity/fedcm/login-status-api). If the browser knows the user is logged out of the IdP, it suppresses the passive prompt without making unnecessary network requests.
+- **Mediation control:** Choose the appropriate `mediation` setting (`'optional'`, `'required'`, `'silent'`, or `'conditional'`). In passive mode, `'optional'` (the default) is recommended for sign-in pages to enable auto-reauthentication, whereas `'required'` forces explicit user confirmation every time.
+- **Respect IdP login status:** Ensure the IdP implements the [Login Status API](https://developer.chrome.com/docs/identity/fedcm/implement/identity-provider#login-status-api). If the browser knows the user is logged out of the IdP, it suppresses the passive prompt without making unnecessary network requests.
 
 ### Developer resources
 
