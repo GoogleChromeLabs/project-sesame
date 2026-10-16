@@ -467,6 +467,20 @@ app.get(
 );
 
 app.get(
+  '/passive-ui-mode',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    // Manually set the entrance path as this is a public page
+    new SessionService(req.session).setEntrancePath('/passive-ui-mode');
+
+    res.render('passive-ui-mode.html', {
+      title: 'Ambient sign-in (Passive UI mode)',
+      hide_drawer: true,
+    });
+  }
+);
+
+app.get(
   '/legacy-credman',
   pageAclCheck(PageType.SignIn),
   (req: Request, res: Response): void => {

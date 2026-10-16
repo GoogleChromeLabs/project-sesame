@@ -49,6 +49,7 @@
     "/fedcm-active-mode",
     "/fedcm-passive-mode",
     "/immediate-ui-mode",
+    "/passive-ui-mode",
     "/evp",
     "/home",
     "/settings/passkeys",
