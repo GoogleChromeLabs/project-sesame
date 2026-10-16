@@ -22,6 +22,7 @@
     }
   ],
   "enabled_pages": [
+    "/",
     "/signup-form",
     "/signin-form",
     "/new-password",
