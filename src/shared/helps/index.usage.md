@@ -16,5 +16,25 @@
 
 ## Project Sesame
 
-Project Sesame is a showcase of various authentication demos using open
-standards and emerging web technologies.
+**Project Sesame** is an interactive playground for exploring and testing web
+identity and authentication patterns—from traditional password forms to
+**passkeys (WebAuthn)**, **Federated Credential Management (FedCM)**, and the
+**Email Verification Protocol (EVP)**.
+
+### How to explore the demos
+
+- **Choose a flow:** Select any demo under **Sign-up**, **Sign-in**, or
+  **Feature demos** to experience how the authentication pattern works in your
+  browser.
+- **Manage your account & credentials:** Signing in or registering takes you to
+  the account dashboard, where you can create and manage passkeys, inspect
+  linked identity providers, change your password, or test reauthentication and
+  account deletion flows.
+- **Read usage & developer guides:** Each demo page provides **Usage help**
+  (step-by-step testing instructions) and **Development help** (implementation
+  checklists and resources) via the icons in the bottom bar. Toggle **Show help
+  on page load** in the bottom bar to control whether the help dialog opens
+  automatically.
+- **Demo environment:** Do not use real email addresses or passwords. Passwords
+  are ignored on the server, and demo accounts are automatically deleted after
+  48 hours.

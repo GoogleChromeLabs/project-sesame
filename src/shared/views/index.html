@@ -21,16 +21,12 @@
     <li><a href="/signup-form">Sign-up Form</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-signup')}}
     <li><a href="/passkey-signup">Sign-up with a passkey</a></li>
-    {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li><a href="/evp">Sign-up with Email Verification Protocol</a></li>
     {{/if}}
   </ul>
   <h3>Sign-in</h3>
   <ul>
     {{#if (isPageEnabled '/signin-form')}}
     <li><a href="/signin-form">Sign-in Form</a></li>
-    {{/if}} {{#if (isPageEnabled '/automatic-passkey-creation')}}
-    <li><a href="/automatic-passkey-creation">Automatic Passkey Creation</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-form-autofill')}}
     <li><a href="/passkey-form-autofill">Passkey form autofill</a></li>
     {{/if}} {{#if (isPageEnabled '/passkey-one-button')}}
@@ -45,10 +41,14 @@
     <li><a href="/fedcm-passive-mode">FedCM passive mode</a></li>
     {{/if}} {{#if (isPageEnabled '/fedcm-form-autofill')}}
     <li><a href="/fedcm-form-autofill">FedCM form autofill</a></li>
+    {{/if}}
+  </ul>
+  <h3>Feature demos</h3>
+  <ul>
+    {{#if (isPageEnabled '/automatic-passkey-creation')}}
+    <li><a href="/automatic-passkey-creation">Automatic Passkey Creation</a></li>
     {{/if}} {{#if (isPageEnabled '/evp')}}
-    <li>
-      <a href="https://rowan.fyi/made/email-provider" target="_blank">EVP Email Provider (Issuer)</a>
-    </li>
+    <li><a href="/evp">Email Verification Protocol</a></li>
     {{/if}}
   </ul>
 </main>

@@ -16,15 +16,19 @@
 
 ## Password-based sign-in form
 
-On this page, you can try a form-based sign-in flow using a username and
-password.
+This page demonstrates a **password-based sign-in form**, which lets users sign
+in with a username and password through a traditional form that supports browser
+password autofill.
 
 ### How to test it
 
-1. **Register an account first:** If you don't have an account yet, click
-   **Register now** to create one.
-2. **Sign in with your password:** Enter your username and password, then click
-   **Login** to authenticate and access the home page.
-
-\* _You can sign in without creating an account at [/signup-form](/signup-form)
-first. The demo creates one for any new username and ignores the password._
+1. Click or tap the **username** field to display the browser's autofill
+   suggestions.
+2. If your password manager has a password saved for this site, select it to
+   fill in your **username** and **password**, then select **Login**.
+3. If you don't have saved credentials, enter any username and password and
+   select **Login** (or select **Register now** to test the
+   [sign-up form](/signup-form) first). The password is ignored; this step
+   simulates a traditional password sign-in flow and creates a demo account if
+   one does not already exist. Demo accounts are automatically deleted after 48
+   hours.

@@ -34,9 +34,10 @@ The FedCM API provides two user experience modes:
 
 - **Chromium-based browser:** Make sure your browser supports FedCM.
 - **Signed in to the demo IdP:** The browser only shows the sign-in dialog if
-  you're already signed in to the IdP. If you aren't, open the
-  [demo identity provider](https://sesame-identity-provider.appspot.com) in
-  another tab, sign in to your account, and reload this page.
+  you're already signed in to the IdP. If you aren't, open
+  <a href="https://sesame-identity-provider.appspot.com/signup-form" target="_blank">the
+  demo identity provider</a>, create an account, close the tab, and reload this
+  page.
 
 ### How to test it
 
