@@ -20,16 +20,6 @@ On this page, you can see how a website can embed an identity provider (IdP) in
 an `<iframe>` so users can sign in with a passkey inside it. The website makes
 this possible by giving the iframe permission to use passkeys.
 
-### Why iframes need explicit permission for WebAuthn
-
-By default, browsers block the WebAuthn API inside cross-origin `<iframe>`
-elements to prevent clickjacking and credential phishing attacks.
-
-However, many federated sign-in setups need to embed a trusted IdP sign-in
-widget directly in a relying party (RP) page. To support this securely, the
-top-level site can give a trusted iframe origin permission to sign in with
-passkeys, using the Permissions Policy feature `publickey-credentials-get`.
-
 ### Prerequisites
 
 - **Passkey on the demo IdP:** Register an account on the
