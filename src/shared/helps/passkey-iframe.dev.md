@@ -63,11 +63,9 @@ configuration steps on the parent RP page and one on the IdP:
 
 When you use WebAuthn in cross-origin iframes, follow these security practices:
 
-- **Authentication only (no credential creation):** The
-  `publickey-credentials-get` policy only allows passkey sign-in
-  (`navigator.credentials.get()`). Browsers don't allow credential registration
-  (`navigator.credentials.create()`) in cross-origin iframes, to protect
-  credential ownership.
+- **Allow authentication:** The
+  `publickey-credentials-get` policy allows passkey sign-in
+  (`navigator.credentials.get()`).
 - **Strict origin allowlisting:** Never use a wildcard (`*`) in the
   `Permissions-Policy` header or the iframe `allow` attribute for WebAuthn.
   Always name the exact trusted IdP origin.
