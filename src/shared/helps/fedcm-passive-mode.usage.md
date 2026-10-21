@@ -16,18 +16,32 @@
 
 ## FedCM passive mode
 
-On this page, you can experience the Federated Credential Management (FedCM) API running in **passive mode**.
+On this page, you can try the Federated Credential Management (FedCM) API in
+**passive mode**.
 
 ### Passive vs. active mode
 
-The FedCM API provides two distinct user experience modes:
+The FedCM API provides two user experience modes:
 
-- **Passive mode:** The browser automatically triggers the identity provider (IdP) prompt when the page loads, without requiring any prior user gesture. This mode is ideal for low-friction, returning-user sign-ins (often called "one-tap" sign-in).
-- **Active mode:** The sign-in prompt is initiated explicitly by a direct user action, such as clicking a "Sign in with..." button.
+- **Passive mode:** The browser shows the identity provider (IdP) sign-in dialog
+  as soon as the page loads, without the user clicking anything first. This
+  mode suits quick sign-ins for returning users (often called "one-tap"
+  sign-in).
+- **Active mode:** The sign-in dialog appears only after the user takes an
+  action, such as clicking a "Sign in with..." button.
+
+### Prerequisites
+
+- **Chromium-based browser:** Make sure your browser supports FedCM.
+- **Signed in to the demo IdP:** The browser only shows the sign-in dialog if
+  you're already signed in to the IdP. If you aren't, open
+  <a href="https://sesame-identity-provider.appspot.com/signup-form" target="_blank">the
+  demo identity provider</a>, create an account, close the tab, and reload this
+  page.
 
 ### How to test it
 
-- **Check browser support:** Ensure you are using a Chromium-based browser that supports FedCM.
-- **Sign in to the IdP first (if necessary):** In passive mode, the browser only displays the prompt if you are already signed in to a supported IdP. If you haven't signed in yet, open the demo identity provider at [https://sesame-identity-provider.appspot.com](https://sesame-identity-provider.appspot.com) in another tab, sign in to your account, and reload this page.
-- **Observe the browser prompt:** As soon as this page loads, a native sign-in dialog appears in the top-right corner of the browser window.
-- **Confirm to sign in:** Select your account and confirm the prompt to complete the federated sign-in immediately.
+1. **Observe the sign-in dialog:** As soon as this page loads, the sign-in
+   dialog appears in the top-right corner of the browser window.
+2. **Confirm to sign in:** Select your account and confirm the dialog to
+   complete the federated sign-in.

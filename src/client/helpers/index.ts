@@ -286,7 +286,10 @@ export class SesameDialog {
     if (headlineElement) headlineElement.innerText = headline;
 
     const descriptionElement = $('#dialog-content');
-    if (descriptionElement) descriptionElement.innerHTML = description;
+    if (descriptionElement) {
+      descriptionElement.innerHTML = description;
+      descriptionElement.scrollTop = 0;
+    }
   }
 
   async setHelpMode(mode: 'usage' | 'develop'): Promise<void> {
@@ -320,6 +323,10 @@ export class SesameDialog {
 
   show(): void {
     this.dialog.showModal();
+    const descriptionElement = $('#dialog-content');
+    if (descriptionElement) {
+      descriptionElement.scrollTop = 0;
+    }
   }
 
   close(): void {

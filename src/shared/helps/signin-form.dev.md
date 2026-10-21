@@ -14,50 +14,50 @@
  limitations under the License
 -->
 
-## Integrate a password-based sign-in form
+## Integrating a password-based sign-in form
 
-This page demonstrates a traditional sign-in form built in accordance with
-modern web standards and accessibility guidelines.
+To integrate a **password-based sign-in form** that works seamlessly with
+browser autofill and password managers, you need to structure your form with
+semantic HTML and configure the appropriate input attributes.
 
-### Best practices & form optimization checklist
+- **Use semantic HTML:** Wrap input fields in a `<form>` element, associate each
+  `<input>` with a `<label>`, and use a `<button type="submit">` with a clear
+  action label (such as **Sign in** or **Login**).
+- **Use stable identifiers:** Assign consistent `id` and `name` attributes
+  (such as `id="username"` and `name="username"`) across builds so password
+  managers can reliably identify fields.
+- **Configure form autocomplete:** Set `autocomplete="username"` on the
+  username `<input>` element and `autocomplete="current-password"` on the
+  password `<input>` element to distinguish sign-in fields from registration
+  fields.
+- **Set appropriate input types:** Use `type="text"` (or `type="email"` for
+  email identifiers) to display the appropriate mobile keyboard layout, and
+  `type="password"` to mask password entry.
 
-When implementing traditional password authentication, ensure your form
-implements the following architectural, UX, and security patterns:
+### Best practices & advanced UX
 
-- **Semantic structure:** Wrap all input fields in a `<form>` element. Use
-  `<label>` elements associated with `<input>` fields (positioned above the
-  inputs for optimal mobile readability), and a `<button type="submit">` with
-  descriptive text (such as **Login** or **Sign in**) rather than a generic
-  label.
-- **Stable identifiers:** Use stable, unique `id` and `name` attributes (e.g.,
-  `id="username"` and `name="username"`) that do not change between builds,
-  allowing password managers to reliably identify and save credentials.
-- **Autofill compatibility:** Assist credential managers by providing explicit
-  `autocomplete` attributes:
-  - Configure the username input with `autocomplete="username"`.
-  - Configure the password input with `autocomplete="current-password"` to
-    signal that it is a sign-in form (distinguishing it from registration
-    fields).
-- **Appropriate input types:** Set `type="text"` to trigger the correct virtual
-  keyboard layout on mobile devices. Always use `type="password"` for the
-  password input to mask the entry.
-- **Browser-native validation:** Apply the `required` attribute to inputs to
-  leverage fast, browser-native validation before sending requests to the
-  server.
-- **Password visibility control:** Offer a password visibility toggle (switching
-  the input type between `password` and `text`) to help users verify their
-  input, which reduces typing errors and friction.
-- **Accessible recovery links:** Include a clearly visible "Forgot password?"
-  link to help users recover accounts without frustration.
-- **Mobile optimization:** Ensure all interactive elements have comfortable
-  touch targets (at least 44x44 CSS pixels) and input font sizes are at least
-  16px to prevent iOS browsers from automatically zooming in and disrupting the
-  layout.
+Consider these patterns to improve the sign-in experience:
+
+- **Browser-native validation:** Add the `required` attribute to inputs to
+  validate empty fields in the browser before submitting a network request.
+- **Password visibility toggle:** Provide a control that switches the password
+  `<input>` `type` between `password` and `text` so users can verify their entry
+  before submitting.
+- **Accessible account recovery:** Include a visible **Forgot password?** link
+  near the form controls so users can easily recover access to their account.
+- **Mobile-friendly targets and typography:** Size interactive controls to at
+  least 44x44 CSS pixels and use an input font size of at least 16px to prevent
+  mobile browsers from automatically zooming in on focus.
+- **Upgrade to passkey form autofill:** Once your password form is in place, add
+  `webauthn` to the username `autocomplete` attribute (such as
+  `autocomplete="username webauthn"`) and enable Conditional UI so users can
+  [sign in with a passkey through form
+  autofill](https://web.dev/articles/passkey-form-autofill).
 
 ### Developer resources
 
 - **Guide:** [Sign-in form best
   practices](https://web.dev/articles/sign-in-form-best-practices) (web.dev)
 - **Guide:** [Help users sign in with
-  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome
+  autofill](https://developer.chrome.com/docs/identity/autofill) (Chrome for
   Developers)

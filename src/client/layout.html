@@ -98,15 +98,17 @@
             <h2 id="dialog-headline"></h2>
           </div>
           <div class="dialog-header-actions">
-            {{#if usage_help}}
-              {{#if develop_help}}
-              <mdui-button-icon id="dialog-toggle-help-btn"></mdui-button-icon>
-              {{/if}}
-            {{/if}}
             <mdui-button-icon id="dialog-close-btn" type="button" aria-label="Close dialog" icon="close--outlined"></mdui-button-icon>
           </div>
         </div>
         <div class="dialog-body" id="dialog-content"></div>
+        {{#if usage_help}}
+          {{#if develop_help}}
+          <div class="dialog-footer">
+            <mdui-button-icon id="dialog-toggle-help-btn"></mdui-button-icon>
+          </div>
+          {{/if}}
+        {{/if}}
       </div>
     </dialog>
     <mdui-snackbar id="snackbar"></mdui-snackbar>

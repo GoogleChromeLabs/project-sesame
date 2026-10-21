@@ -20,5 +20,20 @@
       "name": "Project Sesame",
       "secret": "xxxxx"
     }
+  ],
+  "enabled_pages": [
+    "/",
+    "/signup-form",
+    "/signin-form",
+    "/new-password",
+    "/password",
+    "/password-reauth",
+    "/passkey-reauth",
+    "/passkey-form-autofill",
+    "/home",
+    "/settings/passkeys",
+    "/settings/password-change",
+    "/settings/delete-account",
+    "/signout"
   ]
 }
