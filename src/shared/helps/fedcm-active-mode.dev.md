@@ -56,20 +56,12 @@ When implementing FedCM active mode, follow these best practices:
   `mode: 'active'` inside a direct user interaction handler (such as a `click`
   event). If you call it without a valid user activation, the browser rejects
   the request.
-- **Signed-out IdP flow (login_url):** Take advantage of active mode's ability
-  to handle signed-out users. When an IdP marks its status as logged-out or
-  returns an empty accounts list, the browser can open the IdP's `login_url` in
-  a secure popup window, allowing the user to sign in to the IdP and seamlessly
-  continue signing in to your site.
 - **Graceful degradation:** Always provide an alternative sign-in fallback (such
   as a redirect-based OAuth flow or username/password sign-in) if the browser
   doesn't support `IdentityCredential` or if the user cancels the dialog.
-- **Server-side credential verification:** Send the returned identity token to
-  your backend and verify its cryptographic signature, audience (`aud`), issuer
-  (`iss`), and expiration (`exp`) before creating an authenticated session.
-- **Clear button labeling:** Clearly label the button UI (for example, "Sign in
-  with IdP") so users understand that clicking it initiates a federated
-  authentication flow.
+- **Follow IdP integration guide:** IdPs that support FedCM should have a
+  dedicated integration guide. Follow the guide when implementing FedCM using
+  their IdP.
 
 ### Developer resources
 
