@@ -14,51 +14,50 @@
  limitations under the License
 -->
 
-## Integrating FedCM active mode
+## Integrating FedCM passive mode
 
-To implement an explicit, user-initiated federated sign-in flow, you can
-integrate the
+To give returning users a low-friction sign-in experience, you can integrate the
 [Federated Credential Management (FedCM) API](https://developer.chrome.com/docs/identity/fedcm)
-in **active mode**.
+in **passive mode**.
 
-Unlike passive mode, active mode is designed for explicit user intent (such as
-clicking a "Sign in with IdP" button). It presents a prominent modal dialog and
-enables the browser to handle users who aren't yet signed in to the identity
-provider (IdP).
+In passive mode, the browser tries to show the identity provider (IdP) sign-in
+dialog as soon as the page loads, without requiring an explicit user gesture.
 
 ### Implementation guide
 
-To use active mode, call `navigator.credentials.get()` with `mode: 'active'`
-inside a user gesture event listener (such as a button click):
+To use passive mode, call `navigator.credentials.get()` with an `identity`
+configuration object:
 
 ```javascript
-button.addEventListener('click', async () => {
-  const credential = await navigator.credentials.get({
-    identity: {
-      providers: [
-        {
-          configURL: 'https://idp.example/fedcm.json',
-          clientId: 'YOUR_CLIENT_ID',
-        },
-      ],
-      mode: 'active',
-    },
-  });
-  // Send credential.token to the server for verification
+const credential = await navigator.credentials.get({
+  identity: {
+    providers: [
+      {
+        configURL: 'https://idp.example/fedcm.json',
+        clientId: 'YOUR_CLIENT_ID',
+      },
+    ],
+  },
+  mediation: 'optional',
 });
 ```
 
 ### Best practices checklist
 
-When implementing FedCM active mode, follow these best practices:
+When implementing FedCM passive mode, follow these best practices:
 
-- **User gesture requirement:** Always invoke `navigator.credentials.get()` with
-  `mode: 'active'` inside a direct user interaction handler (such as a `click`
-  event). If you call it without a valid user activation, the browser rejects
-  the request.
-- **Graceful degradation:** Always provide an alternative sign-in fallback (such
-  as a redirect-based OAuth flow or username/password sign-in) if the browser
-  doesn't support `IdentityCredential` or if the user cancels the dialog.
+- **Graceful degradation:** Always provide an explicit sign-in fallback (such
+  as standard buttons or username/password fields) if the browser doesn't
+  support `IdentityCredential`, if the passive request fails, or if the user
+  isn't currently signed in to the IdP.
+- **Server-side credential verification:** Send the returned credential token to
+  your backend for cryptographic verification. Because FedCM is
+  protocol-agnostic, verification depends on the token format (for example,
+  validating an OpenID Connect JWT against the IdP's JSON Web Key Set).
+- **Mediation control:** Choose the appropriate `mediation` setting
+  (`'optional'` or `'required'`). In passive mode, `'optional'` (the default) is
+  recommended for sign-in pages because it enables automatic reauthentication.
+  `'required'` asks the user to confirm every time.
 - **Follow IdP integration guide:** IdPs that support FedCM should have a
   dedicated integration guide. Follow the guide when implementing FedCM using
   their IdP.
@@ -71,6 +70,5 @@ When implementing FedCM active mode, follow these best practices:
 - **Guide:** [Implement an identity solution with FedCM on the Identity
   Provider side](https://developer.chrome.com/docs/identity/fedcm/implement/identity-provider)
   (Chrome for Developers)
-- **Guide:** [FedCM active mode and login
-  status](https://developer.chrome.com/docs/identity/fedcm/active-mode)
-  (Chrome for Developers)
+- **API Reference:** [Federated Credential Management (FedCM)
+  API](https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API) (MDN)
