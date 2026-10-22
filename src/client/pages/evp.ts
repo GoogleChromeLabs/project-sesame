@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      const result = await post('/evp/verify', {email, evt});
+      const result = await post('/email/verify', {email, evt});
 
       submitBtn.disabled = false;
       printTraceToConsole(result.steps);

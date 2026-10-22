@@ -33,14 +33,17 @@ import {
 import {SessionService} from '~project-sesame/server/libs/session.ts';
 import {admin} from '~project-sesame/server/middlewares/admin.ts';
 import {auth} from '~project-sesame/server/middlewares/auth.ts';
+import {email} from '~project-sesame/server/middlewares/email.ts';
 import {fedcm} from '~project-sesame/server/middlewares/fedcm.ts';
 import {federation} from '~project-sesame/server/middlewares/federation.ts';
 import {settings} from '~project-sesame/server/middlewares/settings.ts';
 import {webauthn} from '~project-sesame/server/middlewares/webauthn.ts';
-import {evp} from '~project-sesame/server/middlewares/evp.ts';
 
 import {wellKnown} from '~project-sesame/server/middlewares/well-known.ts';
-import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
+import {
+  generateRandomString,
+  getRequestContext,
+} from '~project-sesame/server/libs/helpers.ts';
 import {logger, logContextStorage} from '~project-sesame/server/libs/logger.ts';
 import swaggerUi from 'swagger-ui-express';
 import {swaggerSpec} from '~project-sesame/server/swagger.ts';
@@ -477,6 +480,23 @@ app.get(
 );
 
 /**
+ * EVP Verifier Page.
+ */
+app.get(
+  '/evp',
+  pageAclCheck(PageType.NoAuth),
+  (req: Request, res: Response): void => {
+    const nonce = new SessionService(req.session).setChallenge(
+      generateRandomString(24)
+    );
+    res.render('evp.html', {
+      title: 'EVP Verifier',
+      nonce,
+    });
+  }
+);
+
+/**
  * Home Page.
  * @swagger
  * /home:
@@ -528,11 +548,11 @@ app.get(
 
 app.use('/admin', admin);
 app.use('/auth', auth);
+app.use('/email', email);
 app.use('/fedcm', fedcm);
 app.use('/federation', federation);
 app.use('/settings', settings);
 app.use('/webauthn', webauthn);
-app.use('/evp', evp);
 app.use('/.well-known', wellKnown);
 
 app.use(
