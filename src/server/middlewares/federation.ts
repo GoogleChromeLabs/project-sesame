@@ -259,7 +259,10 @@ router.post(
       // TODO: Beware that the email is verified.
       let user = await Users.findByUsername(payload.email);
       if (user && payload.iss) {
-        const maps = await FederationMappings.findByIssuer(payload.iss);
+        const maps = await FederationMappings.findByIssuer(
+          payload.iss,
+          user.id
+        );
         if (maps.length === 0) {
           // If the email address matches, merge the user.
           await FederationMappings.create(user.id, payload);
@@ -318,7 +321,7 @@ router.post(
     // TODO: Beware that the email is verified.
     let user = await Users.findByUsername(payload.email);
     if (user && payload.iss) {
-      const maps = await FederationMappings.findByIssuer(payload.iss);
+      const maps = await FederationMappings.findByIssuer(payload.iss, user.id);
       if (maps.length === 0) {
         // If the email address matches, merge the user.
         await FederationMappings.create(user.id, payload);
