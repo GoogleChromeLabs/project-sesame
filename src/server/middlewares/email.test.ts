@@ -73,6 +73,22 @@ describe('Email Middleware', () => {
     assert.strictEqual(body.error, 'Missing email or token (evt)');
   });
 
+  test('POST /email/verify returns 400 when session challenge is missing', async () => {
+    delete mockSession.challenge;
+
+    const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: 'test@gmail.com', evt: 'mock-evt'}),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.strictEqual(
+      body.error,
+      'No active verification challenge found in session.'
+    );
+  });
+
   test('POST /email/verify delegates to verifyEvpToken and returns result', async () => {
     const mockResult: evpLib.VerifyEvpTokenResult = {
       success: true,

@@ -53,6 +53,10 @@ describe('EVP Library', () => {
 
     test('throws error for invalid JWT format without parts', () => {
       assert.throws(() => decodeJwt('invalid-jwt'), /Invalid JWT format/);
+      assert.throws(
+        () => decodeJwt('header.payload'),
+        /Invalid JWT format: Expected 3 parts/
+      );
     });
   });
 
@@ -391,6 +395,194 @@ describe('EVP Library', () => {
       assert.strictEqual(result.success, false);
       assert.strictEqual(result.steps.step2.status, 'failed');
       assert.ok(result.error?.includes('too old'));
+    });
+
+    test('fails when expectedNonce is missing', async () => {
+      const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+
+      const now = Math.floor(Date.now() / 1000);
+      const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
+      const evtPayload = {
+        iss: 'https://accounts.google.com',
+        email: 'test@gmail.com',
+        email_verified: true,
+        iat: now - 10,
+        exp: now + 300,
+        cnf: {jwk: browserJwk},
+      };
+
+      const evtHeaderB64 = Buffer.from(JSON.stringify(evtHeader)).toString(
+        'base64url'
+      );
+      const evtPayloadB64 = Buffer.from(JSON.stringify(evtPayload)).toString(
+        'base64url'
+      );
+      const evtSigningInput = `${evtHeaderB64}.${evtPayloadB64}`;
+      const evtSignature = crypto
+        .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+        .toString('base64url');
+      const sdJwt = `${evtSigningInput}.${evtSignature}`;
+
+      const calculatedEvtHash = crypto
+        .createHash('sha256')
+        .update(sdJwt + '~')
+        .digest('base64url');
+
+      const kbHeader = {alg: 'EdDSA', typ: 'kb+jwt'};
+      const kbPayload = {
+        aud: 'http://127.0.0.1:8080',
+        nonce: 'test-session-challenge',
+        sd_hash: calculatedEvtHash,
+      };
+      const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
+        'base64url'
+      );
+      const kbPayloadB64 = Buffer.from(JSON.stringify(kbPayload)).toString(
+        'base64url'
+      );
+      const kbSigningInput = `${kbHeaderB64}.${kbPayloadB64}`;
+      const kbSignature = crypto
+        .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+        .toString('base64url');
+      const kbJwt = `${kbSigningInput}.${kbSignature}`;
+
+      const result = await verifyEvpToken({
+        email: 'test@gmail.com',
+        evt: `${sdJwt}~${kbJwt}`,
+        expectedAudience: 'http://127.0.0.1:8080',
+      });
+
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.steps.step2.status, 'failed');
+      assert.ok(result.error?.includes('No verification challenge'));
+    });
+
+    test('fails on audience scheme downgrade (http vs https)', async () => {
+      const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+
+      const now = Math.floor(Date.now() / 1000);
+      const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
+      const evtPayload = {
+        iss: 'https://accounts.google.com',
+        email: 'test@gmail.com',
+        email_verified: true,
+        iat: now - 10,
+        exp: now + 300,
+        cnf: {jwk: browserJwk},
+      };
+
+      const evtHeaderB64 = Buffer.from(JSON.stringify(evtHeader)).toString(
+        'base64url'
+      );
+      const evtPayloadB64 = Buffer.from(JSON.stringify(evtPayload)).toString(
+        'base64url'
+      );
+      const evtSigningInput = `${evtHeaderB64}.${evtPayloadB64}`;
+      const evtSignature = crypto
+        .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+        .toString('base64url');
+      const sdJwt = `${evtSigningInput}.${evtSignature}`;
+
+      const calculatedEvtHash = crypto
+        .createHash('sha256')
+        .update(sdJwt + '~')
+        .digest('base64url');
+
+      const kbHeader = {alg: 'EdDSA', typ: 'kb+jwt'};
+      const kbPayload = {
+        aud: 'http://example.com',
+        nonce: 'test-session-challenge',
+        sd_hash: calculatedEvtHash,
+      };
+      const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
+        'base64url'
+      );
+      const kbPayloadB64 = Buffer.from(JSON.stringify(kbPayload)).toString(
+        'base64url'
+      );
+      const kbSigningInput = `${kbHeaderB64}.${kbPayloadB64}`;
+      const kbSignature = crypto
+        .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+        .toString('base64url');
+      const kbJwt = `${kbSigningInput}.${kbSignature}`;
+
+      const result = await verifyEvpToken({
+        email: 'test@gmail.com',
+        evt: `${sdJwt}~${kbJwt}`,
+        expectedAudience: 'https://example.com',
+        expectedNonce: 'test-session-challenge',
+      });
+
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.steps.step2.status, 'failed');
+      assert.ok(result.error?.includes('Audience mismatch'));
+    });
+
+    test('fails when issuer URL does not use HTTPS', async () => {
+      const idpKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserKeyPair = crypto.generateKeyPairSync('ed25519');
+      const browserJwk = browserKeyPair.publicKey.export({format: 'jwk'});
+
+      const now = Math.floor(Date.now() / 1000);
+      const evtHeader = {alg: 'EdDSA', kid: 'key-1', typ: 'evt+jwt'};
+      const evtPayload = {
+        iss: 'http://example.com',
+        email: 'test@gmail.com',
+        email_verified: true,
+        iat: now - 10,
+        exp: now + 300,
+        cnf: {jwk: browserJwk},
+      };
+
+      const evtHeaderB64 = Buffer.from(JSON.stringify(evtHeader)).toString(
+        'base64url'
+      );
+      const evtPayloadB64 = Buffer.from(JSON.stringify(evtPayload)).toString(
+        'base64url'
+      );
+      const evtSigningInput = `${evtHeaderB64}.${evtPayloadB64}`;
+      const evtSignature = crypto
+        .sign(undefined, Buffer.from(evtSigningInput), idpKeyPair.privateKey)
+        .toString('base64url');
+      const sdJwt = `${evtSigningInput}.${evtSignature}`;
+
+      const calculatedEvtHash = crypto
+        .createHash('sha256')
+        .update(sdJwt + '~')
+        .digest('base64url');
+
+      const kbHeader = {alg: 'EdDSA', typ: 'kb+jwt'};
+      const kbPayload = {
+        aud: 'https://example.com',
+        nonce: 'test-session-challenge',
+        sd_hash: calculatedEvtHash,
+      };
+      const kbHeaderB64 = Buffer.from(JSON.stringify(kbHeader)).toString(
+        'base64url'
+      );
+      const kbPayloadB64 = Buffer.from(JSON.stringify(kbPayload)).toString(
+        'base64url'
+      );
+      const kbSigningInput = `${kbHeaderB64}.${kbPayloadB64}`;
+      const kbSignature = crypto
+        .sign(undefined, Buffer.from(kbSigningInput), browserKeyPair.privateKey)
+        .toString('base64url');
+      const kbJwt = `${kbSigningInput}.${kbSignature}`;
+
+      const result = await verifyEvpToken({
+        email: 'test@gmail.com',
+        evt: `${sdJwt}~${kbJwt}`,
+        expectedAudience: 'https://example.com',
+        expectedNonce: 'test-session-challenge',
+      });
+
+      assert.strictEqual(result.success, false);
+      assert.strictEqual(result.steps.step3.status, 'failed');
+      assert.ok(result.error?.includes('Issuer must use HTTPS protocol'));
     });
   });
 });

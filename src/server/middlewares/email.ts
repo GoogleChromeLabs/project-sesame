@@ -38,6 +38,15 @@ router.post(
     const sessionService = new SessionService(req.session);
     const expectedNonce = sessionService.getChallenge();
 
+    if (!expectedNonce) {
+      res.status(400).json({
+        error: 'No active verification challenge found in session.',
+      });
+      return;
+    }
+
+    sessionService.deleteChallenge();
+
     const protocol =
       (req.headers['x-forwarded-proto'] as string) || req.protocol;
     const host =
@@ -50,10 +59,6 @@ router.post(
       expectedAudience,
       expectedNonce,
     });
-
-    if (result.success) {
-      sessionService.deleteChallenge();
-    }
 
     res.json(result);
   }

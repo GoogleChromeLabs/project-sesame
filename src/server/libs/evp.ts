@@ -30,8 +30,8 @@ export interface DecodedJwt {
 
 export function decodeJwt(jwtString: string): DecodedJwt {
   const parts = jwtString.split('.');
-  if (parts.length < 2) {
-    throw new Error('Invalid JWT format');
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
+    throw new Error('Invalid JWT format: Expected 3 parts');
   }
   const header = JSON.parse(
     Buffer.from(parts[0], 'base64url').toString('utf8')
@@ -167,15 +167,20 @@ export async function verifyEvpToken({
       throw new Error('Email verified claim is not true.');
     }
 
-    const expectedHost = new URL(expectedAudience).host;
-    const tokenHost = new URL(tokenAudience).host;
-    if (expectedHost !== tokenHost) {
+    const expectedOrigin = new URL(expectedAudience).origin;
+    const tokenOrigin = new URL(tokenAudience).origin;
+    if (expectedOrigin !== tokenOrigin) {
       throw new Error(
-        `Audience mismatch: Expected "${expectedAudience}", Token contained "${tokenAudience}"`
+        `Audience mismatch: Expected origin "${expectedOrigin}", Token contained "${tokenOrigin}"`
       );
     }
 
-    if (expectedNonce && tokenNonce !== expectedNonce) {
+    if (!expectedNonce) {
+      throw new Error(
+        'No verification challenge found in the session. Reload the page and try again.'
+      );
+    }
+    if (tokenNonce !== expectedNonce) {
       throw new Error(
         `Nonce mismatch: Expected "${expectedNonce}", Token contained "${tokenNonce}"`
       );
@@ -211,7 +216,12 @@ export async function verifyEvpToken({
     // Step 3: DNS Delegation Authority Verification
     // =========================================================================
     const tokenIssuer = decodedEvt.payload.iss;
-    const emailDomain = email.split('@')[1];
+    const emailDomain = email.includes('@')
+      ? email.split('@').pop()
+      : undefined;
+    if (!emailDomain) {
+      throw new Error(`Invalid email address format: "${email}"`);
+    }
     const dnsLookupTarget = `_email-verification.${emailDomain}`;
 
     steps.step3.inputs = {
@@ -224,6 +234,13 @@ export async function verifyEvpToken({
     let authorizedBy = '';
 
     const issuerUrl = new URL(tokenIssuer);
+    if (
+      issuerUrl.protocol !== 'https:' &&
+      issuerUrl.hostname !== 'localhost' &&
+      issuerUrl.hostname !== '127.0.0.1'
+    ) {
+      throw new Error(`Issuer must use HTTPS protocol: ${tokenIssuer}`);
+    }
     const issuerHost = issuerUrl.hostname;
 
     if (emailDomain.toLowerCase() === issuerHost.toLowerCase()) {
@@ -237,9 +254,12 @@ export async function verifyEvpToken({
         logger.error(`DNS lookup failed for ${dnsLookupTarget}:`, e);
       }
 
-      isDelegated = dnsTxtRecords.some(record =>
-        record.some(str => str.includes(`iss=${issuerHost}`))
-      );
+      isDelegated = dnsTxtRecords.some(chunks => {
+        const fullRecord = chunks.join('');
+        return fullRecord
+          .split(/[\s;]+/)
+          .some(token => token === `iss=${issuerHost}`);
+      });
       authorizedBy = 'DNS TXT Record Delegation';
     }
 
@@ -255,7 +275,11 @@ export async function verifyEvpToken({
     // =========================================================================
     // Step 4: Issuer Discovery & JWKS Fetching
     // =========================================================================
-    const discoveryUrl = `${tokenIssuer}/.well-known/email-verification`;
+    let cleanIssuer = tokenIssuer;
+    while (cleanIssuer.endsWith('/')) {
+      cleanIssuer = cleanIssuer.slice(0, -1);
+    }
+    const discoveryUrl = `${cleanIssuer}/.well-known/email-verification`;
     steps.step4.inputs = {url: discoveryUrl};
 
     // Fetch well-known config
@@ -266,6 +290,16 @@ export async function verifyEvpToken({
     const issuerMetadata = await wellKnownRes.json();
 
     // Fetch JWKS
+    const jwksUrl = new URL(issuerMetadata.jwks_uri);
+    if (
+      jwksUrl.protocol !== 'https:' &&
+      jwksUrl.hostname !== 'localhost' &&
+      jwksUrl.hostname !== '127.0.0.1'
+    ) {
+      throw new Error(
+        `JWKS URI must use HTTPS protocol: ${issuerMetadata.jwks_uri}`
+      );
+    }
     const jwksRes = await fetch(issuerMetadata.jwks_uri);
     if (!jwksRes.ok) {
       throw new Error(`Failed to fetch JWKS from ${issuerMetadata.jwks_uri}`);
