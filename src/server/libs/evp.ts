@@ -157,6 +157,7 @@ export async function verifyEvpToken({
 
     if (
       !email ||
+      typeof tokenEmail !== 'string' ||
       email.trim().toLowerCase() !== tokenEmail.trim().toLowerCase()
     ) {
       throw new Error(
