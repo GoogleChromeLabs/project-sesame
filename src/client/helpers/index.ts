@@ -388,11 +388,14 @@ export function postForm(callback: Function, errorCallback: Function): void {
         const password = form.get('password');
         // Save only if `id` and `password` combination is being submitted.
         if (id && password) {
-          await navigator.credentials.create({
+          const cred = await navigator.credentials.create({
             // @ts-ignore
             password: {id, password},
           });
-          console.log('PasswordCredential stored');
+          if (cred) {
+            await navigator.credentials.store(cred);
+            console.log('PasswordCredential stored');
+          }
         }
       }
 
