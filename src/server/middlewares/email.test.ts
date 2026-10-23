@@ -62,10 +62,24 @@ describe('Email Middleware', () => {
     vi.restoreAllMocks();
   });
 
-  test('POST /email/verify returns 400 on missing parameters', async () => {
+  test('POST /email/verify returns 400 when X-Requested-With header is missing (csrfCheck)', async () => {
     const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: 'test@gmail.com', evt: 'mock-evt'}),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as any;
+    assert.strictEqual(body.error, 'Invalid XHR request.');
+  });
+
+  test('POST /email/verify returns 400 on missing parameters', async () => {
+    const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
       body: JSON.stringify({email: 'test@gmail.com'}),
     });
     assert.strictEqual(res.status, 400);
@@ -78,7 +92,10 @@ describe('Email Middleware', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
       body: JSON.stringify({email: 'test@gmail.com', evt: 'mock-evt'}),
     });
     assert.strictEqual(res.status, 400);
@@ -109,7 +126,10 @@ describe('Email Middleware', () => {
 
     const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
       body: JSON.stringify({email: 'test@gmail.com', evt: 'mock-evt'}),
     });
 

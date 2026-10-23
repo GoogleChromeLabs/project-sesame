@@ -259,7 +259,7 @@ export async function verifyEvpToken({
         const fullRecord = chunks.join('');
         return fullRecord
           .split(/[\s;]+/)
-          .some(token => token === `iss=${issuerHost}`);
+          .some(token => token.toLowerCase() === `iss=${issuerHost}`);
       });
       authorizedBy = 'DNS TXT Record Delegation';
     }

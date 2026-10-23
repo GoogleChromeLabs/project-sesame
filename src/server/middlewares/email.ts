@@ -18,8 +18,11 @@
 import {Router, Request, Response} from 'express';
 import {SessionService, ApiType, apiAclCheck} from '../libs/session.ts';
 import {verifyEvpToken} from '../libs/evp.ts';
+import {csrfCheck} from './common.ts';
 
 const router = Router();
+
+router.use(csrfCheck);
 
 /**
  * Verify the EVP email verification token
@@ -47,10 +50,12 @@ router.post(
 
     sessionService.deleteChallenge();
 
-    const protocol =
+    const rawProto =
       (req.headers['x-forwarded-proto'] as string) || req.protocol;
-    const host =
+    const protocol = rawProto.split(',')[0].trim();
+    const rawHost =
       (req.headers['x-forwarded-host'] as string) || req.get('host') || '';
+    const host = rawHost.split(',')[0].trim();
     const expectedAudience = `${protocol}://${host}`;
 
     const result = await verifyEvpToken({
