@@ -235,19 +235,20 @@ let developHtml: string | undefined;
  * Dialog controller
  */
 export class SesameDialog {
-  dialog: HTMLDialogElement;
+  dialog: HTMLDialogElement | null;
   currentMode: 'usage' | 'develop' | null = null;
 
   constructor() {
-    this.dialog = $('#dialog') as HTMLDialogElement;
+    this.dialog = $('#dialog') as HTMLDialogElement | null;
 
     // Close on overlay click (fallback for browsers without closedby support)
     // @ts-ignore
-    if (!('closedBy' in HTMLDialogElement.prototype)) {
-      this.dialog.addEventListener('click', event => {
-        if (event.target !== this.dialog) return;
+    if (this.dialog && !('closedBy' in HTMLDialogElement.prototype)) {
+      const dialog = this.dialog;
+      dialog.addEventListener('click', event => {
+        if (event.target !== dialog) return;
 
-        const rect = this.dialog.getBoundingClientRect();
+        const rect = dialog.getBoundingClientRect();
         const isDialogContent =
           rect.top <= event.clientY &&
           event.clientY <= rect.top + rect.height &&
@@ -322,6 +323,7 @@ export class SesameDialog {
   }
 
   show(): void {
+    if (!this.dialog) return;
     this.dialog.showModal();
     const descriptionElement = $('#dialog-content');
     if (descriptionElement) {
@@ -330,6 +332,7 @@ export class SesameDialog {
   }
 
   close(): void {
+    if (!this.dialog) return;
     this.dialog.close();
   }
 }

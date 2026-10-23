@@ -191,3 +191,28 @@ describe('postForm', () => {
     expect(callback).toHaveBeenCalledWith({status: 'ok'});
   });
 });
+
+describe('SesameDialog', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('instantiates without error when dialog element is absent and closedBy is unsupported', async () => {
+    vi.resetModules();
+    class MockHTMLDialogElement {
+      addEventListener = vi.fn();
+    }
+    vi.stubGlobal('HTMLDialogElement', MockHTMLDialogElement);
+    vi.stubGlobal('document', {
+      querySelector: vi.fn(() => null),
+      querySelectorAll: vi.fn(() => []),
+      addEventListener: vi.fn(),
+    });
+
+    const {SesameDialog} = await import('./index.js');
+    const dialogInstance = new SesameDialog();
+    expect(dialogInstance.dialog).toBeNull();
+    expect(() => dialogInstance.show()).not.toThrow();
+    expect(() => dialogInstance.close()).not.toThrow();
+  });
+});

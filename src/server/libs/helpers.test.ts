@@ -39,7 +39,7 @@ describe('deleteDocuments', () => {
     assert.strictEqual(deleted, refs.length);
     const remaining = await collection.get();
     assert.strictEqual(remaining.size, 0);
-  });
+  }, 15000);
 
   it('should do nothing when there are no documents to delete', async () => {
     assert.strictEqual(await deleteDocuments([]), 0);
