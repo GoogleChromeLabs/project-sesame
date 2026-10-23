@@ -109,8 +109,3 @@ export class IdentityProvider {
     }
   }
 }
-
-// const tokenElement = document.createElement('meta');
-// tokenElement.httpEquiv = 'origin-trial';
-// tokenElement.content = 'AgVVeF19wUsK9H7mq0k+Y0qSvxYjkuhZPA1qF0C+hPRhG/CMdSVDWIJwJlYZy7Aj2LX71/qF1uA7deocLbx1VgQAAABleyJvcmlnaW4iOiJodHRwczovL2ZlZGNtLXJwLWRlbW8uZ2xpdGNoLm1lOjQ0MyIsImZlYXR1cmUiOiJGZWRDbUlkcFNpZ25pblN0YXR1cyIsImV4cGlyeSI6MTcwNzI2Mzk5OX0=';
-// document.head.appendChild(tokenElement);
