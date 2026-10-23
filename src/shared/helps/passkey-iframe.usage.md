@@ -16,18 +16,25 @@
 
 ## Passkeys in an iframe
 
-On this page, you can experience how a website can embed an identity provider (IdP) within an `<iframe>` to allow seamless passkey authentication using browser permission delegation.
+On this page, you can see how a website can embed an identity provider (IdP) in
+an `<iframe>` so users can sign in with a passkey inside it. The website makes
+this possible by giving the iframe permission to use passkeys.
 
-### Why iframes need explicit permission for WebAuthn
+### Prerequisites
 
-By default, modern web browsers block the WebAuthn API inside cross-origin `<iframe>` elements to prevent clickjacking and credential phishing attacks.
-
-However, many identity federation architectures require embedding a trusted IdP sign-in widget directly inside a relying party (RP) webpage. To support this securely, the browser allows the top-level site to explicitly delegate passkey retrieval rights to a trusted iframe origin using the Permissions Policy feature `publickey-credentials-get`.
+- **Passkey on the demo IdP:** Register an account on the
+  [demo IdP](https://sesame-identity-provider.appspot.com) and add a passkey, if
+  you haven't already.
 
 ### How to test it
 
-- **Prerequisites:** You need an account registered on the demo IdP with a saved passkey. If you haven't created one yet, visit the [demo IdP](https://sesame-identity-provider.appspot.com) to register an account and add a passkey.
-- **Observe the embedded IdP:** The page embeds an `<iframe>` hosted on the IdP domain (`https://sesame-identity-provider.appspot.com`).
-- **Autofill or sign in within the iframe:** If conditional UI is supported, passkey autofill is initiated directly within the iframe. Select your saved IdP passkey from the autofill prompt.
-- **Cross-origin token exchange:** Once you verify with your passkey inside the iframe, the IdP generates an authentication token and securely transmits it to the parent window via `postMessage()`.
-- **Automatic sign-in:** The parent site receives and verifies the token, signing you in and redirecting to the home page.
+1. **Observe the embedded IdP:** The sign-in form on this page is an `<iframe>`
+   hosted on the IdP domain (`https://sesame-identity-provider.appspot.com`).
+2. **Autofill or sign in within the iframe:** If your browser supports passkey
+   autofill (conditional UI), select the username field in the iframe and
+   choose your saved IdP passkey from the autofill suggestions.
+3. **Cross-origin token exchange:** After you verify with your passkey in the
+   iframe, the IdP creates an authentication token and securely sends it to the
+   parent window with `postMessage()`.
+4. **Automatic sign-in:** The parent site receives and verifies the token, then
+   signs you in and redirects you to the home page.
