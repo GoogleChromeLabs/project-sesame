@@ -62,12 +62,26 @@ export class FederationMappings {
     return FederationMappings.update(idtoken);
   }
 
-  static async findByIssuer(url: string): Promise<FederationMap[]> {
+  /**
+   * Finds federation mappings for a given issuer and user.
+   *
+   * @param url - The issuer URL (`iss` claim in the ID token).
+   * @param user_id - The ID of the user who owns the federation mapping.
+   * @returns A promise that resolves to the matching federation mappings for the user.
+   */
+  static async findByIssuer(
+    url: string,
+    user_id: UserId
+  ): Promise<FederationMap[]> {
+    if (!url || !user_id) {
+      return [];
+    }
     const results: FederationMap[] = [];
     const refs = await store
       .collection(FederationMappings.collection)
       // TODO: Does `iss` always match our issuer identity?
       .where('iss', '==', url)
+      .where('user_id', '==', user_id)
       .get();
     refs.forEach(map => results.push(<FederationMap>map.data()));
     return results;
