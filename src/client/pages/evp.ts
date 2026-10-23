@@ -16,13 +16,13 @@
  */
 
 import '~project-sesame/client/layout';
-import {$, post, toast} from '~project-sesame/client/helpers/index';
+import {$, post, redirect, toast} from '~project-sesame/client/helpers/index';
 
 document.addEventListener('DOMContentLoaded', () => {
   const emailFormContainer = $('#email-form-container') as HTMLDivElement;
   const evpForm = $('#evp-form') as HTMLFormElement;
-  let emailInput = $('#email') as HTMLInputElement;
-  let tokenInput = $('#evt') as HTMLInputElement;
+  const emailInput = $('#email') as HTMLInputElement;
+  const tokenInput = $('#evt') as HTMLInputElement;
   const submitBtn = $('#submit-btn') as HTMLButtonElement;
 
   const otpFallbackContainer = $('#otp-fallback-container') as HTMLDivElement;
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      const result = await post('/evp/verify', {email, evt});
+      const result = await post('/email/verify', {email, evt});
 
       submitBtn.disabled = false;
       printTraceToConsole(result.steps);
@@ -87,43 +87,19 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
+        await redirect('/evp', 2000);
       }
     } catch (e: any) {
       submitBtn.disabled = false;
       console.error(`Server error during verification: ${e.message || e}`);
       toast(e.message || 'An unexpected server error occurred.');
+      await redirect('/evp', 2000);
     }
   });
 
   // Handle Back button on Success screen
-  backBtn.addEventListener('click', () => {
-    // Reset form values
-    evpForm.reset();
-
-    // Recreate email input to clear browser-bound verification / autofill states
-    const newEmailInput = emailInput.cloneNode(true) as HTMLInputElement;
-    newEmailInput.value = '';
-    emailInput.parentNode?.replaceChild(newEmailInput, emailInput);
-    emailInput = newEmailInput;
-
-    // Recreate token input
-    const newTokenInput = tokenInput.cloneNode(true) as HTMLInputElement;
-    newTokenInput.value = '';
-
-    // Rebind nonce attributes
-    const nonceAttr = newTokenInput.getAttribute('data-nonce');
-    if (nonceAttr) {
-      newTokenInput.setAttribute('nonce', nonceAttr);
-    }
-    tokenInput.parentNode?.replaceChild(newTokenInput, tokenInput);
-    tokenInput = newTokenInput;
-
-    // Reset UI visibility
-    successContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
-    console.info(
-      'Form reset and inputs recreated. Ready to verify another email.'
-    );
+  backBtn.addEventListener('click', async () => {
+    await redirect('/evp');
   });
 
   // Handle OTP fallback submission
