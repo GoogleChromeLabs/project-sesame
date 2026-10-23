@@ -389,7 +389,7 @@ export class Users {
 
   /**
    * Deletes accounts that have expired, along with all of their associated
-   * data, and then deletes data whose account no longer exists.
+   * data, data whose account no longer exists, and expired sessions.
    *
    * Accounts are selected by `expiresAt` rather than by `registeredAt`, so
    * that allowlisted accounts, which expire far in the future, are kept.
@@ -412,9 +412,11 @@ export class Users {
       });
     }
     const orphans = await Users.deleteOrphanedData();
+    const expiredSessions = await sessionStore.deleteExpired(now);
     logger.info('Eviction ended successfully.', {
       expiredAccounts: expired.length,
       orphanedDocuments: orphans,
+      expiredSessions,
     });
   }
 

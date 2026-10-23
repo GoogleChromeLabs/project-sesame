@@ -18,6 +18,7 @@
 import {describe, it, beforeEach, beforeAll} from 'vitest';
 import assert from 'node:assert';
 import net from 'node:net';
+import {Timestamp} from 'firebase-admin/firestore';
 import {CustomFirestoreStore} from './custom-firestore-session.js';
 import {store, config} from '../config.js';
 import {ALLOW_LISTED_FOREVER} from '../middlewares/common.js';
@@ -311,6 +312,104 @@ describe('CustomFirestoreStore', () => {
     } finally {
       await destroySession(sidSignedIn).catch(() => {});
       await destroySession(sidSigningIn).catch(() => {});
+    }
+  });
+
+  it('should delete expired sessions with numeric expiresAt and keep active sessions', async () => {
+    const now = Date.now();
+    const sidExpired = `sid-exp-num-${now}`;
+    const sidUnauthExpired = `sid-exp-unauth-${now}`;
+    const sidActive = `sid-active-${now}`;
+
+    try {
+      // Create an expired session with user
+      await store
+        .collection('test_sessions')
+        .doc(sidExpired)
+        .set({
+          user: {id: 'user-expired', username: 'expuser'},
+          expiresAt: now - 5000,
+        });
+
+      // Create an unauthenticated expired session
+      await store
+        .collection('test_sessions')
+        .doc(sidUnauthExpired)
+        .set({
+          challenge: 'random-challenge',
+          expiresAt: now - 10000,
+        });
+
+      // Create an active session
+      await store
+        .collection('test_sessions')
+        .doc(sidActive)
+        .set({
+          user: {id: 'user-active', username: 'activeuser'},
+          expiresAt: now + 60000,
+        });
+
+      const deletedCount = await sessionStore.deleteExpired(now);
+      assert.strictEqual(deletedCount, 2);
+
+      assert.strictEqual(
+        await getSession(sidExpired),
+        undefined,
+        'Expired session should be deleted'
+      );
+      assert.strictEqual(
+        await getSession(sidUnauthExpired),
+        undefined,
+        'Unauthenticated expired session should be deleted'
+      );
+      assert.ok(
+        await getSession(sidActive),
+        'Active session should still exist'
+      );
+    } finally {
+      await destroySession(sidExpired).catch(() => {});
+      await destroySession(sidUnauthExpired).catch(() => {});
+      await destroySession(sidActive).catch(() => {});
+    }
+  });
+
+  it('should delete expired sessions with Timestamp expiresAt', async () => {
+    const now = Date.now();
+    const sidTimestampExpired = `sid-exp-ts-${now}`;
+    const sidTimestampActive = `sid-active-ts-${now}`;
+
+    try {
+      await store
+        .collection('test_sessions')
+        .doc(sidTimestampExpired)
+        .set({
+          user: {id: 'user-ts', username: 'tsuser'},
+          expiresAt: Timestamp.fromMillis(now - 5000),
+        });
+
+      await store
+        .collection('test_sessions')
+        .doc(sidTimestampActive)
+        .set({
+          user: {id: 'user-ts-act', username: 'tsuseract'},
+          expiresAt: Timestamp.fromMillis(now + 60000),
+        });
+
+      const deletedCount = await sessionStore.deleteExpired(now);
+      assert.strictEqual(deletedCount, 1);
+
+      assert.strictEqual(
+        await getSession(sidTimestampExpired),
+        undefined,
+        'Timestamp expired session should be deleted'
+      );
+      assert.ok(
+        await getSession(sidTimestampActive),
+        'Timestamp active session should still exist'
+      );
+    } finally {
+      await destroySession(sidTimestampExpired).catch(() => {});
+      await destroySession(sidTimestampActive).catch(() => {});
     }
   });
 });
