@@ -29,6 +29,7 @@ import {
   setSignedOut, // Keeping this for now as it handles headers too
 } from '~project-sesame/server/libs/session.ts';
 import {SessionService} from '~project-sesame/server/libs/session.ts';
+import {getRequestContext} from '~project-sesame/server/libs/helpers.ts';
 import {logger} from '~project-sesame/server/libs/logger.ts';
 import {csrfCheck} from '~project-sesame/server/middlewares/common.ts';
 
@@ -495,7 +496,8 @@ router.post(
       return;
     }
     const {user} = res.locals;
-    res.json(user);
+    const {rpId} = getRequestContext(req);
+    res.json({...user, rpId});
   }
 );
 
@@ -540,7 +542,8 @@ router.post(
       const {user} = res.locals;
       user.displayName = newName;
       await Users.update(user);
-      res.json(user);
+      const {rpId} = getRequestContext(req);
+      res.json({...user, rpId});
       return;
     } else {
       res.sendStatus(400);

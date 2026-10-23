@@ -22,7 +22,7 @@ import '~project-sesame/client/layout';
 /**
  * Change and update the user's display name.
  */
-async function changeDisplayName(e: {
+export async function changeDisplayName(e: {
   target: HTMLButtonElement;
 }): Promise<void> {
   const newName = prompt(
@@ -31,9 +31,29 @@ async function changeDisplayName(e: {
   );
   if (newName?.length) {
     loading.start();
-    await post('/auth/updateDisplayName', {newName});
+    const user = await post('/auth/updateDisplayName', {newName});
+    if (
+      window.PublicKeyCredential &&
+      'signalCurrentUserDetails' in PublicKeyCredential &&
+      user.rpId &&
+      user.passkeyUserId
+    ) {
+      try {
+        await PublicKeyCredential.signalCurrentUserDetails({
+          rpId: user.rpId,
+          userId: user.passkeyUserId,
+          name: user.username,
+          displayName: user.displayName,
+        });
+        console.info(
+          'Updated user details have been signaled to the password manager.'
+        );
+      } catch (e: any) {
+        console.error(e.message);
+      }
+    }
     loading.stop();
-    renderDisplayName();
+    await renderDisplayName();
   }
 }
 
