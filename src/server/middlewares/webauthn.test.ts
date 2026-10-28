@@ -100,7 +100,7 @@ describe('WebAuthn Middlewares', () => {
     // Inject mock session and locals
     app.use((req: Request, res: Response, next: NextFunction) => {
       req.session = mockSession;
-      res.locals = {signin_status: 1}; // UserSignInStatus.SignedOut
+      res.locals = mockSession.locals || {signin_status: 1}; // UserSignInStatus.SignedOut
       next();
     });
 
@@ -336,6 +336,44 @@ describe('WebAuthn Middlewares', () => {
       });
       assert.notStrictEqual(status, 200);
       assert.match(body.error, /non-cross-origin/);
+    });
+  });
+
+  describe('getKeys', () => {
+    test('returns credentials with fallback icon when aaguid is unrecognized', async () => {
+      const passkeyUserId = crypto.randomBytes(16).toString('base64url');
+      const credId = crypto.randomBytes(16).toString('base64url');
+      await PublicKeyCredentials.update({
+        id: credId,
+        passkeyUserId,
+        credentialPublicKey: 'test-key',
+        credentialType: 'public-key',
+        aaguid: 'unknown-aaguid-1234',
+        userVerified: true,
+        transports: ['internal'],
+        credentialDeviceType: 'multiDevice',
+        credentialBackedUp: true,
+        registeredAt: Date.now(),
+      });
+
+      mockSession.locals = {
+        signin_status: 4,
+        user: {passkeyUserId},
+      };
+
+      const res = await fetch(`http://127.0.0.1:${port}/webauthn/getKeys`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      const body = await res.json();
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(body.credentials.length, 1);
+      assert.ok(body.credentials[0].providerIcon);
+
+      await PublicKeyCredentials.remove(credId);
     });
   });
 });

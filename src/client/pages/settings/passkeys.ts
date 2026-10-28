@@ -16,7 +16,7 @@
  */
 
 import {html, render} from 'lit';
-import {$, post, loading, toast} from '~project-sesame/client/helpers/index';
+import {$, loading, toast} from '~project-sesame/client/helpers/index';
 import {Base64URLString} from '@simplewebauthn/server';
 import {
   capabilities,
@@ -28,54 +28,14 @@ import {
 import '~project-sesame/client/layout';
 
 /**
- * Change and update the user's display name.
- */
-async function changeDisplayName(e: {
-  target: HTMLButtonElement;
-}): Promise<void> {
-  const newName = prompt(
-    'Enter a new display name',
-    e.target.dataset.displayName
-  );
-  if (!newName?.length) {
-    loading.start();
-    await post('/auth/updateDisplayName', {newName});
-    loading.stop();
-    renderDisplayName();
-  }
-}
-
-/**
- * Render the user's display name.
- */
-async function renderDisplayName(): Promise<void> {
-  const res = await post('/auth/userinfo');
-  render(
-    html`
-      <img class="profile-image" src="${res.picture}" width="80" height="80" />
-      <h2>Hi, ${res.displayName}</h2>
-      <div class="display-name">
-        <span>${res.username}</span>
-        <mdui-button-icon
-          data-display-name="${res.displayName || res.username}"
-          @click="${changeDisplayName}"
-          icon="edit"
-          title="Edit your display name"
-        ></mdui-button-icon>
-      </div>
-    `,
-    $('#userinfo')
-  );
-}
-
-/**
  * Rename and update the credential name.
  */
 async function rename(e: MouseEvent): Promise<void> {
-  if (!(e.target instanceof HTMLButtonElement)) {
+  const target = e.currentTarget as HTMLElement | null;
+  if (!target) {
     return;
   }
-  const {credId, name} = e.target.dataset as {
+  const {credId, name} = target.dataset as {
     credId: Base64URLString;
     name: string;
   };
@@ -96,12 +56,14 @@ async function rename(e: MouseEvent): Promise<void> {
 /**
  * Remove and delete a credential.
  */
-async function remove(event: {target: HTMLButtonElement}): Promise<void> {
+async function remove(event: MouseEvent): Promise<void> {
   if (!confirm('Do you really want to remove this credential?')) return;
+  const target = event.currentTarget as HTMLElement | null;
+  if (!target?.dataset.credId) return;
 
   try {
     loading.start();
-    await unregisterCredential(<Base64URLString>event.target.dataset.credId);
+    await unregisterCredential(target.dataset.credId as Base64URLString);
     await renderCredentials();
     loading.stop();
   } catch (error: any) {
@@ -214,9 +176,14 @@ async function register(): Promise<void> {
   }
 }
 
-loading.start();
-// renderDisplayName();
-await renderCredentials();
-loading.stop();
-
 createPasskey.addEventListener('click', register);
+
+loading.start();
+try {
+  await renderCredentials();
+} catch (error: any) {
+  console.error(error);
+  toast(error.message || 'Failed to load passkeys.');
+} finally {
+  loading.stop();
+}
