@@ -35,5 +35,18 @@ postForm(
     loading.stop();
     toast(error.message);
     console.error(error);
+  },
+  (form: FormData) => {
+    const username = (form.get('username') as string) || '';
+    const password = (form.get('password') as string) || '';
+
+    // Validate inputs locally before sending network request
+    if (!username.trim()) {
+      return 'Please enter a username.';
+    }
+    if (!password) {
+      return 'Please enter a password.';
+    }
+    return undefined;
   }
 );

@@ -38,6 +38,13 @@ postForm(
   (error: Error) => {
     console.log(error);
     toast(error.message);
+  },
+  (form: FormData) => {
+    const username = (form.get('username') as string) || '';
+    if (!username.trim()) {
+      return 'Please enter a username.';
+    }
+    return undefined;
   }
 );
 
