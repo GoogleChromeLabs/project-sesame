@@ -16,21 +16,32 @@
 
 ## Integrating passkeys in cross-origin iframes
 
-To allow an embedded third-party identity provider (IdP) or authentication widget to authenticate users with passkeys, you can delegate WebAuthn capabilities to a cross-origin `<iframe>` using the [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Permissions_Policy) specification.
+To let an embedded third-party identity provider (IdP) or authentication widget
+sign users in with passkeys, you can delegate WebAuthn capabilities to a
+cross-origin `<iframe>` using the
+[Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Permissions_Policy)
+specification.
 
-By default, the WebAuthn API blocks cross-origin iframes from invoking credential operations to prevent unauthorized access and phishing. Through explicit Permissions Policy delegation, a top-level Relying Party (RP) can safely grant a designated cross-origin frame permission to invoke `navigator.credentials.get()`.
+By default, the WebAuthn API blocks cross-origin iframes from calling credential
+operations, to prevent unauthorized access and phishing. With explicit
+Permissions Policy delegation, a top-level relying party (RP) can safely give a
+specific cross-origin frame permission to call `navigator.credentials.get()`.
 
 ### Implementation guide
 
-Delegating WebAuthn authentication to an embedded iframe requires two complementary configuration steps on the parent RP page:
+Delegating WebAuthn authentication to an embedded iframe requires two
+configuration steps on the parent RP page and one on the IdP:
 
-- **Set the HTTP Permissions-Policy header:** Configure your server to return the `publickey-credentials-get` policy directing trust to the iframe's origin:
+- **Set the HTTP Permissions-Policy header:** Configure your server to return a
+  `Permissions-Policy` header that grants `publickey-credentials-get` to the
+  iframe's origin:
 
   ```http
   Permissions-Policy: publickey-credentials-get=(self "https://idp.example")
   ```
 
-- **Add the `allow` attribute on the `<iframe>` element:** Explicitly grant the permission on the embed element:
+- **Add the `allow` attribute to the `<iframe>` element:** Explicitly grant the
+  permission on the iframe itself:
 
   ```html
   <iframe
@@ -40,7 +51,9 @@ Delegating WebAuthn authentication to an embedded iframe requires two complement
   </iframe>
   ```
 
-- **Frame access control on the IdP:** The IdP must configure its `Content-Security-Policy: frame-ancestors` header to allow framing only from trusted RP origins:
+- **Restrict framing on the IdP:** The IdP must set a
+  `Content-Security-Policy: frame-ancestors` header that allows framing only
+  from trusted RP origins:
 
   ```http
   Content-Security-Policy: frame-ancestors 'self' https://rp.example;
@@ -48,17 +61,33 @@ Delegating WebAuthn authentication to an embedded iframe requires two complement
 
 ### Best practices checklist
 
-When implementing WebAuthn within cross-origin iframes, follow these security practices:
+When you use WebAuthn in cross-origin iframes, follow these security practices:
 
-- **Authentication only (no credential creation):** The `publickey-credentials-get` policy only permits passkey assertion (`navigator.credentials.get()`). Browsers do not permit credential registration (`navigator.credentials.create()`) in cross-origin iframes to protect credential ownership.
-- **Strict origin allowlisting:** Never use a wildcard (`*`) in `Permissions-Policy` or iframe `allow` attributes for WebAuthn. Explicitly name the exact trusted IdP origin.
-- **Secure token communication:** After the user verifies their passkey within the iframe, use `window.parent.postMessage()` targeting the exact RP origin (`targetOrigin`) rather than `'*'` to send the resulting token.
-- **Nonce and origin validation:** Include a cryptographically random `nonce` and the expected RP origin in the iframe request parameters to prevent replay attacks and token interception.
-- **CSP frame-ancestors enforcement:** The IdP must restrict framing using `Content-Security-Policy: frame-ancestors` to prevent unauthorized third parties from embedding the authentication form in malicious clickjacking attacks.
+- **Allow authentication:** The
+  `publickey-credentials-get` policy allows passkey sign-in
+  (`navigator.credentials.get()`).
+- **Strict origin allowlisting:** Never use a wildcard (`*`) in the
+  `Permissions-Policy` header or the iframe `allow` attribute for WebAuthn.
+  Always name the exact trusted IdP origin.
+- **Secure token communication:** After the user verifies with their passkey in
+  the iframe, send the resulting token with `window.parent.postMessage()`. Set
+  `targetOrigin` to the exact RP origin, never `'*'`.
+- **Nonce and origin validation:** Include a cryptographically random `nonce`
+  and the expected RP origin in the iframe URL parameters to prevent replay
+  attacks and token interception.
+- **CSP frame-ancestors enforcement:** The IdP must restrict framing with
+  `Content-Security-Policy: frame-ancestors`, so unauthorized third parties
+  can't embed the sign-in form for clickjacking attacks.
 
 ### Developer resources
 
-- **Guide:** [Passkeys within iframes](https://web.dev/articles/webauthn-within-iframe) (web.dev)
-- **Specification:** [WebAuthn in cross-origin iframes](https://www.w3.org/TR/webauthn-3/#sctn-iframe-guidance) (W3C)
-- **Guide:** [Permissions Policy: publickey-credentials-get](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/publickey-credentials-get) (MDN)
-- **Guide:** [Content Security Policy: frame-ancestors](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors) (MDN)
+- **Guide:** [Passkeys within
+  iframes](https://web.dev/articles/webauthn-within-iframe) (web.dev)
+- **Specification:** [WebAuthn in cross-origin
+  iframes](https://www.w3.org/TR/webauthn-3/#sctn-iframe-guidance) (W3C)
+- **Guide:** [Permissions Policy:
+  publickey-credentials-get](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/publickey-credentials-get)
+  (MDN)
+- **Guide:** [Content Security Policy:
+  frame-ancestors](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors)
+  (MDN)
