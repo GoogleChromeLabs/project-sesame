@@ -35,5 +35,25 @@ postForm(
     loading.stop();
     toast(error.message);
     console.error(error);
+  },
+  (form: FormData) => {
+    const username = (form.get('username') as string) || '';
+    const password1 = (form.get('password1') as string) || '';
+    const password2 = (form.get('password2') as string) || '';
+
+    // Validate essential inputs before initiating network request
+    if (!username.trim()) {
+      return 'Please enter a username.';
+    }
+    if (!password1) {
+      return 'Please enter a password.';
+    }
+    if (password1.length > 128) {
+      return 'Password must be 128 characters or fewer.';
+    }
+    if (password1 !== password2) {
+      return 'Passwords do not match.';
+    }
+    return undefined;
   }
 );

@@ -190,4 +190,31 @@ describe('postForm', () => {
     expect(mockStore).not.toHaveBeenCalled();
     expect(callback).toHaveBeenCalledWith({status: 'ok'});
   });
+
+  it('calls errorCallback and prevents submission when local validator returns an error string', async () => {
+    const {postForm} = await import('./index.js');
+
+    const callback = vi.fn();
+    const errorCallback = vi.fn();
+    const validate = vi.fn().mockReturnValue('Passwords do not match.');
+
+    postForm(callback, errorCallback, validate);
+
+    const submitHandler = mockFormElement.addEventListener.mock.calls[0][1];
+
+    await submitHandler({
+      preventDefault: vi.fn(),
+      target: {
+        action: '/auth/new-username-password',
+        entries: {username: 'alice', password1: 'p1', password2: 'p2'},
+      },
+    });
+
+    expect(validate).toHaveBeenCalled();
+    expect(errorCallback).toHaveBeenCalledWith(
+      new Error('Passwords do not match.')
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(callback).not.toHaveBeenCalled();
+  });
 });
