@@ -348,3 +348,39 @@ describe.skipIf(!isThrowawayEmulator)('Account eviction', () => {
     assert.ok(await exists(SESSIONS_COLLECTION, signingInSession));
   });
 });
+
+describe('isValidPassword', () => {
+  it('accepts passwords with special characters, spaces, and Unicode', () => {
+    assert.strictEqual(Users.isValidPassword('ValidPass123!'), true);
+    assert.strictEqual(
+      Users.isValidPassword('correct horse battery staple'),
+      true
+    );
+    assert.strictEqual(
+      Users.isValidPassword('P@$$w0rd!#%&*()_-+=~`[]{}|:;"<>,.?/'),
+      true
+    );
+    assert.strictEqual(Users.isValidPassword('sesameパスワード🔑'), true);
+  });
+
+  it('enforces length boundaries after NFC normalization', () => {
+    assert.strictEqual(Users.isValidPassword(''), false);
+    assert.strictEqual(Users.isValidPassword('a'), true);
+    assert.strictEqual(Users.isValidPassword('a'.repeat(128)), true);
+    // 127 ASCII chars + decomposed 'e\u0301' (2 code units -> 1 NFC char 'é') = 128 NFC chars
+    assert.strictEqual(
+      Users.isValidPassword('a'.repeat(127) + 'e\u0301'),
+      true
+    );
+    assert.strictEqual(Users.isValidPassword('a'.repeat(129)), false);
+    assert.strictEqual(Users.isValidPassword('a'.repeat(1024)), false);
+    assert.strictEqual(Users.isValidPassword(null), false);
+    assert.strictEqual(Users.isValidPassword(undefined), false);
+  });
+
+  it('normalizes canonically equivalent Unicode sequences to NFC and guards non-strings', () => {
+    assert.strictEqual(Users.normalizePassword('cafe\u0301'), 'caf\u00e9');
+    assert.strictEqual(Users.normalizePassword(undefined), '');
+    assert.strictEqual(Users.normalizePassword(null), '');
+  });
+});
