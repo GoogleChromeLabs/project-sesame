@@ -46,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
   evpForm.addEventListener('submit', async event => {
     event.preventDefault();
 
+    if (evpForm.reportValidity && !evpForm.reportValidity()) {
+      return;
+    }
+
     const email = emailInput.value.trim();
     const evt = tokenInput.value.trim();
 
@@ -105,6 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle OTP fallback submission
   otpForm.addEventListener('submit', event => {
     event.preventDefault();
+
+    if (otpForm.reportValidity && !otpForm.reportValidity()) {
+      return;
+    }
+
     const email = emailInput.value.trim();
     const otp = otpInput.value.trim();
 
@@ -118,7 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info('OTP verified successfully!');
 
     otpFallbackContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
+    verifiedEmailText.innerText = email;
+    successContainer.classList.remove('hidden');
     toast(`Email verified via OTP: ${email}`);
   });
 
