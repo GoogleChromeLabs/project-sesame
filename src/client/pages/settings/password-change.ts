@@ -26,10 +26,26 @@ import {
 postForm(
   async () => {
     $('#form').style = 'display:none';
-    toast('You password has been changed. Redirecting to the home page.');
+    toast('Your password has been changed. Redirecting to the home page.');
     await redirect('/home', 3000);
   },
   (error: Error) => {
     toast(error.message);
+  },
+  (form: FormData) => {
+    const p1 = (form.get('new-password1') as string) || '';
+    const p2 = (form.get('new-password2') as string) || '';
+
+    // Validate inputs locally before submitting
+    if (!p1) {
+      return 'Please enter a new password.';
+    }
+    if (p1.length > 128) {
+      return 'Password must be 128 characters or fewer.';
+    }
+    if (p1 !== p2) {
+      return 'New passwords do not match.';
+    }
+    return undefined;
   }
 );
