@@ -136,6 +136,17 @@ describe('SessionService', () => {
     });
   });
 
+  describe('Entrance Path', () => {
+    it('should default to /passkey-form-autofill when no entrance is set', () => {
+      assert.strictEqual(service.getEntrancePath(), '/passkey-form-autofill');
+    });
+
+    it('should return recorded entrance path when set', () => {
+      service.setEntrancePath('/signin-form');
+      assert.strictEqual(service.getEntrancePath(), '/signin-form');
+    });
+  });
+
   describe('Status', () => {
     it('should return SignedOut if no user or pending state', () => {
       assert.strictEqual(service.getSignInStatus(), UserSignInStatus.SignedOut);
