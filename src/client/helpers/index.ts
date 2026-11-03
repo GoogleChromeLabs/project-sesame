@@ -268,6 +268,13 @@ export class SesameDialog {
       });
     }
 
+    const footerCloseBtn = $('#dialog-footer-close-btn');
+    if (footerCloseBtn) {
+      footerCloseBtn.addEventListener('click', () => {
+        this.close();
+      });
+    }
+
     // Toggle help button event listener
     const toggleBtn = $('#dialog-toggle-help-btn');
     if (toggleBtn) {
@@ -303,6 +310,7 @@ export class SesameDialog {
       if (toggleBtn) {
         toggleBtn.icon = 'integration_instructions--outlined';
         toggleBtn.title = 'Switch to development help';
+        toggleBtn.innerText = 'How do I integrate?';
       }
       if (!usageHtml && usageContent) {
         usageHtml = await marked.parse(usageContent);
@@ -313,6 +321,7 @@ export class SesameDialog {
       if (toggleBtn) {
         toggleBtn.icon = 'help_center--outlined';
         toggleBtn.title = 'Switch to usage help';
+        toggleBtn.innerText = "What's this page?";
       }
       if (!developHtml && developContent) {
         developHtml = await marked.parse(developContent);
