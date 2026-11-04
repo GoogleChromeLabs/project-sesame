@@ -119,6 +119,51 @@ describe('FedCM Middleware JWT timestamps', () => {
     );
   });
 
+  it('POST /fedcm/idtokens falls back to top-level req.body.nonce when params is omitted', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/fedcm/idtokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Sec-Fetch-Dest': 'webidentity',
+        Origin: testRp.origin,
+      },
+      body: JSON.stringify({
+        client_id: testRp.client_id,
+        account_id: mockUser.id,
+        consent_acquired: 'false',
+        disclosure_text_shown: 'false',
+        nonce: 'fallback-nonce-789',
+      }),
+    });
+
+    assert.strictEqual(res.status, 200);
+    const {token} = (await res.json()) as {token: string};
+    const payload = jwt.verify(token, testRp.secret) as JwtPayload;
+    assert.strictEqual(payload.nonce, 'fallback-nonce-789');
+  });
+
+  it('POST /fedcm/idtokens returns 400 when params is invalid JSON and no fallback nonce is provided', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/fedcm/idtokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Sec-Fetch-Dest': 'webidentity',
+        Origin: testRp.origin,
+      },
+      body: JSON.stringify({
+        client_id: testRp.client_id,
+        account_id: mockUser.id,
+        consent_acquired: 'false',
+        disclosure_text_shown: 'false',
+        params: '{not-valid-json',
+      }),
+    });
+
+    assert.strictEqual(res.status, 400);
+    const body = (await res.json()) as {error: string};
+    assert.strictEqual(body.error, 'Invalid params');
+  });
+
   it('POST /fedcm/createToken sets iat and exp in Unix epoch seconds', async () => {
     const beforeSec = Math.floor(Date.now() / 1000);
     const res = await fetch(`http://127.0.0.1:${port}/fedcm/createToken`, {

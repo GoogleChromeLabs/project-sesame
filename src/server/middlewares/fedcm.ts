@@ -278,10 +278,20 @@ router.post(
       logger.info('The user is signing in to the RP.');
     }
 
-    try {
-      const _params = JSON.parse(params);
-      const {nonce} = _params;
+    let nonce: string | undefined = req.body.nonce;
+    if (params) {
+      try {
+        const parsed = typeof params === 'string' ? JSON.parse(params) : params;
+        nonce = parsed?.nonce ?? nonce;
+      } catch {
+        if (!nonce) {
+          res.status(400).json({error: 'Invalid params'});
+          return;
+        }
+      }
+    }
 
+    try {
       // if (user.status === '') {
       const token = jwt.sign(
         {
