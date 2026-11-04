@@ -371,7 +371,10 @@ describe('WebAuthn Middlewares', () => {
       const body = await res.json();
       assert.strictEqual(res.status, 200);
       assert.strictEqual(body.credentials.length, 1);
-      assert.ok(body.credentials[0].providerIcon);
+      const providerIcon: string = body.credentials[0].providerIcon;
+      assert.ok(providerIcon.startsWith('data:image/svg+xml;base64,'));
+      const base64Payload = providerIcon.split(',')[1];
+      assert.strictEqual(base64Payload.length % 4, 0);
 
       await PublicKeyCredentials.remove(credId);
     });
