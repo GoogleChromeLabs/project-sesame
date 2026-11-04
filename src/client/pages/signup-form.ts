@@ -38,8 +38,12 @@ postForm(
   },
   (form: FormData) => {
     const username = (form.get('username') as string) || '';
-    const password1 = (form.get('password1') as string) || '';
-    const password2 = (form.get('password2') as string) || '';
+    const password1 = ((form.get('password1') as string) || '').normalize(
+      'NFC'
+    );
+    const password2 = ((form.get('password2') as string) || '').normalize(
+      'NFC'
+    );
 
     // Validate essential inputs before initiating network request
     if (!username.trim()) {

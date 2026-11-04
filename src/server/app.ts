@@ -182,6 +182,7 @@ app.use(
     res.setHeader('Accept-CH', 'Sec-CH-Viewport-Width');
 
     res.locals.signin_status = getSignInStatus(req, res);
+    res.locals.entrance = new SessionService(req.session).getEntrancePath();
 
     // Use the path to identify the JavaScript file. Append `index` for paths that end with a `/`.
     res.locals.pagename = /\/$/.test(req.path) ? `${req.path}index` : req.path;

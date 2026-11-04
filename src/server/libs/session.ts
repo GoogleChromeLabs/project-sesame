@@ -438,6 +438,7 @@ export function pageAclCheck(pageType: PageType): RequestHandlerParams {
       }
     }
     // 3. Authorized: Allow the request to proceed to the route handler.
+    res.locals.entrance = sessionService.getEntrancePath();
     return next();
   };
 }

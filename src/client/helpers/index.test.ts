@@ -217,4 +217,56 @@ describe('postForm', () => {
     expect(mockFetch).not.toHaveBeenCalled();
     expect(callback).not.toHaveBeenCalled();
   });
+
+  it('navigates back to dataset.entrance preserving redirect param when #back is clicked', async () => {
+    const mockBackButton = {
+      addEventListener: vi.fn(),
+    };
+    let domContentLoadedHandler: (() => Promise<void>) | undefined;
+    const mockLocation = {
+      href: 'https://rp.localhost/password?r=%2Fsettings%2Fpasskeys',
+      origin: 'https://rp.localhost',
+    };
+
+    vi.stubGlobal('location', mockLocation);
+    vi.stubGlobal('window', {
+      PasswordCredential: class {},
+      matchMedia: vi.fn(() => ({matches: false, addEventListener: vi.fn()})),
+    });
+    vi.stubGlobal('document', {
+      documentElement: {
+        dataset: {entrance: '/fedcm-form-autofill'},
+      },
+      querySelector: vi.fn((selector: string) => {
+        if (selector === '#back') {
+          return mockBackButton;
+        }
+        if (selector === '#dialog') {
+          return new HTMLDialogElement();
+        }
+        return null;
+      }),
+      querySelectorAll: vi.fn(() => []),
+      addEventListener: vi.fn((event: string, cb: () => Promise<void>) => {
+        if (event === 'DOMContentLoaded') {
+          domContentLoadedHandler = cb;
+        }
+      }),
+    });
+
+    await import('./index.js');
+    expect(domContentLoadedHandler).toBeDefined();
+    await domContentLoadedHandler!();
+
+    expect(mockBackButton.addEventListener).toHaveBeenCalledWith(
+      'click',
+      expect.any(Function)
+    );
+    const clickHandler = mockBackButton.addEventListener.mock.calls[0][1];
+    await clickHandler({preventDefault: vi.fn()});
+
+    expect(mockLocation.href).toBe(
+      'https://rp.localhost/fedcm-form-autofill?r=%2Fsettings%2Fpasskeys'
+    );
+  });
 });
