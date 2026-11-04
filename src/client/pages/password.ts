@@ -17,7 +17,6 @@
 
 import '~project-sesame/client/layout';
 import {
-  $,
   redirect,
   postForm,
   toast,
@@ -29,13 +28,6 @@ import {
 } from '~project-sesame/client/helpers/publickey';
 
 const r = setRedirect('#passkey-signin');
-
-$('#back')?.addEventListener('click', () => {
-  const target = r
-    ? `/passkey-form-autofill?r=${encodeURIComponent(r)}`
-    : '/passkey-form-autofill';
-  location.href = target;
-});
 
 postForm(
   async () => {

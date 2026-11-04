@@ -33,8 +33,8 @@ postForm(
     toast(error.message);
   },
   (form: FormData) => {
-    const p1 = (form.get('new-password1') as string) || '';
-    const p2 = (form.get('new-password2') as string) || '';
+    const p1 = ((form.get('new-password1') as string) || '').normalize('NFC');
+    const p2 = ((form.get('new-password2') as string) || '').normalize('NFC');
 
     // Validate inputs locally before submitting
     if (!p1) {
