@@ -90,7 +90,7 @@
         Show help on page load
       </mdui-checkbox>
     </mdui-bottom-app-bar>
-    <dialog id="dialog" closedby="any" aria-labelledby="dialog-headline">
+    <dialog id="dialog" closedby="any" aria-labelledby="dialog-headline" autofocus>
       <div class="dialog-container">
         <div class="dialog-header">
           <div class="dialog-title-container">
@@ -102,13 +102,15 @@
           </div>
         </div>
         <div class="dialog-body" id="dialog-content"></div>
-        {{#if usage_help}}
-          {{#if develop_help}}
-          <div class="dialog-footer">
-            <mdui-button-icon id="dialog-toggle-help-btn"></mdui-button-icon>
-          </div>
+        <div class="dialog-footer">
+          {{#if usage_help}}
+            {{#if develop_help}}
+            <mdui-button id="dialog-toggle-help-btn" variant="outlined"></mdui-button>
+            {{/if}}
           {{/if}}
-        {{/if}}
+          <div style="flex-grow: 1"></div>
+          <mdui-button id="dialog-footer-close-btn" variant="tonal">Got it</mdui-button>
+        </div>
       </div>
     </dialog>
     <mdui-snackbar id="snackbar"></mdui-snackbar>

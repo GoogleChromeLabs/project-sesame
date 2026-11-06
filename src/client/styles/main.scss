@@ -403,11 +403,13 @@ div[slot='appContent'] {
 }
 
 #dialog {
-  margin: auto auto 0 auto;
-  padding: 0;
+  margin: auto auto 20px auto;
+  padding: 0 16px;
   border: none;
+  outline: none;
   background: transparent;
-  max-width: 600px;
+  max-width: 632px;
+  max-height: calc(100dvh - 36px);
   width: 100%;
   overflow: visible;
   z-index: 1100;
@@ -435,9 +437,10 @@ div[slot='appContent'] {
   .dialog-container {
     background-color: rgb(var(--mdui-color-surface));
     color: rgb(var(--mdui-color-on-surface));
-    border-radius: 28px 28px 0 0;
-    padding: 24px 24px 12px 24px;
-    box-shadow: 0px -4px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 28px;
+    padding: 24px 24px 16px 24px;
+    max-height: calc(100dvh - 36px);
+    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.18);
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -494,8 +497,11 @@ div[slot='appContent'] {
     font-size: 15px;
     line-height: 1.5;
     font-weight: 400;
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: 60vh;
     overflow-y: auto;
+    outline: none;
 
     code {
       font-family:
