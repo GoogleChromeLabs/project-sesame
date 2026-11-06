@@ -32,8 +32,9 @@ node_modules/
 
 .worktree/
 .data/
+coverage/
 firebase-export-*
-.env.template
-CONTRIBUTING.md
+.env*
+service-account.json
 *.log
 LICENSE

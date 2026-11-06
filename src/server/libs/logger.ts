@@ -55,10 +55,7 @@ export class Logger {
   }
 
   private log(severity: LogSeverity, message: string, data?: any) {
-    if (
-      process.env.NODE_ENV === 'production' &&
-      severity === LogSeverity.DEBUG
-    ) {
+    if (!config.debug && severity === LogSeverity.DEBUG) {
       return;
     }
 
@@ -98,7 +95,7 @@ export class Logger {
       console.log(`${entry.severity}: [${entry.path}]`);
       console.log(`${entry.message}`, data);
     } else {
-      console.log(JSON.stringify(entry, this.replacer, '  '));
+      console.log(JSON.stringify(entry, this.replacer));
     }
   }
 
