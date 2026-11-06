@@ -108,8 +108,10 @@ router.post(
       for (const credential of credentials) {
         const aaguid =
           credential.aaguid ?? '00000000-0000-0000-0000-000000000000';
-        const entry = (aaguids as AAGUIDs)[aaguid];
-        credential.providerIcon = entry.icon_light;
+        const entry =
+          (aaguids as AAGUIDs)[aaguid] ||
+          (aaguids as AAGUIDs)['00000000-0000-0000-0000-000000000000'];
+        credential.providerIcon = entry?.icon_light || '/images/laptop.svg';
       }
     }
     res.json({rpId, userId, credentials});

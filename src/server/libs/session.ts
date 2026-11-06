@@ -89,8 +89,10 @@ export class SessionService {
    * Deletes the challenge value from the session.
    */
   deleteChallenge(): void {
-    logger.debug('delete challenge:', this.session.challenge);
-    delete this.session.challenge;
+    logger.debug('delete challenge:', this.session?.challenge);
+    if (this.session) {
+      delete this.session.challenge;
+    }
   }
 
   /**

@@ -31,7 +31,7 @@ On this page, you can experience a complete passkey management dashboard. Provid
   supports Signal API.
 - **View rich metadata:** Inspect detailed technical and contextual information about each registered credential, including:
   - **Credential name:** Passkey provider name (e.g., Google Password Manager,
-    iCloud Keychain, Windows Hello) or a custome label you assigned.
+    iCloud Keychain, Windows Hello) or a custom label you assigned.
   - **Registered date:** When the passkey was first registered.
   - **Last used date:** The timestamp of the most recent successful authentication.
   - **Sync state:** Whether the passkey is backed up and synchronized across the user's devices (a synced/multi-device passkey) or locked to a single physical device (a hardware-bound/single-device passkey).

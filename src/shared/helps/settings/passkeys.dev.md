@@ -39,7 +39,7 @@ To build an optimal, secure, and modern passkey management experience, implement
   - **Credential name:** Assign a passkey provider name (e.g., Google Password
     Manager, iCloud Keychain, Windows Hello) mapped with the
     [AAGUID](https://web.dev/articles/webauthn-aaguid) at the registration or
-    allow the user to edit it to a custome name.
+    allow the user to edit it to a custom name.
   - **Passkey provider icon:** Use a passkey provider icon mapped with the
     AAGUID.
   - **Sync state indicator:** Use the `credentialBackedUp` flag stored on the
