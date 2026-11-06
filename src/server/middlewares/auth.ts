@@ -210,8 +210,14 @@ router.post(
     if (!Users.isValidUsername(username)) {
       res.status(400).json({error: 'Invalid username'});
       return;
-    } else if (!Users.isValidPassword(password1) || password1 !== password2) {
-      res.status(400).json({error: 'Invalid password'});
+    } else if (!Users.isValidPassword(password1)) {
+      res.status(400).json({error: 'Invalid password.'});
+      return;
+    } else if (
+      !Users.isValidPassword(password2) ||
+      Users.normalizePassword(password1) !== Users.normalizePassword(password2)
+    ) {
+      res.status(400).json({error: 'Passwords do not match.'});
       return;
     }
 
@@ -226,7 +232,7 @@ router.post(
     const user: SignUpUser = {
       username,
       displayName,
-      password: password1,
+      password: Users.normalizePassword(password1),
     };
 
     try {
@@ -293,7 +299,7 @@ router.post(
         res.status(401).json({error: 'Failed to sign up.'});
         return;
       }
-      user.password = password;
+      user.password = Users.normalizePassword(password);
 
       const newUser = await Users.create(username, user);
       if (newUser) {
@@ -397,20 +403,22 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     const {username, password} = req.body;
 
-    // TODO: Verify the current password
-    // TODO: Validate the password format
-    // TODO: Compare two new passwords
-    // TODO: Update the password in the database
+    if (!Users.isValidUsername(username)) {
+      res.status(400).json({error: 'Invalid username'});
+      return;
+    }
+    if (!Users.isValidPassword(password)) {
+      res.status(401).json({error: 'Invalid password.'});
+      return;
+    }
 
-    if (username) {
-      const user = await Users.validatePassword(username, password);
-      if (user) {
-        // Set the user as a signed in status
-        setSignedIn(user, req, res);
+    const user = await Users.validatePassword(username, password);
+    if (user) {
+      // Set the user as a signed in status
+      setSignedIn(user, req, res);
 
-        res.json(user);
-        return;
-      }
+      res.json(user);
+      return;
     }
 
     res.status(401).json({error: 'Failed to sign in.'});
@@ -454,13 +462,15 @@ router.post(
     const newPassword1 = req.body['new-password1'];
     const newPassword2 = req.body['new-password2'];
 
-    if (newPassword1 === '') {
-      res
-        .status(400)
-        .json({error: 'Enter at least * characters for the password.'});
+    if (!Users.isValidPassword(newPassword1)) {
+      res.status(400).json({error: 'Invalid password.'});
       return;
     }
-    if (newPassword1 !== newPassword2) {
+    if (
+      !Users.isValidPassword(newPassword2) ||
+      Users.normalizePassword(newPassword1) !==
+        Users.normalizePassword(newPassword2)
+    ) {
       res.status(400).json({error: 'New passwords do not match.'});
       return;
     }
