@@ -24,5 +24,15 @@ postForm(
   },
   (error: Error) => {
     toast(error.message);
+  },
+  (form: FormData) => {
+    const password = ((form.get('password') as string) || '').normalize('NFC');
+    if (!password) {
+      return 'Please enter a password.';
+    }
+    if (password.length > 128) {
+      return 'Password must be 128 characters or fewer.';
+    }
+    return undefined;
   }
 );

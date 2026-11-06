@@ -55,5 +55,12 @@ postForm(
   },
   (error: Error) => {
     toast(error.message);
+  },
+  (form: FormData) => {
+    const password = (form.get('password') as string) || '';
+    if (!password) {
+      return 'Please enter a password.';
+    }
+    return undefined;
   }
 );

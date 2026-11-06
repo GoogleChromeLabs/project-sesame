@@ -22,6 +22,7 @@ import {
   redirect,
   postForm,
   toast,
+  setRedirect,
 } from '~project-sesame/client/helpers/index';
 import {
   capabilities,
@@ -30,12 +31,21 @@ import {
 import {SesameIdP} from '~project-sesame/client/helpers/identity';
 import {getIdpUrls} from '~project-sesame/client/helpers/federated';
 
+const r = setRedirect();
+
 postForm(
   async () => {
-    await redirect('/password');
+    await redirect(r ? `/password?r=${encodeURIComponent(r)}` : '/password');
   },
   (error: Error) => {
     toast(error.message);
+  },
+  (form: FormData) => {
+    const username = (form.get('username') as string) || '';
+    if (!username.trim()) {
+      return 'Please enter a username.';
+    }
+    return undefined;
   }
 );
 
@@ -49,7 +59,7 @@ async function passkey() {
         // When the user is signed in, redirect to the home page.
         $('#username').value = user.username;
         loading.start();
-        await redirect('/home');
+        await redirect(r || '/home');
       } else {
         throw new Error('User not found.');
       }
@@ -76,7 +86,7 @@ async function fedcm() {
         // @ts-ignore
         mediation: 'conditional',
       });
-      await redirect('/home');
+      await redirect(r || '/home');
     } catch (error: any) {
       loading.stop();
       console.error(error);
