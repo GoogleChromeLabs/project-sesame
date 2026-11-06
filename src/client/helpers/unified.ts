@@ -59,6 +59,7 @@ export async function authenticate(params?: {
       // },
       // temporary experiment for unified auth
       publicKey: options,
+      signal: controller.signal,
       ...(params?.mediation && {mediation: params.mediation}),
       ...(params?.ui_mode && {uiMode: params.ui_mode}),
     });
