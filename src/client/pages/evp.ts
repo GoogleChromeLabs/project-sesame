@@ -39,12 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const successContainer = $('#success-container') as HTMLDivElement;
-  const verifiedEmailText = $('#verified-email-text') as HTMLSpanElement;
+  const verifiedEmailText = $('#verified-email-text') as HTMLElement;
+  const verifiedMethodEvp = $('#verified-method-evp') as HTMLSpanElement;
+  const verifiedMethodOtp = $('#verified-method-otp') as HTMLSpanElement;
   const backBtn = $('#back-btn') as HTMLButtonElement;
+
+  /**
+   * Displays the verification success screen with copy matching the verification method used.
+   *
+   * @param verifiedEmail - The email address that was verified.
+   * @param method - Whether verification completed via `'evp'` or `'otp'` fallback.
+   */
+  function showSuccessScreen(
+    verifiedEmail: string,
+    method: 'evp' | 'otp'
+  ): void {
+    verifiedEmailText.textContent = verifiedEmail;
+    verifiedMethodEvp.classList.toggle('hidden', method !== 'evp');
+    verifiedMethodOtp.classList.toggle('hidden', method !== 'otp');
+    successContainer.classList.remove('hidden');
+  }
 
   // Handle main EVP form submission
   evpForm.addEventListener('submit', async event => {
     event.preventDefault();
+
+    if (evpForm.reportValidity && !evpForm.reportValidity()) {
+      return;
+    }
 
     const email = emailInput.value.trim();
     const evt = tokenInput.value.trim();
@@ -58,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       emailFormContainer.classList.add('hidden');
       otpFallbackContainer.classList.remove('hidden');
-      fallbackEmailDisplay.innerText = email;
+      fallbackEmailDisplay.textContent = email;
       printFallbackTraceToConsole(email);
       return;
     }
@@ -82,8 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show success screen
         emailFormContainer.classList.add('hidden');
-        verifiedEmailText.innerText = result.verifiedEmail || email;
-        successContainer.classList.remove('hidden');
+        showSuccessScreen(result.verifiedEmail || email, 'evp');
       } else {
         console.error(`Verification failed: ${result.error}`);
         toast(result.error || 'Cryptographic verification failed.');
@@ -105,6 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle OTP fallback submission
   otpForm.addEventListener('submit', event => {
     event.preventDefault();
+
+    if (otpForm.reportValidity && !otpForm.reportValidity()) {
+      return;
+    }
+
     const email = emailInput.value.trim();
     const otp = otpInput.value.trim();
 
@@ -118,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info('OTP verified successfully!');
 
     otpFallbackContainer.classList.add('hidden');
-    emailFormContainer.classList.remove('hidden');
+    showSuccessScreen(email, 'otp');
     toast(`Email verified via OTP: ${email}`);
   });
 
