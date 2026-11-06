@@ -186,10 +186,11 @@ export class SessionService {
 
   /**
    * Recall from where the user has entered the website.
+   * Defaults to `/passkey-form-autofill` if no entrance has been recorded yet.
    * @returns The entrance path.
    */
   getEntrancePath(): string {
-    return this.session?.entrance || '/';
+    return this.session?.entrance || '/passkey-form-autofill';
   }
 
   /**
