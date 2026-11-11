@@ -67,7 +67,7 @@ describe('Logger', () => {
     });
   });
 
-  it('serializes Error instances into entry.error when config.debug is false', () => {
+  it('serializes Error instances passed as data into entry.error when config.debug is false', () => {
     config.debug = false;
     const err = new TypeError('Invalid token');
 
@@ -80,6 +80,22 @@ describe('Logger', () => {
     expect(parsed.error).toMatchObject({
       name: 'TypeError',
       message: 'Invalid token',
+    });
+  });
+
+  it('serializes Error instances passed as message into entry.message and entry.error', () => {
+    config.debug = false;
+    const err = new RangeError('Out of bounds');
+
+    logger.error(err);
+
+    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    const parsed = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+    expect(parsed.severity).toBe('ERROR');
+    expect(parsed.message).toBe('Out of bounds');
+    expect(parsed.error).toMatchObject({
+      name: 'RangeError',
+      message: 'Out of bounds',
     });
   });
 
@@ -98,14 +114,17 @@ describe('Logger', () => {
 
     logContextStorage.run({path: '/home'}, () => {
       logger.warn('Session expiring soon', 'in 5m');
+      logger.info('Page loaded');
     });
 
-    expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+    expect(consoleLogSpy).toHaveBeenCalledTimes(4);
     expect(consoleLogSpy).toHaveBeenNthCalledWith(1, 'WARNING: [/home]');
     expect(consoleLogSpy).toHaveBeenNthCalledWith(
       2,
       'Session expiring soon',
       'in 5m'
     );
+    expect(consoleLogSpy).toHaveBeenNthCalledWith(3, 'INFO: [/home]');
+    expect(consoleLogSpy).toHaveBeenNthCalledWith(4, 'Page loaded');
   });
 });

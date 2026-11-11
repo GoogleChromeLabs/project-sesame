@@ -54,14 +54,14 @@ export class Logger {
     return value;
   }
 
-  private log(severity: LogSeverity, message: string, data?: any) {
+  private log(severity: LogSeverity, message: string | Error, data?: any) {
     if (!config.debug && severity === LogSeverity.DEBUG) {
       return;
     }
 
     const entry: any = {
       severity,
-      message,
+      message: message instanceof Error ? message.message : message,
     };
 
     const context = logContextStorage.getStore();
@@ -71,6 +71,14 @@ export class Logger {
 
     if (entry.path === '/rsbuild-hmr') {
       return;
+    }
+
+    if (message instanceof Error) {
+      entry.error = {
+        message: message.message,
+        stack: message.stack,
+        name: message.name,
+      };
     }
 
     if (data) {
@@ -93,25 +101,29 @@ export class Logger {
 
     if (config.debug) {
       console.log(`${entry.severity}: [${entry.path}]`);
-      console.log(`${entry.message}`, data);
+      if (data === undefined) {
+        console.log(`${entry.message}`);
+      } else {
+        console.log(`${entry.message}`, data);
+      }
     } else {
       console.log(JSON.stringify(entry, this.replacer));
     }
   }
 
-  debug(message: string, data?: any) {
+  debug(message: string | Error, data?: any) {
     this.log(LogSeverity.DEBUG, message, data);
   }
 
-  info(message: string, data?: any) {
+  info(message: string | Error, data?: any) {
     this.log(LogSeverity.INFO, message, data);
   }
 
-  warn(message: string, data?: any) {
+  warn(message: string | Error, data?: any) {
     this.log(LogSeverity.WARNING, message, data);
   }
 
-  error(message: string, data?: any) {
+  error(message: string | Error, data?: any) {
     this.log(LogSeverity.ERROR, message, data);
   }
 }
