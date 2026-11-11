@@ -284,10 +284,8 @@ router.post(
         const parsed = typeof params === 'string' ? JSON.parse(params) : params;
         nonce = parsed?.nonce ?? nonce;
       } catch {
-        if (!nonce) {
-          res.status(400).json({error: 'Invalid params'});
-          return;
-        }
+        res.status(400).json({error: 'Invalid params'});
+        return;
       }
     }
 

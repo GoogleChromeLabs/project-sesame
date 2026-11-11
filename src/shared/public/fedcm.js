@@ -51,9 +51,7 @@ export class IdentityProvider {
             {
               configURL: this.configURL,
               clientId: this.clientId,
-              params: {
-                nonce,
-              },
+              nonce,
               loginHint,
             },
           ],

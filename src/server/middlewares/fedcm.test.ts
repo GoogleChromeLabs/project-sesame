@@ -142,7 +142,7 @@ describe('FedCM Middleware JWT timestamps', () => {
     assert.strictEqual(payload.nonce, 'fallback-nonce-789');
   });
 
-  it('POST /fedcm/idtokens returns 400 when params is invalid JSON and no fallback nonce is provided', async () => {
+  it('POST /fedcm/idtokens returns 400 when params is invalid JSON even if fallback nonce is provided', async () => {
     const res = await fetch(`http://127.0.0.1:${port}/fedcm/idtokens`, {
       method: 'POST',
       headers: {
@@ -156,6 +156,7 @@ describe('FedCM Middleware JWT timestamps', () => {
         consent_acquired: 'false',
         disclosure_text_shown: 'false',
         params: '{not-valid-json',
+        nonce: 'fallback-nonce-789',
       }),
     });
 
