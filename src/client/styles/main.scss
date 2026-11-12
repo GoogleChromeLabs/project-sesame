@@ -501,7 +501,10 @@ div[slot='appContent'] {
     min-height: 0;
     max-height: 60vh;
     overflow-y: auto;
-    outline: none;
+
+    &:focus:not(:focus-visible) {
+      outline: none;
+    }
 
     code {
       font-family:
@@ -530,8 +533,13 @@ div[slot='appContent'] {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    gap: 8px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     padding-top: 12px;
+
+    #dialog-footer-close-btn {
+      margin-left: auto;
+    }
   }
 
   /* 1. Visible (open) state */
