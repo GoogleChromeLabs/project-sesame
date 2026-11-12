@@ -14,7 +14,7 @@
  limitations under the License.
 -->
 
-## Passwordless sign-up with email verification
+## Sign-up with email verification and passkey
 
 On this page, you can experience a fully passwordless sign-up. You verify your
 email address in the browser with the **Email Verification Protocol (EVP)**,

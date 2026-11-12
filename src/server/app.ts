@@ -480,7 +480,7 @@ app.get(
     sessionService.setEntrancePath('/passkey-form-autofill');
     const nonce = sessionService.setChallenge();
     res.render('evp-passkey-signup.html', {
-      title: 'Passwordless sign-up',
+      title: 'Sign-up with email verification and passkey',
       nonce,
     });
   }
