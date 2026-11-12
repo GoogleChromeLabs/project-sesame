@@ -196,7 +196,7 @@ router.post(
 /**
  * Starts the one-time code fallback when the browser didn't supply an Email
  * Verification Token. The claimed address is kept in the session as pending
- * so that the `/one-time-code` page and `POST /email/otp` can verify it
+ * so that the `/email-code` page and `POST /email/otp` can verify it
  * without trusting the client to send it again.
  *
  * SIMULATED: this demo doesn't send any email. A real implementation must

@@ -322,7 +322,7 @@ app.get(
 );
 
 app.get(
-  '/one-time-code',
+  '/email-code',
   pageAclCheck(PageType.NoAuth),
   (req: Request, res: Response): void => {
     // Signed-in users have no need to verify an email address to sign up.
@@ -335,7 +335,7 @@ app.get(
     if (!email) {
       return res.redirect(307, '/evp-passkey-signup');
     }
-    res.render('one-time-code.html', {
+    res.render('email-code.html', {
       title: 'Enter the code',
       email,
     });

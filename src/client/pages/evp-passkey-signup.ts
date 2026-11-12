@@ -81,10 +81,10 @@ function initPage(): void {
         console.warn(
           'EVP token NOT found in hidden input. Falling back to OTP flow.'
         );
-        // The server keeps the address as pending, and `/one-time-code`
+        // The server keeps the address as pending, and `/email-code`
         // verifies that address rather than one sent by the client.
         await post('/email/otp/request', {email});
-        await redirect('/one-time-code');
+        await redirect('/email-code');
         return;
       }
 
