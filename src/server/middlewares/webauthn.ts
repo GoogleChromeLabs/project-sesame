@@ -788,13 +788,17 @@ router.post(
           credential,
           requireUserVerification: false,
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (error instanceof PQCNotSupportedError) {
           throw error;
         }
-        logger.error(error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Authentication verification failed';
+        logger.error(error instanceof Error ? error : message);
         new SessionService(req.session).deleteChallenge();
-        res.status(401).json({error: error.message});
+        res.status(401).json({error: message});
         return;
       }
 
