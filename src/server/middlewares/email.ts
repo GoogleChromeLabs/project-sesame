@@ -16,7 +16,6 @@
  */
 
 import {Router, Request, Response} from 'express';
-import {Session} from 'express-session';
 import {SessionService, ApiType, apiAclCheck} from '../libs/session.ts';
 import {verifyEvpToken, VerifyEvpTokenResult} from '../libs/evp.ts';
 import {Users, generatePasskeyUserId} from '../libs/users.ts';
@@ -59,13 +58,13 @@ function isPlausibleEmail(email: string): boolean {
  * passkey has been registered successfully. That keeps the flow passwordless:
  * no account exists without a passkey.
  *
- * @param session - The Express session of the current request.
+ * @param sessionService - The session service for the current request.
  * @param email - The email address whose ownership has been verified.
  * @returns The normalized email address used as the username.
  * @throws Error if the address can't be used or is already registered.
  */
 async function startPasskeySignUp(
-  session: Session,
+  sessionService: SessionService,
   email: string
 ): Promise<string> {
   const username = email.trim().toLowerCase();
@@ -81,7 +80,7 @@ async function startPasskeySignUp(
       'An account with this email address already exists. Sign in instead.'
     );
   }
-  new SessionService(session).setSigningUp({
+  sessionService.setSigningUp({
     username,
     email: username,
     displayName: '',
@@ -178,7 +177,7 @@ router.post(
       // Email ownership is proven. Start the passwordless sign-up so the
       // client can move on to passkey creation.
       const verifiedEmail = await startPasskeySignUp(
-        req.session,
+        new SessionService(req.session),
         result.verifiedEmail
       );
       res.json({...result, verifiedEmail});
@@ -263,7 +262,7 @@ router.post(
     }
 
     try {
-      const verifiedEmail = await startPasskeySignUp(req.session, email);
+      const verifiedEmail = await startPasskeySignUp(sessionService, email);
       // The EVP nonce is no longer needed once the address is verified.
       sessionService.deleteChallenge();
       res.json({success: true, verifiedEmail});
