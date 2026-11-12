@@ -367,25 +367,60 @@ export class Loading {
 
 export const loading = new Loading();
 
-export function postForm(callback: Function, errorCallback: Function): void {
+/**
+ * Submits the form via Ajax, supporting optional client-side validation
+ * and Credential Management API PasswordCredential storage.
+ *
+ * @param callback Success callback.
+ * @param errorCallback Error callback receiving an Error instance.
+ * @param validate Optional client-side validator returning an error message string or false to stop submission.
+ */
+export function postForm(
+  callback: Function,
+  errorCallback: Function,
+  validate?: (
+    form: FormData,
+    formElement: HTMLFormElement
+  ) => string | boolean | void
+): void {
   const form = $('#form');
   // When the form is submitted, proceed to the password form.
   form.addEventListener('submit', async (s: SubmitEvent) => {
     s.preventDefault();
-    const form = new FormData(<HTMLFormElement>s.target);
+    const formElement = <HTMLFormElement>s.target;
+
+    // Trigger native browser constraint validation if available
+    if (formElement.reportValidity && !formElement.reportValidity()) {
+      return;
+    }
+
+    const form = new FormData(formElement);
+
+    // Run client-side local validation if provided
+    if (validate) {
+      const validationError = validate(form, formElement);
+      if (typeof validationError === 'string') {
+        errorCallback(new Error(validationError));
+        return;
+      }
+      if (validationError === false) {
+        return;
+      }
+    }
+
     const cred = {} as {[key: string]: FormDataEntryValue};
     form.forEach((v, k) => (cred[k] = v));
     loading.start();
 
     try {
-      const results = await post((<HTMLFormElement>s.target).action, cred);
+      const results = await post(formElement.action, cred);
 
       // If `PasswordCredential` is supported, store it to the password manager.
       // @ts-ignore
       if (window.PasswordCredential) {
         // @ts-ignore
         const id = form.get('username');
-        const password = form.get('password');
+        const password = form.get('password') || form.get('password1');
         // Save only if `id` and `password` combination is being submitted.
         if (id && password) {
           const cred = await navigator.credentials.create({
@@ -429,6 +464,16 @@ async function signOut(e: MouseEvent) {
   await redirect('/signout');
 }
 
+async function goBack(e: MouseEvent) {
+  e.preventDefault();
+
+  const entrance =
+    document.documentElement?.dataset?.entrance || '/passkey-form-autofill';
+  const r = setRedirect();
+  const target = r ? `${entrance}?r=${encodeURIComponent(r)}` : entrance;
+  await redirect(target);
+}
+
 function changeLayout(e: MediaQueryListEvent | MediaQueryList) {
   const drawer = $('mdui-navigation-drawer');
   const bar = $('mdui-top-app-bar');
@@ -459,6 +504,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Sign-out button. Listen when it's found.
   $('#signout')?.addEventListener('click', signOut);
+
+  // Back button. Listen when it's found.
+  $('#back')?.addEventListener('click', goBack);
 
   // View password toggle button. Listen when it's found.
   const toggles = document.querySelectorAll<ButtonIcon>('.password-toggle');
