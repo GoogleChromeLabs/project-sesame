@@ -1,0 +1,43 @@
+<!--
+ Copyright 2026 Google Inc. All rights reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<main class="content center">
+  <h2>Enter the code</h2>
+  <form id="otp-form" class="center">
+    <p class="instructions narrow">
+      Enter the 6-digit code sent to <strong id="pending-email" class="nowrap">{{email}}</strong>.
+      <strong>This demo doesn't send any email, so any 6 digits work.</strong>
+    </p>
+
+    <mdui-text-field
+      type="text"
+      id="otp"
+      name="otp"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      pattern="[0-9]{6}"
+      maxlength="6"
+      label="One-time code"
+      variant="outlined"
+      required
+      autofocus
+    >
+    </mdui-text-field>
+
+    <mdui-button type="submit" variant="filled" id="otp-submit-btn">Verify code</mdui-button>
+    <mdui-button href="/evp-passkey-signup" variant="text">Cancel</mdui-button>
+  </form>
+</main>
