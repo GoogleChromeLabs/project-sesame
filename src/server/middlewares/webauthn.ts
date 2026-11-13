@@ -24,8 +24,10 @@ import {
   Base64URLString,
   generateAuthenticationOptions,
   generateRegistrationOptions,
+  PQCNotSupportedError,
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
+  VerifiedAuthenticationResponse,
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
   WebAuthnCredential,
@@ -775,15 +777,30 @@ router.post(
       } as WebAuthnCredential;
 
       // Use SimpleWebAuthn's handy function to verify the authentication request.
-      const verification = await verifyAuthenticationResponse({
-        response,
-        expectedChallenge,
-        expectedOrigin,
-        expectedTopOrigin,
-        expectedRPID,
-        credential,
-        requireUserVerification: false,
-      });
+      let verification: VerifiedAuthenticationResponse;
+      try {
+        verification = await verifyAuthenticationResponse({
+          response,
+          expectedChallenge,
+          expectedOrigin,
+          expectedTopOrigin,
+          expectedRPID,
+          credential,
+          requireUserVerification: false,
+        });
+      } catch (error: unknown) {
+        if (error instanceof PQCNotSupportedError) {
+          throw error;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Authentication verification failed';
+        logger.error(error instanceof Error ? error : message);
+        new SessionService(req.session).deleteChallenge();
+        res.status(401).json({error: message});
+        return;
+      }
 
       const {verified, authenticationInfo} = verification;
 
