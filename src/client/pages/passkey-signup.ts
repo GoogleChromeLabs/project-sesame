@@ -38,17 +38,22 @@ postForm(
         .then(async () => {
           await redirect('/home');
         })
-        .catch((error: Error) => {
+        .catch((error: unknown) => {
+          // Stop the loading UI
+          loading.stop();
+          const err = error as
+            | {name?: string; message?: string; error?: string}
+            | null
+            | undefined;
           // 'InvalidStateError' indicates a passkey already exists on the device.
-          if (error.name === 'InvalidStateError') {
+          if (err?.name === 'InvalidStateError') {
             toast('A passkey already exists for this device.');
             // `NotAllowedError` indicates the user canceled the operation.
-          } else if (error.name === 'NotAllowedError') {
+          } else if (err?.name === 'NotAllowedError') {
             return;
-            // Show other errors in an toast.
+            // Show other errors in a toast.
           } else {
-            loading.stop();
-            toast(error.message);
+            toast(err?.message || err?.error || 'Failed to create a passkey.');
             console.error(error);
           }
         });
