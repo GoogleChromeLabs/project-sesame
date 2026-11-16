@@ -15,11 +15,14 @@
  * limitations under the License
  */
 
-import {test, describe, beforeAll, afterAll, beforeEach} from 'vitest';
+import {test, describe, beforeAll, afterAll, beforeEach, vi} from 'vitest';
 import assert from 'node:assert';
 import crypto from 'node:crypto';
 import express, {Request, Response, NextFunction} from 'express';
-import type {AuthenticationResponseJSON} from '@simplewebauthn/server';
+import {
+  SettingsService,
+  type AuthenticationResponseJSON,
+} from '@simplewebauthn/server';
 import {webauthn} from './webauthn.ts';
 import {config} from '~project-sesame/server/config.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
@@ -302,26 +305,27 @@ describe('WebAuthn Middlewares', () => {
       assert.strictEqual(body.username, username);
     });
 
-    test('rejects a cross-origin assertion from an unexpected embedder', async () => {
+    test('rejects a cross-origin assertion from an unexpected embedder with 401', async () => {
       const {status, body} = await signIn({
         crossOrigin: true,
         topOrigin: 'https://evil.example',
       });
-      assert.notStrictEqual(status, 200);
+      assert.strictEqual(status, 401);
       assert.match(body.error, /top origin of "https:\/\/evil\.example"/);
       assert.strictEqual(mockSession.user, undefined, 'Must not sign in');
       assert.strictEqual(mockSession.challenge, undefined, 'Must consume');
     });
 
-    test('rejects cross-origin assertions when no embedder is configured', async () => {
+    test('rejects cross-origin assertions when no embedder is configured with 401', async () => {
       config.csp.frame_ancestors = [];
       const {status, body} = await signIn({
         crossOrigin: true,
         topOrigin: embedder,
       });
-      assert.notStrictEqual(status, 200);
+      assert.strictEqual(status, 401);
       assert.match(body.error, /expectedTopOrigin/);
       assert.strictEqual(mockSession.user, undefined, 'Must not sign in');
+      assert.strictEqual(mockSession.challenge, undefined, 'Must consume');
     });
 
     test('accepts a cross-origin assertion without topOrigin (e.g. Safari)', async () => {
@@ -329,13 +333,80 @@ describe('WebAuthn Middlewares', () => {
       assert.strictEqual(status, 200, JSON.stringify(body));
     });
 
-    test('rejects topOrigin on a same-origin assertion', async () => {
+    test('rejects topOrigin on a same-origin assertion with 401', async () => {
       const {status, body} = await signIn({
         crossOrigin: false,
         topOrigin: embedder,
       });
-      assert.notStrictEqual(status, 200);
+      assert.strictEqual(status, 401);
       assert.match(body.error, /non-cross-origin/);
+      assert.strictEqual(mockSession.challenge, undefined, 'Must consume');
+    });
+
+    test('rejects a mismatched challenge with 401 and consumes session challenge', async () => {
+      const {status, body} = await signIn({
+        challenge: 'wrong-challenge-value',
+      });
+      assert.strictEqual(status, 401);
+      assert.match(body.error, /challenge/i);
+      assert.strictEqual(mockSession.user, undefined, 'Must not sign in');
+      assert.strictEqual(mockSession.challenge, undefined, 'Must consume');
+    });
+
+    test('returns 500 when verifyAuthenticationResponse throws PQCNotSupportedError', async () => {
+      const pqcCredId = crypto.randomBytes(16).toString('base64url');
+      const user = await Users.findById(userId);
+      // CBOR COSE_Key map(3): {1 (kty): 7 (AKP), 3 (alg): -48 (ML-DSA-44), -1 (pub): bstr(0)}
+      const mlDsaCosePublicKey = Buffer.from([
+        0xa3, 0x01, 0x07, 0x03, 0x38, 0x2f, 0x20, 0x40,
+      ]).toString('base64url');
+
+      await PublicKeyCredentials.update({
+        id: pqcCredId,
+        passkeyUserId: user!.passkeyUserId!,
+        credentialPublicKey: mlDsaCosePublicKey,
+        credentialType: 'public-key',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        userVerified: true,
+        transports: ['internal'],
+        credentialDeviceType: 'multiDevice',
+        credentialBackedUp: true,
+        registeredAt: Date.now(),
+      });
+
+      const pqcSpy = vi
+        .spyOn(SettingsService, 'runtimeSupportsPQC')
+        .mockReturnValue(false);
+
+      try {
+        const assertion = passkey.sign({
+          type: 'webauthn.get',
+          challenge: mockSession.challenge,
+          origin: config.origin,
+          crossOrigin: false,
+        });
+        assertion.id = pqcCredId;
+        assertion.rawId = pqcCredId;
+
+        const res = await fetch(
+          `http://127.0.0.1:${port}/webauthn/signinResponse`,
+          {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(assertion),
+          }
+        );
+        const body = await res.json();
+        assert.strictEqual(res.status, 500);
+        assert.match(body.error, /ML-DSA-44/i);
+        assert.strictEqual(mockSession.challenge, undefined, 'Must consume');
+      } finally {
+        pqcSpy.mockRestore();
+        await PublicKeyCredentials.remove(pqcCredId);
+      }
     });
   });
 
