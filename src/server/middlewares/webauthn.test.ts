@@ -637,7 +637,7 @@ describe('WebAuthn Middlewares', () => {
       );
       const {status, body} = await postRegisterResponse(registration);
 
-      assert.strictEqual(status, 400);
+      assert.strictEqual(status, 409);
       assert.strictEqual(body.error, 'Credential ID is already registered.');
       assert.strictEqual(mockSession.challenge, undefined);
 
@@ -670,7 +670,7 @@ describe('WebAuthn Middlewares', () => {
       );
       const {status, body} = await postRegisterResponse(registration);
 
-      assert.strictEqual(status, 400);
+      assert.strictEqual(status, 409);
       assert.strictEqual(body.error, 'Credential ID is already registered.');
       assert.strictEqual(mockSession.challenge, undefined);
 
@@ -707,7 +707,7 @@ describe('WebAuthn Middlewares', () => {
       );
       const {status, body} = await postRegisterResponse(registration);
 
-      assert.strictEqual(status, 400);
+      assert.strictEqual(status, 409);
       assert.strictEqual(body.error, 'Credential ID is already registered.');
       assert.strictEqual(mockSession.challenge, undefined);
       assert.strictEqual(mockSession.user, undefined);
@@ -724,6 +724,57 @@ describe('WebAuthn Middlewares', () => {
         victimStored.credentialPublicKey,
         victimPasskey.cosePublicKey
       );
+    });
+
+    test('returns 409 when atomic create loses a concurrent write race after findById', async () => {
+      const racingPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+
+      const findByIdSpy = vi
+        .spyOn(PublicKeyCredentials, 'findById')
+        .mockResolvedValueOnce(undefined);
+
+      try {
+        const registration = racingPasskey.register(
+          {
+            type: 'webauthn.create',
+            challenge: mockSession.challenge,
+            origin: config.origin,
+          },
+          victimPasskey.id
+        );
+        const {status, body} = await postRegisterResponse(registration);
+
+        assert.strictEqual(status, 409);
+        assert.strictEqual(body.error, 'Credential ID is already registered.');
+        assert.strictEqual(mockSession.challenge, undefined);
+      } finally {
+        findByIdSpy.mockRestore();
+      }
+    });
+
+    test('returns 400 when registration verification fails for non-collision reasons', async () => {
+      const invalidPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+
+      const registration = invalidPasskey.register({
+        type: 'webauthn.create',
+        challenge: 'wrong-challenge-value',
+        origin: config.origin,
+      });
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 400);
+      assert.match(body.error, /challenge/i);
+      assert.strictEqual(mockSession.challenge, undefined);
     });
   });
 });

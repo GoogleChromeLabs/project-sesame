@@ -415,6 +415,8 @@ router.post(
  *                   type: string
  *       400:
  *         description: Verification failed
+ *       409:
+ *         description: Credential ID is already registered
  */
 router.post(
   '/registerResponse',
@@ -556,11 +558,14 @@ router.post(
 
       // Respond with the user information.
       res.json(user);
-    } catch (error: any) {
+    } catch (error: unknown) {
       new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      res.status(400).send({error: error.message});
+      const status = error instanceof CredentialAlreadyExistsError ? 409 : 400;
+      const message =
+        error instanceof Error ? error.message : 'Registration failed.';
+      res.status(status).send({error: message});
     }
   }
 );
