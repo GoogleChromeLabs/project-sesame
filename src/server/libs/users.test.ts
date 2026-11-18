@@ -384,3 +384,28 @@ describe('isValidPassword', () => {
     assert.strictEqual(Users.normalizePassword(null), '');
   });
 });
+
+describe('isValidUsername and isValidDisplayName', () => {
+  it('validates usernames strictly as bounded strings', () => {
+    assert.strictEqual(Users.isValidUsername('alice@example.com'), true);
+    assert.strictEqual(Users.isValidUsername('a'.repeat(254)), true);
+    assert.strictEqual(Users.isValidUsername('a'.repeat(255)), false);
+    assert.strictEqual(Users.isValidUsername(''), false);
+    assert.strictEqual(Users.isValidUsername(12345), false);
+    assert.strictEqual(Users.isValidUsername(null), false);
+  });
+
+  it('validates and normalizes display names cleanly', () => {
+    assert.strictEqual(Users.isValidDisplayName('  Alice Cafe\u0301  '), true);
+    assert.strictEqual(
+      Users.normalizeDisplayName('  Alice Cafe\u0301  '),
+      'Alice Caf\u00e9'
+    );
+    assert.strictEqual(Users.isValidDisplayName(''), false);
+    assert.strictEqual(Users.isValidDisplayName('   '), false);
+    assert.strictEqual(Users.isValidDisplayName('a'.repeat(101)), false);
+    assert.strictEqual(Users.isValidDisplayName('bad\u0000name'), false);
+    assert.strictEqual(Users.isValidDisplayName('bad\u0085name'), false);
+    assert.strictEqual(Users.isValidDisplayName(123), false);
+  });
+});

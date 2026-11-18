@@ -121,6 +121,24 @@ router.post(
 );
 
 /**
+ * Validates that a credential ID is a non-empty Base64URL string within
+ * WebAuthn Level 3 (1,023 raw bytes / 1,364 Base64URL chars) and Firestore
+ * document ID bounds, excluding Firestore-reserved `__.*__` names.
+ *
+ * @param credId - The candidate credential ID value.
+ * @returns `true` if `credId` is a valid Base64URL credential ID.
+ */
+function isValidCredentialId(credId: unknown): credId is Base64URLString {
+  return (
+    typeof credId === 'string' &&
+    credId.length >= 1 &&
+    credId.length <= 1364 &&
+    !/^__.*__$/.test(credId) &&
+    /^[A-Za-z0-9_-]+$/.test(credId)
+  );
+}
+
+/**
  * Update the name of a passkey.
  * @swagger
  * /webauthn/renameKey:
@@ -154,6 +172,8 @@ router.post(
  *                   type: string
  *                 name:
  *                   type: string
+ *       400:
+ *         description: Invalid request parameters
  *       401:
  *         description: Unauthorized
  */
@@ -161,18 +181,27 @@ router.post(
   '/renameKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    const {credId, newName} = req.body;
+    const {credId, newName} = req.body ?? {};
+    if (!isValidCredentialId(credId)) {
+      res.status(400).json({error: 'Invalid credential ID.'});
+      return;
+    }
+    if (!Users.isValidDisplayName(newName)) {
+      res.status(400).json({error: 'Invalid credential name.'});
+      return;
+    }
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
     if (
       !user ||
+      !user.passkeyUserId ||
       !credential ||
-      user.passkeyUserId !== credential?.passkeyUserId
+      user.passkeyUserId !== credential.passkeyUserId
     ) {
       res.status(401).json({error: 'User not authorized.'});
       return;
     }
-    credential.name = newName;
+    credential.name = Users.normalizeDisplayName(newName);
     await PublicKeyCredentials.update(credential);
     res.json(credential);
   }
@@ -185,7 +214,7 @@ router.post(
  * /webauthn/removeKey:
  *   post:
  *     summary: Remove Passkey
- *     description: Deletes a specific passkey by its credential ID.
+ *     description: Deletes a specific passkey owned by the signed-in user.
  *     tags: [WebAuthn]
  *     parameters:
  *       - in: query
@@ -197,13 +226,32 @@ router.post(
  *     responses:
  *       200:
  *         description: Passkey removed
+ *       400:
+ *         description: Invalid credential ID
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    // TODO: Check if the user is authorized to remove the credential.
-    const credId = req.query.credId as Base64URLString;
+    const credId = req.query.credId;
+    if (!isValidCredentialId(credId)) {
+      res.status(400).json({error: 'Invalid credential ID.'});
+      return;
+    }
+
+    const {user} = res.locals;
+    const credential = await PublicKeyCredentials.findById(credId);
+    if (
+      !user ||
+      !user.passkeyUserId ||
+      !credential ||
+      user.passkeyUserId !== credential.passkeyUserId
+    ) {
+      res.status(401).json({error: 'User not authorized.'});
+      return;
+    }
 
     await PublicKeyCredentials.remove(credId);
 
@@ -438,7 +486,7 @@ router.post(
 
     // Set expected values.
     const conditional = 'conditional' in req.query;
-    const response = req.body as RegistrationResponseJSON;
+    const response = (req.body ?? {}) as RegistrationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
       getRequestContext(req);
@@ -448,6 +496,16 @@ router.post(
     try {
       if (!expectedChallenge) {
         res.status(400).send({error: 'Invalid challenge'});
+        return;
+      }
+
+      if (
+        !isValidCredentialId(response?.id) ||
+        typeof response?.response !== 'object' ||
+        response.response === null
+      ) {
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).send({error: 'Invalid registration response.'});
         return;
       }
 
@@ -709,7 +767,7 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     // Set expected values.
-    const response = req.body as AuthenticationResponseJSON;
+    const response = (req.body ?? {}) as AuthenticationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
       getRequestContext(req);
@@ -731,6 +789,16 @@ router.post(
       if (!expectedChallenge) {
         logger.error('Challenge was undefined.');
         res.status(401).json({error: 'Invalid challenge.'});
+        return;
+      }
+
+      if (
+        !isValidCredentialId(response?.id) ||
+        typeof response?.response !== 'object' ||
+        response.response === null
+      ) {
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).json({error: 'Invalid authentication response.'});
         return;
       }
 

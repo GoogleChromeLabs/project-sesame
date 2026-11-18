@@ -58,15 +58,19 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
     approved_clients: [],
   };
 
+  let currentUser = {...mockUser};
+  let lastSession: Record<string, any> = {};
+
   beforeAll(async () => {
     app = express();
     app.use(express.json());
     app.use((req: Request, res: Response, next: NextFunction) => {
-      req.session = {} as any;
+      lastSession = {};
+      req.session = lastSession as any;
       res.locals = {
         signin_status: UserSignInStatus.SignedIn,
         is_signed_in: true,
-        user: {...mockUser},
+        user: {...currentUser},
         narrow: false,
       };
       next();
@@ -87,6 +91,8 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
   });
 
   beforeEach(() => {
+    currentUser = {...mockUser};
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -112,6 +118,7 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
   });
 
   it('POST /auth/updateDisplayName updates user displayName and returns user with rpId', async () => {
+    vi.spyOn(Users, 'findById').mockResolvedValueOnce({...mockUser});
     const updateSpy = vi
       .spyOn(Users, 'update')
       .mockResolvedValueOnce({...mockUser, displayName: 'Alice New'});
@@ -122,7 +129,7 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({newName: 'Alice New'}),
+      body: JSON.stringify({newName: '  Alice New  '}),
     });
 
     expect(res.status).toBe(200);
@@ -139,6 +146,67 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       displayName: 'Alice New',
       passkeyUserId: 'passkey-user-123',
       rpId: expect.any(String),
+    });
+  });
+
+  it('POST /auth/updateDisplayName rejects empty, whitespace, oversized, or non-string newName with JSON 400', async () => {
+    for (const invalidName of ['', '   ', 'a'.repeat(101), 123, null]) {
+      const res = await fetch(
+        `http://127.0.0.1:${port}/auth/updateDisplayName`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({newName: invalidName}),
+        }
+      );
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toBe('Invalid display name.');
+    }
+  });
+
+  describe('POST /auth/new-user', () => {
+    it('rejects non-string or oversized displayName and non-string username', async () => {
+      const badDisplay = await fetch(`http://127.0.0.1:${port}/auth/new-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({username: 'bob123', displayName: 12345}),
+      });
+      expect(badDisplay.status).toBe(400);
+      expect((await badDisplay.json()).error).toBe('Invalid display name.');
+
+      const badUser = await fetch(`http://127.0.0.1:${port}/auth/new-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({username: 12345}),
+      });
+      expect(badUser.status).toBe(400);
+      expect((await badUser.json()).error).toBe('Invalid username.');
+    });
+
+    it('accepts whitespace-only optional displayName and omits empty displayName from signup_user', async () => {
+      const uniqueUsername = `signup-ws-${Date.now()}`;
+      const res = await fetch(`http://127.0.0.1:${port}/auth/new-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({username: uniqueUsername, displayName: '   '}),
+      });
+      expect(res.status).toBe(200);
+      expect(lastSession.signup_user).toMatchObject({username: uniqueUsername});
+      expect(lastSession.signup_user.displayName).toBeUndefined();
     });
   });
 
@@ -211,7 +279,12 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       expect(body.error).toBe('New passwords do not match.');
     });
 
-    it('returns 200 when new passwords match (including NFC/NFD equivalence)', async () => {
+    it('persists NFC-normalized password and refreshes session when new passwords match', async () => {
+      vi.spyOn(Users, 'findById').mockResolvedValueOnce({...mockUser});
+      const updateSpy = vi
+        .spyOn(Users, 'update')
+        .mockImplementationOnce(async u => u);
+
       const res = await fetch(`http://127.0.0.1:${port}/auth/password-change`, {
         method: 'POST',
         headers: {
@@ -225,6 +298,82 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       });
 
       expect(res.status).toBe(200);
+      expect(res.headers.get('set-login')).toBe('logged-in');
+      expect(updateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'user-123',
+          password: 'NewPass123! caf\u00e9',
+        })
+      );
+    });
+
+    it('preserves persisted password in Firestore across subsequent updateDisplayName calls and rejects deleted accounts with 401', async () => {
+      const created = await Users.create(
+        `pw-persist-${Date.now()}@example.com`,
+        {
+          displayName: 'Before Rename',
+          password: 'InitialPassword1!',
+        }
+      );
+      // Simulate session copy where setSignedIn stripped `password`
+      const sessionCopy = {...created};
+      delete sessionCopy.password;
+      currentUser = sessionCopy as typeof mockUser;
+
+      try {
+        const pwRes = await fetch(
+          `http://127.0.0.1:${port}/auth/password-change`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+              'new-password1': 'UpdatedPass99!',
+              'new-password2': 'UpdatedPass99!',
+            }),
+          }
+        );
+        expect(pwRes.status).toBe(200);
+
+        const renameRes = await fetch(
+          `http://127.0.0.1:${port}/auth/updateDisplayName`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({newName: 'After Rename'}),
+          }
+        );
+        expect(renameRes.status).toBe(200);
+
+        const stored = await Users.findById(created.id);
+        expect(stored?.displayName).toBe('After Rename');
+        expect(stored?.password).toBe('UpdatedPass99!');
+      } finally {
+        await Users.delete(created.id);
+      }
+
+      // Deleted user must receive 401 instead of being resurrected in Firestore
+      const deletedRes = await fetch(
+        `http://127.0.0.1:${port}/auth/password-change`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            'new-password1': 'UpdatedPass99!',
+            'new-password2': 'UpdatedPass99!',
+          }),
+        }
+      );
+      expect(deletedRes.status).toBe(401);
+      expect(await Users.findById(created.id)).toBeUndefined();
     });
   });
 

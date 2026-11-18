@@ -73,7 +73,35 @@ describe('Email Middleware', () => {
     assert.strictEqual(body.error, 'Invalid XHR request.');
   });
 
-  test('POST /email/verify returns 400 on missing parameters', async () => {
+  test('POST /email/verify returns 400 on missing, empty-body, or non-string parameters without consuming challenge', async () => {
+    // Empty body (no Content-Type) -> 400 (not 500)
+    const emptyBodyRes = await originalFetch(
+      `http://127.0.0.1:${port}/email/verify`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      }
+    );
+    assert.strictEqual(emptyBodyRes.status, 400);
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+
+    // Non-string truthy parameters -> 400 without consuming session challenge
+    const nonStringRes = await originalFetch(
+      `http://127.0.0.1:${port}/email/verify`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({email: 12345, evt: {nested: true}}),
+      }
+    );
+    assert.strictEqual(nonStringRes.status, 400);
+    assert.strictEqual(mockSession.challenge, 'test-session-challenge');
+
     const res = await originalFetch(`http://127.0.0.1:${port}/email/verify`, {
       method: 'POST',
       headers: {

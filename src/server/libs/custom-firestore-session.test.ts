@@ -130,6 +130,19 @@ describe('CustomFirestoreStore', () => {
       assert.strictEqual(retrieved.foo, 'bar');
       assert.deepStrictEqual(retrieved.user, sessionData.user);
       assert.ok(retrieved.expiresAt, 'Session should have expiresAt');
+
+      // Updating the session after deleting a property (e.g. single-use challenge)
+      // must remove that property from Firestore rather than merging stale keys back.
+      await setSession(sid, {
+        cookie: {originalMaxAge: 3600},
+        user: sessionData.user,
+      });
+      const updated = await getSession(sid);
+      assert.strictEqual(
+        updated.foo,
+        undefined,
+        'Deleted session properties must not persist in Firestore'
+      );
     } finally {
       await destroySession(sid).catch(() => {});
     }

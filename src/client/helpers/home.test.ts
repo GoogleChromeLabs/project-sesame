@@ -20,6 +20,7 @@ import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 const mockPost = vi.fn();
 const mockLoadingStart = vi.fn();
 const mockLoadingStop = vi.fn();
+const mockToast = vi.fn();
 const mockRender = vi.fn();
 
 vi.mock('lit', () => ({
@@ -33,6 +34,7 @@ vi.mock('lit', () => ({
 vi.mock('~project-sesame/client/helpers/index', () => ({
   $: vi.fn(() => ({})),
   post: (...args: unknown[]) => mockPost(...args),
+  toast: (...args: unknown[]) => mockToast(...args),
   loading: {
     start: (...args: unknown[]) => mockLoadingStart(...args),
     stop: (...args: unknown[]) => mockLoadingStop(...args),
@@ -160,5 +162,24 @@ describe('home page - changeDisplayName', () => {
     expect(mockSignalCurrentUserDetails).toHaveBeenCalledOnce();
     expect(mockLoadingStop).toHaveBeenCalled();
     expect(mockPost).toHaveBeenNthCalledWith(2, '/auth/userinfo');
+  });
+
+  it('stops loading and shows toast when updateDisplayName rejects with 400', async () => {
+    const {changeDisplayName} =
+      await import('~project-sesame/client/pages/home.js');
+    vi.clearAllMocks();
+
+    mockPrompt.mockReturnValueOnce('   ');
+    mockPost.mockRejectedValueOnce({
+      error: 'Invalid display name.',
+      status: 400,
+    });
+
+    await changeDisplayName({
+      target: {dataset: {displayName: 'Alice'}} as unknown as HTMLButtonElement,
+    });
+
+    expect(mockToast).toHaveBeenCalledWith('Invalid display name.');
+    expect(mockLoadingStop).toHaveBeenCalledOnce();
   });
 });

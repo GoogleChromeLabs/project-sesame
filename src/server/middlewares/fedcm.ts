@@ -15,22 +15,25 @@
  * limitations under the License
  */
 
-import {Base64URLString} from '@simplewebauthn/server';
 import {Router, Request, Response} from 'express';
 import jwt from 'jsonwebtoken';
 
 import {config} from '../config.ts';
-import {compareUrls} from '../libs/helpers.ts';
-import {IdentityProviders} from '../libs/identity-providers.ts';
+import {compareUrls, getRequestContext} from '../libs/helpers.ts';
 import {RelyingParties} from '../libs/relying-parties.ts';
 import {Users} from '../libs/users.ts';
 import cors from 'cors';
 import helmet from 'helmet';
-import {fedcmCheck, getTime} from '../middlewares/common.ts';
+import {csrfCheck, fedcmCheck, getTime} from '../middlewares/common.ts';
 import {ApiType, apiAclCheck} from '../libs/session.ts';
 import {logger} from '../libs/logger.ts';
 
 const router = Router();
+
+const fedcmCors = cors({
+  origin: true,
+  credentials: true,
+});
 
 router.use(
   helmet({
@@ -38,12 +41,11 @@ router.use(
   })
 );
 
-router.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+router.options('/config.json', fedcmCors);
+router.options('/accounts', fedcmCors);
+router.options('/metadata', fedcmCors);
+router.options('/idtokens', fedcmCors);
+router.options('/disconnect', fedcmCors);
 
 /**
  * Get FedCM configuration.
@@ -76,6 +78,7 @@ router.use(
  */
 router.get(
   '/config.json',
+  fedcmCors,
   apiAclCheck(ApiType.NoAuth),
   (req: Request, res: Response) => {
     res.json({
@@ -130,6 +133,7 @@ router.get(
  * */
 router.get(
   '/accounts',
+  fedcmCors,
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
   (req: Request, res: Response): void => {
@@ -176,6 +180,7 @@ router.get(
  */
 router.get(
   '/metadata',
+  fedcmCors,
   apiAclCheck(ApiType.NoAuth),
   (req: Request, res: Response): void => {
     res.json({
@@ -222,6 +227,7 @@ router.get(
  */
 router.post(
   '/idtokens',
+  fedcmCors,
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<void> => {
@@ -230,11 +236,14 @@ router.post(
       account_id,
       consent_acquired,
       disclosure_text_shown,
-      is_auto_selected,
-      fields,
       params,
-    } = req.body;
+    } = req.body ?? {};
     const {user} = res.locals;
+
+    if (typeof client_id !== 'string' || !client_id.trim()) {
+      res.status(400).json({error: 'Invalid client_id.'});
+      return;
+    }
 
     const rp = await RelyingParties.findByClientID(client_id);
 
@@ -245,7 +254,7 @@ router.post(
       res.status(400).json({error: message});
       return;
     }
-    // Error when: The RP URL matches the requesting origin.
+    // Error when: The RP URL does not match the requesting origin.
     if (!compareUrls(rp.origin, req.headers.origin)) {
       const message = `RP origin doesn't match: ${rp.origin}`;
       logger.error(message);
@@ -253,7 +262,7 @@ router.post(
       return;
     }
     // Error when: the account does not match who is currently signed in.
-    if (account_id !== user.id) {
+    if (typeof account_id !== 'string' || account_id !== user.id) {
       const message = `Account ID doesn't match: ${account_id}`;
       logger.error(message);
       res.status(400).json({error: message});
@@ -266,19 +275,24 @@ router.post(
       (!user.approved_clients || !user.approved_clients.includes(rp.client_id))
     ) {
       logger.info('The user is registering to the RP.');
-      // Add the current RP as an approved client to sign in with this account
-      if (!user.approved_clients) {
-        user.approved_clients = [];
-      }
-      if (!user.approved_clients.includes(rp.client_id)) {
-        user.approved_clients.push(rp.client_id);
-        await Users.update(user);
+      const existing = await Users.findById(user.id);
+      const baseUser = existing ?? user;
+      const approvedClients = Array.from(
+        new Set([...(baseUser.approved_clients ?? []), rp.client_id])
+      );
+      await Users.update({
+        ...baseUser,
+        approved_clients: approvedClients,
+      });
+      user.approved_clients = approvedClients;
+      if (req.session?.user) {
+        req.session.user.approved_clients = approvedClients;
       }
     } else {
       logger.info('The user is signing in to the RP.');
     }
 
-    let nonce: string | undefined = req.body.nonce;
+    let nonce: unknown = req.body?.nonce;
     if (params) {
       try {
         const parsed = typeof params === 'string' ? JSON.parse(params) : params;
@@ -288,9 +302,15 @@ router.post(
         return;
       }
     }
+    if (
+      nonce !== undefined &&
+      (typeof nonce !== 'string' || nonce.length > 512)
+    ) {
+      res.status(400).json({error: 'Invalid nonce'});
+      return;
+    }
 
     try {
-      // if (user.status === '') {
       const token = jwt.sign(
         {
           iss: config.origin,
@@ -307,25 +327,6 @@ router.post(
       );
 
       res.json({token});
-      // } else {
-      //   let error_code = 401;
-      //   switch (user.status) {
-      //     case 'server_error':
-      //       error_code = 500;
-      //       break;
-      //     case 'temporarily_unavailable':
-      //       error_code = 503;
-      //       break;
-      //     default:
-      //       error_code = 401;
-      //   }
-      //   return res.status(error_code).json({
-      //     error: {
-      //       code: user.status,
-      //       url: `${config.origin}/error.html&type=${user.status}`,
-      //     },
-      //   });
-      // }
     } catch (error) {
       res.status(400).json({error: 'Invalid params'});
     }
@@ -334,24 +335,39 @@ router.post(
 
 /**
  * Generates a JWT for the signed-in user with the provided nonce.
- * This endpoint is used by the iframe federation flow to issue a token
- * that can be sent to the parent frame.
+ * This endpoint is used by the same-origin `/iframe-federation` flow on the IdP
+ * to issue a token that can be posted to the parent RP frame.
  */
 router.post(
   '/createToken',
+  csrfCheck,
   apiAclCheck(ApiType.SignedIn),
   async (req: Request, res: Response): Promise<void> => {
-    const {nonce, rp_origin} = req.body;
+    const requestOrigin = req.headers.origin;
+    if (
+      requestOrigin !== undefined &&
+      !compareUrls(getRequestContext(req).origin, requestOrigin)
+    ) {
+      logger.error('Cross-origin createToken request rejected:', requestOrigin);
+      res.status(403).json({error: 'Cross-origin request not allowed.'});
+      return;
+    }
+
+    const {nonce, rp_origin} = req.body ?? {};
     const {user} = res.locals;
 
-    if (!nonce) {
-      const message = 'Nonce is required.';
+    if (
+      typeof nonce !== 'string' ||
+      nonce.trim().length === 0 ||
+      nonce.length > 512
+    ) {
+      const message = 'Nonce must be a non-empty string.';
       logger.error(message);
       res.status(400).json({error: message});
       return;
     }
 
-    const rp = config.supported_rps.find((rp: any) => rp.origin === rp_origin);
+    const rp = await RelyingParties.findByOrigin(rp_origin);
     if (!rp) {
       const message = 'Requesting RP not registered.';
       logger.error(message, rp_origin);
@@ -364,7 +380,7 @@ router.post(
         {
           iss: config.origin,
           sub: user.id,
-          aud: rp.origin,
+          aud: rp.client_id,
           nonce,
           exp: Math.floor(getTime(config.id_token_lifetime) / 1000),
           iat: Math.floor(getTime() / 1000),
@@ -415,12 +431,39 @@ router.post(
  */
 router.post(
   '/disconnect',
+  fedcmCors,
   fedcmCheck,
   apiAclCheck(ApiType.SignedIn),
-  (req: Request, res: Response): void => {
-    const {account_hint, client_id} = req.body;
-
+  async (req: Request, res: Response): Promise<void> => {
+    const {account_hint, client_id} = req.body ?? {};
     const {user} = res.locals;
+
+    if (
+      typeof client_id !== 'string' ||
+      !client_id.trim() ||
+      typeof account_hint !== 'string' ||
+      !account_hint.trim()
+    ) {
+      res
+        .status(400)
+        .json({error: 'Missing or invalid client_id or account_hint.'});
+      return;
+    }
+
+    const rp = await RelyingParties.findByClientID(client_id);
+    if (!rp) {
+      const message = `RP not registered. Client ID: ${client_id}`;
+      logger.error(message);
+      res.status(400).json({error: message});
+      return;
+    }
+
+    if (!compareUrls(rp.origin, req.headers.origin)) {
+      const message = `RP origin doesn't match: ${rp.origin}`;
+      logger.error(message);
+      res.status(400).json({error: message});
+      return;
+    }
 
     // TODO: Use PPID instead
     if (account_hint !== user.id) {
@@ -429,23 +472,28 @@ router.post(
       return;
     }
 
-    // Ensure approved_clients is an array to prevent runtime errors.
-    if (!user.approved_clients) {
-      user.approved_clients = [];
-    }
+    const existing = await Users.findById(user.id);
+    const baseUser = existing ?? user;
+    const currentApproved = baseUser.approved_clients ?? [];
 
-    // Use .includes() for arrays, not .has()
-    if (!user.approved_clients.includes(client_id)) {
+    if (!currentApproved.includes(rp.client_id)) {
       logger.error('The client is not connected.');
       res.status(400).json({error: 'The client is not connected.'});
       return;
     }
 
     // Remove the client ID from the `approved_clients` list.
-    user.approved_clients = user.approved_clients.filter(
-      (_client_id: Base64URLString) => _client_id !== client_id
+    const updatedClients = currentApproved.filter(
+      (_client_id: string) => _client_id !== rp.client_id
     );
-    Users.update(user);
+    await Users.update({
+      ...baseUser,
+      approved_clients: updatedClients,
+    });
+    user.approved_clients = updatedClients;
+    if (req.session?.user) {
+      req.session.user.approved_clients = updatedClients;
+    }
     res.json({account_id: user.id});
   }
 );
