@@ -16,11 +16,11 @@
  */
 
 import {config} from '../config.ts';
-import {Base64URLString} from '@simplewebauthn/server';
+import {compareUrls} from './helpers.ts';
 
 export interface RelyingParty {
   origin: string;
-  client_id: Base64URLString;
+  client_id: string;
   name: string;
   secret: string;
 }
@@ -28,11 +28,35 @@ export interface RelyingParty {
 export class RelyingParties {
   static rps: RelyingParty[] = config.supported_rps;
 
+  /**
+   * Finds a registered Relying Party by its `client_id`.
+   *
+   * @param client_id - The Relying Party client ID to look up.
+   * @returns A cloned `RelyingParty` record if registered, or `undefined`.
+   */
   static async findByClientID(
-    client_id: Base64URLString
+    client_id: unknown
   ): Promise<RelyingParty | undefined> {
+    if (typeof client_id !== 'string' || !client_id.trim()) {
+      return undefined;
+    }
     const rp = RelyingParties.rps.find(rp => rp.client_id === client_id);
-    const clone = structuredClone(rp);
-    return Promise.resolve(clone);
+    return structuredClone(rp);
+  }
+
+  /**
+   * Finds a registered Relying Party by comparing full URL origins.
+   *
+   * @param origin - The Relying Party origin URL to look up.
+   * @returns A cloned `RelyingParty` record if registered, or `undefined`.
+   */
+  static async findByOrigin(
+    origin: unknown
+  ): Promise<RelyingParty | undefined> {
+    if (typeof origin !== 'string' || !origin.trim()) {
+      return undefined;
+    }
+    const rp = RelyingParties.rps.find(rp => compareUrls(rp.origin, origin));
+    return structuredClone(rp);
   }
 }

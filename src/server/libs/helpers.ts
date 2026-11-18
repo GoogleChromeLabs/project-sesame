@@ -116,11 +116,17 @@ export function getGravatarUrl(username: string): string {
   return pictureURL.toString();
 }
 
-export function compareUrls(url1?: string, url2?: string): boolean {
-  if (!url1 || !url2) return false;
-  const origin1 = new URL(url1).origin;
-  const origin2 = new URL(url2).origin;
-  return origin1 === origin2;
+export function compareUrls(url1?: unknown, url2?: unknown): boolean {
+  if (typeof url1 !== 'string' || typeof url2 !== 'string' || !url1 || !url2) {
+    return false;
+  }
+  try {
+    const origin1 = new URL(url1).origin;
+    const origin2 = new URL(url2).origin;
+    return origin1 !== 'null' && origin1 === origin2;
+  } catch {
+    return false;
+  }
 }
 
 /**

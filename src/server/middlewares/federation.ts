@@ -21,18 +21,19 @@ import {
   FederationMap,
   FederationMappings,
 } from '../libs/federation-mappings.ts';
-import {config} from '../config.ts';
-import {IdentityProviders} from '../libs/identity-providers.ts';
+import {
+  IdentityProvider,
+  IdentityProviders,
+} from '../libs/identity-providers.ts';
 import {OAuth2Client} from 'google-auth-library';
 import {Users} from '../libs/users.ts';
-import {csrfCheck, getTime} from '../middlewares/common.ts';
+import {csrfCheck} from '../middlewares/common.ts';
 import {apiAclCheck, ApiType, setSignedIn} from '../libs/session.ts';
 import {SessionService} from '~project-sesame/server/libs/session.ts';
-import {RelyingParties} from '../libs/relying-parties.ts';
 import {logger} from '../libs/logger.ts';
 
 const router = Router();
-const googleClient = new OAuth2Client();
+export const googleClient = new OAuth2Client();
 
 router.use(csrfCheck);
 
@@ -70,10 +71,18 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     const options = {
-      idps: [] as IdentityProviders[],
+      idps: [] as IdentityProvider[],
     };
-    const idps = [];
-    const {urls} = req.body;
+    const idps: IdentityProvider[] = [];
+    const {urls} = req.body ?? {};
+    if (
+      !Array.isArray(urls) ||
+      urls.length === 0 ||
+      !urls.every(u => typeof u === 'string' && u.trim().length > 0)
+    ) {
+      res.status(400).json({error: 'Invalid urls.'});
+      return;
+    }
     try {
       for (const _url of urls) {
         const url = new URL(_url);
@@ -193,16 +202,31 @@ router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response): Promise<void> => {
-    const {token: raw_token, url} = req.body;
+    const {token: raw_token, url} = req.body ?? {};
+
+    if (
+      typeof raw_token !== 'string' ||
+      !raw_token.trim() ||
+      typeof url !== 'string' ||
+      !url.trim()
+    ) {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+
+    const sessionService = new SessionService(req.session);
+    const expected_nonce = sessionService.getChallenge();
+
+    if (!expected_nonce || typeof expected_nonce !== 'string') {
+      logger.error('Invalid nonce:', expected_nonce);
+      res.status(400).json({error: 'Invalid nonce.'});
+      return;
+    }
+
+    // Consume challenge immediately so it cannot be replayed across attempts.
+    sessionService.deleteChallenge();
 
     try {
-      const expected_nonce = new SessionService(req.session).getChallenge();
-
-      if (!expected_nonce || typeof expected_nonce !== 'string') {
-        logger.error('Invalid nonce:', expected_nonce);
-        throw new Error('Invalid nonce.');
-      }
-
       const idp = await IdentityProviders.findByOrigin(url);
 
       if (!idp) {
@@ -218,6 +242,12 @@ router.post(
           audience: idp.clientId,
         });
         payload = ticket.getPayload();
+        if (!payload || payload.nonce !== expected_nonce) {
+          throw new Error('Nonce mismatch in ID token.');
+        }
+        if (payload.email_verified === false) {
+          throw new Error('Email is not verified.');
+        }
       } else {
         logger.debug('Verifying ID Token', {
           token: raw_token,
@@ -227,6 +257,7 @@ router.post(
           clientId: idp.clientId,
         });
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
+          algorithms: ['HS256'],
           issuer: idp.origin,
           nonce: expected_nonce,
           audience: idp.clientId,
@@ -256,7 +287,6 @@ router.post(
       }
 
       // Find a matching user by querying with the email address
-      // TODO: Beware that the email is verified.
       let user = await Users.findByUsername(payload.email);
       if (user && payload.iss) {
         const maps = await FederationMappings.findByIssuer(

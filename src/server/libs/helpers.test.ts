@@ -290,4 +290,26 @@ describe('getRequestContext', () => {
     );
     assert.strictEqual(malformed.rpId, baseCfg.hostname);
   });
+
+  it('compareUrls safely handles invalid URLs and opaque null origins', async () => {
+    const {compareUrls} = await import('./helpers.ts');
+    assert.strictEqual(
+      compareUrls('https://rp.example.com/path', 'https://rp.example.com'),
+      true
+    );
+    assert.strictEqual(
+      compareUrls('https://rp.example.com', 'http://rp.example.com'),
+      false
+    );
+    assert.strictEqual(compareUrls('https://rp.example.com', 'null'), false);
+    assert.strictEqual(
+      compareUrls('not-a-url', 'https://rp.example.com'),
+      false
+    );
+    assert.strictEqual(
+      compareUrls('data:text/html,1', 'data:text/html,2'),
+      false
+    );
+    assert.strictEqual(compareUrls(undefined, 'https://rp.example.com'), false);
+  });
 });

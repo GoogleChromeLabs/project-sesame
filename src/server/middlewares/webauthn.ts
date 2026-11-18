@@ -121,6 +121,19 @@ router.post(
 );
 
 /**
+ * Validates that a credential ID is a non-empty Base64URL string within safe
+ * Firestore document ID length bounds.
+ */
+function isValidCredentialId(credId: unknown): credId is Base64URLString {
+  return (
+    typeof credId === 'string' &&
+    credId.length >= 1 &&
+    credId.length <= 1024 &&
+    /^[A-Za-z0-9_-]+$/.test(credId)
+  );
+}
+
+/**
  * Update the name of a passkey.
  * @swagger
  * /webauthn/renameKey:
@@ -154,6 +167,8 @@ router.post(
  *                   type: string
  *                 name:
  *                   type: string
+ *       400:
+ *         description: Invalid request parameters
  *       401:
  *         description: Unauthorized
  */
@@ -161,18 +176,27 @@ router.post(
   '/renameKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    const {credId, newName} = req.body;
+    const {credId, newName} = req.body ?? {};
+    if (!isValidCredentialId(credId)) {
+      res.status(400).json({error: 'Invalid credential ID.'});
+      return;
+    }
+    if (!Users.isValidDisplayName(newName)) {
+      res.status(400).json({error: 'Invalid credential name.'});
+      return;
+    }
     const {user} = res.locals;
     const credential = await PublicKeyCredentials.findById(credId);
     if (
       !user ||
+      !user.passkeyUserId ||
       !credential ||
-      user.passkeyUserId !== credential?.passkeyUserId
+      user.passkeyUserId !== credential.passkeyUserId
     ) {
       res.status(401).json({error: 'User not authorized.'});
       return;
     }
-    credential.name = newName;
+    credential.name = Users.normalizeDisplayName(newName);
     await PublicKeyCredentials.update(credential);
     res.json(credential);
   }
@@ -185,7 +209,7 @@ router.post(
  * /webauthn/removeKey:
  *   post:
  *     summary: Remove Passkey
- *     description: Deletes a specific passkey by its credential ID.
+ *     description: Deletes a specific passkey owned by the signed-in user.
  *     tags: [WebAuthn]
  *     parameters:
  *       - in: query
@@ -197,13 +221,32 @@ router.post(
  *     responses:
  *       200:
  *         description: Passkey removed
+ *       400:
+ *         description: Invalid credential ID
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/removeKey',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    // TODO: Check if the user is authorized to remove the credential.
-    const credId = req.query.credId as Base64URLString;
+    const credId = req.query.credId;
+    if (!isValidCredentialId(credId)) {
+      res.status(400).json({error: 'Invalid credential ID.'});
+      return;
+    }
+
+    const {user} = res.locals;
+    const credential = await PublicKeyCredentials.findById(credId);
+    if (
+      !user ||
+      !user.passkeyUserId ||
+      !credential ||
+      user.passkeyUserId !== credential.passkeyUserId
+    ) {
+      res.status(401).json({error: 'User not authorized.'});
+      return;
+    }
 
     await PublicKeyCredentials.remove(credId);
 

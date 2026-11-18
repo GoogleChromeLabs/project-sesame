@@ -122,7 +122,7 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({newName: 'Alice New'}),
+      body: JSON.stringify({newName: '  Alice New  '}),
     });
 
     expect(res.status).toBe(200);
@@ -139,6 +139,52 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       displayName: 'Alice New',
       passkeyUserId: 'passkey-user-123',
       rpId: expect.any(String),
+    });
+  });
+
+  it('POST /auth/updateDisplayName rejects empty, whitespace, oversized, or non-string newName with JSON 400', async () => {
+    for (const invalidName of ['', '   ', 'a'.repeat(101), 123, null]) {
+      const res = await fetch(
+        `http://127.0.0.1:${port}/auth/updateDisplayName`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({newName: invalidName}),
+        }
+      );
+
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toBe('Invalid display name.');
+    }
+  });
+
+  describe('POST /auth/new-user', () => {
+    it('rejects non-string or oversized displayName and non-string username', async () => {
+      const badDisplay = await fetch(`http://127.0.0.1:${port}/auth/new-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({username: 'bob123', displayName: 12345}),
+      });
+      expect(badDisplay.status).toBe(400);
+      expect((await badDisplay.json()).error).toBe('Invalid display name.');
+
+      const badUser = await fetch(`http://127.0.0.1:${port}/auth/new-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({username: 12345}),
+      });
+      expect(badUser.status).toBe(400);
+      expect((await badUser.json()).error).toBe('Invalid username.');
     });
   });
 
@@ -211,7 +257,12 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       expect(body.error).toBe('New passwords do not match.');
     });
 
-    it('returns 200 when new passwords match (including NFC/NFD equivalence)', async () => {
+    it('persists NFC-normalized password and refreshes session when new passwords match', async () => {
+      vi.spyOn(Users, 'findById').mockResolvedValueOnce({...mockUser});
+      const updateSpy = vi
+        .spyOn(Users, 'update')
+        .mockImplementationOnce(async u => u);
+
       const res = await fetch(`http://127.0.0.1:${port}/auth/password-change`, {
         method: 'POST',
         headers: {
@@ -225,6 +276,13 @@ describe('Auth Middleware - /userinfo and /updateDisplayName', () => {
       });
 
       expect(res.status).toBe(200);
+      expect(res.headers.get('set-login')).toBe('logged-in');
+      expect(updateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'user-123',
+          password: 'NewPass123! caf\u00e9',
+        })
+      );
     });
   });
 

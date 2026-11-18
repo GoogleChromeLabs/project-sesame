@@ -68,13 +68,20 @@ router.post(
   '/new-user',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const {username, displayName = ''} = req.body;
+    const {username, displayName = ''} = req.body ?? {};
 
     // TODO: Use Captcha to block bots.
 
     try {
-      // TODO: Validate the display name
-      const trimmedDisplayName = displayName.trim();
+      if (
+        displayName !== undefined &&
+        displayName !== '' &&
+        !Users.isValidDisplayName(displayName)
+      ) {
+        res.status(400).json({error: 'Invalid display name.'});
+        return;
+      }
+      const trimmedDisplayName = Users.normalizeDisplayName(displayName);
 
       // Only check username, no need to check password as this is a mock
       if (Users.isValidUsername(username)) {
@@ -139,13 +146,13 @@ router.post(
   '/username',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const {username} = <{username: string}>req.body;
+    const {username} = (req.body ?? {}) as {username?: unknown};
 
     try {
       // Only check username, no need to check password as this is a mock
       if (Users.isValidUsername(username)) {
         // See if account already exists
-        const user = await Users.findByUsername(username);
+        await Users.findByUsername(username);
 
         // TODO: Examine if notifying user that the username doesn't exist is a good idea.
 
@@ -205,10 +212,17 @@ router.post(
   '/new-username-password',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const {username, displayName, password1, password2} = req.body;
+    const {username, displayName, password1, password2} = req.body ?? {};
 
     if (!Users.isValidUsername(username)) {
       res.status(400).json({error: 'Invalid username'});
+      return;
+    } else if (
+      displayName !== undefined &&
+      displayName !== '' &&
+      !Users.isValidDisplayName(displayName)
+    ) {
+      res.status(400).json({error: 'Invalid display name.'});
       return;
     } else if (!Users.isValidPassword(password1)) {
       res.status(400).json({error: 'Invalid password.'});
@@ -229,9 +243,10 @@ router.post(
       return;
     }
 
+    const normalizedDisplayName = Users.normalizeDisplayName(displayName);
     const user: SignUpUser = {
       username,
-      displayName,
+      ...(normalizedDisplayName ? {displayName: normalizedDisplayName} : {}),
       password: Users.normalizePassword(password1),
     };
 
@@ -283,12 +298,10 @@ router.post(
   '/new-password',
   apiAclCheck(ApiType.SigningUp),
   async (req: Request, res: Response): Promise<void> => {
-    const {password} = req.body;
+    const {password} = req.body ?? {};
     const {username} = res.locals;
     const user = new SessionService(req.session).getSigningUp();
 
-    // TODO: Validate entered parameter.
-    // TODO: Validate the password format
     if (!Users.isValidPassword(password)) {
       res.status(401).json({error: 'Invalid password.'});
       return;
@@ -346,10 +359,9 @@ router.post(
   '/password',
   apiAclCheck(ApiType.FirstCredential),
   async (req: Request, res: Response): Promise<void> => {
-    const {password} = req.body;
+    const {password} = req.body ?? {};
     const {username} = res.locals;
 
-    // TODO: Validate entered parameter.
     if (!Users.isValidPassword(password)) {
       res.status(401).json({error: 'Invalid password.'});
       return;
@@ -401,7 +413,7 @@ router.post(
   '/username-password',
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response): Promise<void> => {
-    const {username, password} = req.body;
+    const {username, password} = req.body ?? {};
 
     if (!Users.isValidUsername(username)) {
       res.status(400).json({error: 'Invalid username'});
@@ -459,24 +471,35 @@ router.post(
   '/password-change',
   apiAclCheck(ApiType.Sensitive),
   async (req: Request, res: Response): Promise<void> => {
-    const newPassword1 = req.body['new-password1'];
-    const newPassword2 = req.body['new-password2'];
+    const body = req.body ?? {};
+    const newPassword1 = body['new-password1'];
+    const newPassword2 = body['new-password2'];
 
     if (!Users.isValidPassword(newPassword1)) {
       res.status(400).json({error: 'Invalid password.'});
       return;
     }
+    const normalizedPassword = Users.normalizePassword(newPassword1);
     if (
       !Users.isValidPassword(newPassword2) ||
-      Users.normalizePassword(newPassword1) !==
-        Users.normalizePassword(newPassword2)
+      normalizedPassword !== Users.normalizePassword(newPassword2)
     ) {
       res.status(400).json({error: 'New passwords do not match.'});
       return;
     }
 
-    // TODO: Validate the password format
-    // TODO: Update the password in the database
+    const {user} = res.locals;
+    if (!user) {
+      res.status(401).json({error: 'The user needs to be signed in.'});
+      return;
+    }
+
+    const existing = await Users.findById(user.id);
+    const updatedUser = await Users.update({
+      ...(existing ?? user),
+      password: normalizedPassword,
+    });
+    setSignedIn({...updatedUser}, req, res);
 
     res.json({});
   }
@@ -534,7 +557,7 @@ router.post(
  *       200:
  *         description: Profile updated
  *       400:
- *         description: Missing new name
+ *         description: Invalid display name
  *       401:
  *         description: User not signed in
  */
@@ -547,18 +570,20 @@ router.post(
       res.status(401).json({error: 'The user needs to be signed in.'});
       return;
     }
-    const {newName} = req.body;
-    if (newName) {
-      const {user} = res.locals;
-      user.displayName = newName;
-      await Users.update(user);
-      const {rpId} = getRequestContext(req);
-      res.json({...user, rpId});
-      return;
-    } else {
-      res.sendStatus(400);
+    const {newName} = req.body ?? {};
+    if (!Users.isValidDisplayName(newName)) {
+      res.status(400).json({error: 'Invalid display name.'});
       return;
     }
+
+    const {user} = res.locals;
+    user.displayName = Users.normalizeDisplayName(newName);
+    await Users.update(user);
+    if (req.session?.user) {
+      req.session.user.displayName = user.displayName;
+    }
+    const {rpId} = getRequestContext(req);
+    res.json({...user, rpId});
   }
 );
 
