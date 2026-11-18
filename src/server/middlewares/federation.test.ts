@@ -105,12 +105,12 @@ describe('Federation Middleware', () => {
   });
 
   describe('POST /federation/options', () => {
-    it('rejects missing, empty, or non-string urls arrays with 400', async () => {
+    it('rejects missing, oversized, or non-string urls arrays with 400 and returns empty idps for empty array', async () => {
       for (const body of [
         {},
-        {urls: []},
         {urls: 'https://idp.example.com'},
         {urls: [123]},
+        {urls: Array.from({length: 51}, () => demoIdp.origin)},
       ]) {
         const res = await fetch(`http://127.0.0.1:${port}/federation/options`, {
           method: 'POST',
@@ -122,6 +122,20 @@ describe('Federation Middleware', () => {
         });
         expect(res.status).toBe(400);
       }
+
+      const emptyRes = await fetch(
+        `http://127.0.0.1:${port}/federation/options`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({urls: []}),
+        }
+      );
+      expect(emptyRes.status).toBe(200);
+      expect(await emptyRes.json()).toEqual({idps: []});
     });
 
     it('returns matching IdPs with secrets stripped', async () => {
@@ -145,12 +159,14 @@ describe('Federation Middleware', () => {
   });
 
   describe('POST /federation/verifyIdToken', () => {
-    it('returns 400 when token or url is missing or non-string', async () => {
+    it('returns 400 when token or url is missing, non-string, or malformed URL without consuming challenge', async () => {
       for (const body of [
         {},
         {token: '', url: demoIdp.origin},
         {token: 'abc', url: ''},
         {token: 123, url: demoIdp.origin},
+        {token: 'abc.def.ghi', url: 'not-a-valid-url'},
+        {token: 'abc.def.ghi', url: 'javascript:alert(1)'},
       ]) {
         const res = await fetch(
           `http://127.0.0.1:${port}/federation/verifyIdToken`,
@@ -164,6 +180,7 @@ describe('Federation Middleware', () => {
           }
         );
         expect(res.status).toBe(400);
+        expect(mockSession.challenge).toBe('session-nonce-123');
       }
     });
 
@@ -186,24 +203,65 @@ describe('Federation Middleware', () => {
       expect(body.error).toBe('Invalid nonce.');
     });
 
-    it('rejects Google ID tokens when payload nonce is missing or mismatched and consumes the session challenge', async () => {
-      vi.spyOn(
-        googleClient as unknown as {
-          verifyIdToken: () => Promise<LoginTicket>;
-        },
-        'verifyIdToken'
-      ).mockResolvedValueOnce(
-        new LoginTicket('env', {
-          iss: 'https://accounts.google.com',
-          sub: 'google-sub-1',
-          aud: googleIdp.clientId,
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600,
-          email: `fedtest-mismatch-${Date.now()}@example.com`,
-          email_verified: true,
-          nonce: 'wrong-nonce',
+    it('rejects Google ID tokens when payload nonce is missing/mismatched or email_verified is not true, consuming the challenge', async () => {
+      for (const invalidClaims of [
+        {nonce: 'wrong-nonce', email_verified: true},
+        {nonce: undefined, email_verified: true},
+        {nonce: 'session-nonce-123', email_verified: false},
+        {nonce: 'session-nonce-123', email_verified: undefined},
+      ]) {
+        mockSession = {challenge: 'session-nonce-123'};
+        vi.spyOn(
+          googleClient as unknown as {
+            verifyIdToken: () => Promise<LoginTicket>;
+          },
+          'verifyIdToken'
+        ).mockResolvedValueOnce(
+          new LoginTicket('env', {
+            iss: 'https://accounts.google.com',
+            sub: 'google-sub-1',
+            aud: googleIdp.clientId,
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + 3600,
+            email: `fedtest-invalid-${Date.now()}@example.com`,
+            ...invalidClaims,
+          })
+        );
+
+        const res = await fetch(
+          `http://127.0.0.1:${port}/federation/verifyIdToken`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+              token: 'google.id.token',
+              url: googleIdp.origin,
+            }),
+          }
+        );
+
+        expect(res.status).toBe(401);
+        expect(mockSession.challenge).toBeUndefined();
+      }
+    });
+
+    it('rejects unsigned alg:none custom IdP tokens with 401', async () => {
+      const header = Buffer.from(
+        JSON.stringify({alg: 'none', typ: 'JWT'})
+      ).toString('base64url');
+      const payload = Buffer.from(
+        JSON.stringify({
+          iss: demoIdp.origin,
+          sub: 'demo-sub-none',
+          aud: demoIdp.clientId,
+          nonce: 'session-nonce-123',
+          email: 'forged@example.com',
         })
-      );
+      ).toString('base64url');
+      const unsignedToken = `${header}.${payload}.`;
 
       const res = await fetch(
         `http://127.0.0.1:${port}/federation/verifyIdToken`,
@@ -213,10 +271,7 @@ describe('Federation Middleware', () => {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
           },
-          body: JSON.stringify({
-            token: 'google.id.token',
-            url: googleIdp.origin,
-          }),
+          body: JSON.stringify({token: unsignedToken, url: demoIdp.origin}),
         }
       );
 

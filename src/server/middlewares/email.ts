@@ -31,9 +31,16 @@ router.post(
   '/verify',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const {email, evt} = req.body;
+    const {email, evt} = req.body ?? {};
 
-    if (!email || !evt) {
+    if (
+      typeof email !== 'string' ||
+      !email.trim() ||
+      email.length > 254 ||
+      typeof evt !== 'string' ||
+      !evt.trim() ||
+      evt.length > 16384
+    ) {
       res.status(400).json({error: 'Missing email or token (evt)'});
       return;
     }

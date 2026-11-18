@@ -77,10 +77,14 @@ router.post(
     const {urls} = req.body ?? {};
     if (
       !Array.isArray(urls) ||
-      urls.length === 0 ||
+      urls.length > 50 ||
       !urls.every(u => typeof u === 'string' && u.trim().length > 0)
     ) {
       res.status(400).json({error: 'Invalid urls.'});
+      return;
+    }
+    if (urls.length === 0) {
+      res.json(options);
       return;
     }
     try {
@@ -207,8 +211,24 @@ router.post(
     if (
       typeof raw_token !== 'string' ||
       !raw_token.trim() ||
+      raw_token.length > 16384 ||
       typeof url !== 'string' ||
       !url.trim()
+    ) {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+
+    let parsedIdpUrl: URL;
+    try {
+      parsedIdpUrl = new URL(url);
+    } catch {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+    if (
+      parsedIdpUrl.protocol !== 'https:' &&
+      parsedIdpUrl.protocol !== 'http:'
     ) {
       res.status(400).json({error: 'Missing or invalid token or url.'});
       return;
@@ -245,7 +265,7 @@ router.post(
         if (!payload || payload.nonce !== expected_nonce) {
           throw new Error('Nonce mismatch in ID token.');
         }
-        if (payload.email_verified === false) {
+        if (payload.email_verified !== true) {
           throw new Error('Email is not verified.');
         }
       } else {
@@ -280,8 +300,8 @@ router.post(
         */
       }
 
-      if (!payload?.email) {
-        const message = '`email` is missing in the ID token.';
+      if (!payload?.email || !Users.isValidUsername(payload.email)) {
+        const message = '`email` is missing or invalid in the ID token.';
         logger.error(message);
         throw new Error(message);
       }
@@ -302,10 +322,27 @@ router.post(
         }
       } else {
         // If the user does not exist yet, create a new user.
+        const safeDisplayName = Users.isValidDisplayName(payload.name)
+          ? Users.normalizeDisplayName(payload.name)
+          : undefined;
+        let safePicture: string | undefined;
+        if (
+          typeof payload.picture === 'string' &&
+          payload.picture.length <= 2048
+        ) {
+          try {
+            const picUrl = new URL(payload.picture);
+            if (picUrl.protocol === 'https:') {
+              safePicture = picUrl.toString();
+            }
+          } catch {
+            safePicture = undefined;
+          }
+        }
         user = await Users.create(payload.email, {
           email: payload.email,
-          displayName: payload.name,
-          picture: payload.picture,
+          ...(safeDisplayName ? {displayName: safeDisplayName} : {}),
+          ...(safePicture ? {picture: safePicture} : {}),
         });
         await FederationMappings.create(user.id, payload);
       }

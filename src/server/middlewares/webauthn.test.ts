@@ -226,6 +226,21 @@ describe('WebAuthn Middlewares', () => {
         user: {passkeyUserId: ownerPasskeyUserId},
       };
 
+      for (const badCredId of ['', 'bad/slash', '__reserved__']) {
+        const badCredRes = await fetch(
+          `http://127.0.0.1:${port}/webauthn/renameKey`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({credId: badCredId, newName: 'Valid Name'}),
+          }
+        );
+        assert.strictEqual(badCredRes.status, 400);
+      }
+
       const badNameRes = await fetch(
         `http://127.0.0.1:${port}/webauthn/renameKey`,
         {
@@ -238,6 +253,29 @@ describe('WebAuthn Middlewares', () => {
         }
       );
       assert.strictEqual(badNameRes.status, 400);
+
+      // Cross-user IDOR rename attempt -> 401
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: otherPasskeyUserId},
+      };
+      const idorRenameRes = await fetch(
+        `http://127.0.0.1:${port}/webauthn/renameKey`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({credId, newName: 'Hijacked Name'}),
+        }
+      );
+      assert.strictEqual(idorRenameRes.status, 401);
+
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: ownerPasskeyUserId},
+      };
 
       const okRes = await fetch(`http://127.0.0.1:${port}/webauthn/renameKey`, {
         method: 'POST',
@@ -415,6 +453,33 @@ describe('WebAuthn Middlewares', () => {
       );
       return {status: res.status, body: await res.json()};
     }
+
+    test('rejects empty or malformed signinResponse bodies with 400 instead of 500', async () => {
+      for (const badBody of [
+        undefined,
+        '{}',
+        JSON.stringify({id: 'bad/slash', response: {}}),
+        JSON.stringify({id: '__reserved__', response: {}}),
+        JSON.stringify({id: passkey.id, response: null}),
+      ]) {
+        mockSession.challenge = crypto.randomBytes(32).toString('base64url');
+        const res = await fetch(
+          `http://127.0.0.1:${port}/webauthn/signinResponse`,
+          {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              ...(badBody !== undefined
+                ? {'Content-Type': 'application/json'}
+                : {}),
+            },
+            ...(badBody !== undefined ? {body: badBody} : {}),
+          }
+        );
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(mockSession.challenge, undefined);
+      }
+    });
 
     test('accepts a same-origin assertion', async () => {
       const {status, body} = await signIn({crossOrigin: false});

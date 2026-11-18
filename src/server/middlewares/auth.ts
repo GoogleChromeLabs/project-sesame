@@ -68,20 +68,20 @@ router.post(
   '/new-user',
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
-    const {username, displayName = ''} = req.body ?? {};
+    const {username, displayName} = req.body ?? {};
 
     // TODO: Use Captcha to block bots.
 
     try {
-      if (
-        displayName !== undefined &&
-        displayName !== '' &&
-        !Users.isValidDisplayName(displayName)
-      ) {
+      if (displayName !== undefined && typeof displayName !== 'string') {
         res.status(400).json({error: 'Invalid display name.'});
         return;
       }
       const trimmedDisplayName = Users.normalizeDisplayName(displayName);
+      if (trimmedDisplayName !== '' && !Users.isValidDisplayName(displayName)) {
+        res.status(400).json({error: 'Invalid display name.'});
+        return;
+      }
 
       // Only check username, no need to check password as this is a mock
       if (Users.isValidUsername(username)) {
@@ -99,7 +99,7 @@ router.post(
         // Set username in the session
         new SessionService(req.session).setSigningUp({
           username,
-          displayName: trimmedDisplayName,
+          ...(trimmedDisplayName ? {displayName: trimmedDisplayName} : {}),
           passkeyUserId,
         });
 
@@ -213,14 +213,14 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     const {username, displayName, password1, password2} = req.body ?? {};
+    const normalizedDisplayName = Users.normalizeDisplayName(displayName);
 
     if (!Users.isValidUsername(username)) {
       res.status(400).json({error: 'Invalid username'});
       return;
     } else if (
-      displayName !== undefined &&
-      displayName !== '' &&
-      !Users.isValidDisplayName(displayName)
+      (displayName !== undefined && typeof displayName !== 'string') ||
+      (normalizedDisplayName !== '' && !Users.isValidDisplayName(displayName))
     ) {
       res.status(400).json({error: 'Invalid display name.'});
       return;
@@ -243,7 +243,6 @@ router.post(
       return;
     }
 
-    const normalizedDisplayName = Users.normalizeDisplayName(displayName);
     const user: SignUpUser = {
       username,
       ...(normalizedDisplayName ? {displayName: normalizedDisplayName} : {}),
@@ -495,8 +494,12 @@ router.post(
     }
 
     const existing = await Users.findById(user.id);
+    if (!existing) {
+      res.status(401).json({error: 'The user needs to be signed in.'});
+      return;
+    }
     const updatedUser = await Users.update({
-      ...(existing ?? user),
+      ...existing,
       password: normalizedPassword,
     });
     setSignedIn({...updatedUser}, req, res);
@@ -577,10 +580,19 @@ router.post(
     }
 
     const {user} = res.locals;
-    user.displayName = Users.normalizeDisplayName(newName);
-    await Users.update(user);
+    const existing = await Users.findById(user.id);
+    if (!existing) {
+      res.status(401).json({error: 'The user needs to be signed in.'});
+      return;
+    }
+    const normalizedName = Users.normalizeDisplayName(newName);
+    await Users.update({
+      ...existing,
+      displayName: normalizedName,
+    });
+    user.displayName = normalizedName;
     if (req.session?.user) {
-      req.session.user.displayName = user.displayName;
+      req.session.user.displayName = normalizedName;
     }
     const {rpId} = getRequestContext(req);
     res.json({...user, rpId});

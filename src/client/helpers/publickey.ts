@@ -293,8 +293,8 @@ export async function deleteAllCredentials(): Promise<void> {
   }
 }
 /**
- * Request to update the namme of a passkey.
- * @param { Base64URLString } credId A Base64URL encoded credential ID of the passkey to unregister.
+ * Request to update the name of a passkey.
+ * @param { Base64URLString } credId A Base64URL encoded credential ID of the passkey to rename.
  * @param { string } newName A new name for the passkey.
  * @returns a promise that resolves with a server response.
  */
@@ -302,7 +302,11 @@ export async function updateCredential(
   credId: Base64URLString,
   newName: string
 ): Promise<any> {
-  return post('/webauthn/renameKey', {credId, newName});
+  try {
+    return await post('/webauthn/renameKey', {credId, newName});
+  } catch (e: any) {
+    throw new Error(e?.error || e?.message || 'Failed to rename passkey.');
+  }
 }
 
 /**
@@ -313,5 +317,11 @@ export async function updateCredential(
 export async function unregisterCredential(
   credId: Base64URLString
 ): Promise<any> {
-  return post(`/webauthn/removeKey?credId=${encodeURIComponent(credId)}`);
+  try {
+    return await post(
+      `/webauthn/removeKey?credId=${encodeURIComponent(credId)}`
+    );
+  } catch (e: any) {
+    throw new Error(e?.error || e?.message || 'Failed to remove passkey.');
+  }
 }

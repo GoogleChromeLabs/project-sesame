@@ -116,14 +116,28 @@ export function getGravatarUrl(username: string): string {
   return pictureURL.toString();
 }
 
+/**
+ * Compares two URL strings and returns `true` only when both are valid
+ * `http:` or `https:` URLs with identical non-opaque origins.
+ *
+ * @param url1 - The first URL string to compare.
+ * @param url2 - The second URL string to compare.
+ * @returns `true` if both URLs share the same `http:` or `https:` origin.
+ */
 export function compareUrls(url1?: unknown, url2?: unknown): boolean {
   if (typeof url1 !== 'string' || typeof url2 !== 'string' || !url1 || !url2) {
     return false;
   }
   try {
-    const origin1 = new URL(url1).origin;
-    const origin2 = new URL(url2).origin;
-    return origin1 !== 'null' && origin1 === origin2;
+    const parsed1 = new URL(url1);
+    const parsed2 = new URL(url2);
+    if (
+      (parsed1.protocol !== 'https:' && parsed1.protocol !== 'http:') ||
+      parsed1.protocol !== parsed2.protocol
+    ) {
+      return false;
+    }
+    return parsed1.origin !== 'null' && parsed1.origin === parsed2.origin;
   } catch {
     return false;
   }

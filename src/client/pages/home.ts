@@ -16,7 +16,7 @@
  */
 
 import {html, render} from 'lit';
-import {$, post, loading} from '~project-sesame/client/helpers/index';
+import {$, post, loading, toast} from '~project-sesame/client/helpers/index';
 import '~project-sesame/client/layout';
 
 /**
@@ -31,29 +31,35 @@ export async function changeDisplayName(e: {
   );
   if (newName?.length) {
     loading.start();
-    const user = await post('/auth/updateDisplayName', {newName});
-    if (
-      window.PublicKeyCredential &&
-      'signalCurrentUserDetails' in PublicKeyCredential &&
-      user.rpId &&
-      user.passkeyUserId
-    ) {
-      try {
-        await PublicKeyCredential.signalCurrentUserDetails({
-          rpId: user.rpId,
-          userId: user.passkeyUserId,
-          name: user.username,
-          displayName: user.displayName,
-        });
-        console.info(
-          'Updated user details have been signaled to the password manager.'
-        );
-      } catch (e: any) {
-        console.error(e.message);
+    try {
+      const user = await post('/auth/updateDisplayName', {newName});
+      if (
+        window.PublicKeyCredential &&
+        'signalCurrentUserDetails' in PublicKeyCredential &&
+        user.rpId &&
+        user.passkeyUserId
+      ) {
+        try {
+          await PublicKeyCredential.signalCurrentUserDetails({
+            rpId: user.rpId,
+            userId: user.passkeyUserId,
+            name: user.username,
+            displayName: user.displayName,
+          });
+          console.info(
+            'Updated user details have been signaled to the password manager.'
+          );
+        } catch (e: any) {
+          console.error(e.message);
+        }
       }
+      await renderDisplayName();
+    } catch (error: any) {
+      console.error(error);
+      toast(error?.message || error?.error || 'Failed to update display name.');
+    } finally {
+      loading.stop();
     }
-    loading.stop();
-    await renderDisplayName();
   }
 }
 

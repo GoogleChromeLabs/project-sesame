@@ -121,14 +121,19 @@ router.post(
 );
 
 /**
- * Validates that a credential ID is a non-empty Base64URL string within safe
- * Firestore document ID length bounds.
+ * Validates that a credential ID is a non-empty Base64URL string within
+ * WebAuthn Level 3 (1,023 raw bytes / 1,364 Base64URL chars) and Firestore
+ * document ID bounds, excluding Firestore-reserved `__.*__` names.
+ *
+ * @param credId - The candidate credential ID value.
+ * @returns `true` if `credId` is a valid Base64URL credential ID.
  */
 function isValidCredentialId(credId: unknown): credId is Base64URLString {
   return (
     typeof credId === 'string' &&
     credId.length >= 1 &&
-    credId.length <= 1024 &&
+    credId.length <= 1364 &&
+    !/^__.*__$/.test(credId) &&
     /^[A-Za-z0-9_-]+$/.test(credId)
   );
 }
@@ -481,7 +486,7 @@ router.post(
 
     // Set expected values.
     const conditional = 'conditional' in req.query;
-    const response = req.body as RegistrationResponseJSON;
+    const response = (req.body ?? {}) as RegistrationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
       getRequestContext(req);
@@ -491,6 +496,16 @@ router.post(
     try {
       if (!expectedChallenge) {
         res.status(400).send({error: 'Invalid challenge'});
+        return;
+      }
+
+      if (
+        !isValidCredentialId(response?.id) ||
+        typeof response?.response !== 'object' ||
+        response.response === null
+      ) {
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).send({error: 'Invalid registration response.'});
         return;
       }
 
@@ -752,7 +767,7 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     // Set expected values.
-    const response = req.body as AuthenticationResponseJSON;
+    const response = (req.body ?? {}) as AuthenticationResponseJSON;
     const expectedChallenge = new SessionService(req.session).getChallenge();
     const {rpId: expectedRPID, associatedOrigins: expectedOrigin} =
       getRequestContext(req);
@@ -774,6 +789,16 @@ router.post(
       if (!expectedChallenge) {
         logger.error('Challenge was undefined.');
         res.status(401).json({error: 'Invalid challenge.'});
+        return;
+      }
+
+      if (
+        !isValidCredentialId(response?.id) ||
+        typeof response?.response !== 'object' ||
+        response.response === null
+      ) {
+        new SessionService(req.session).deleteChallenge();
+        res.status(400).json({error: 'Invalid authentication response.'});
         return;
       }
 

@@ -405,6 +405,7 @@ describe('isValidUsername and isValidDisplayName', () => {
     assert.strictEqual(Users.isValidDisplayName('   '), false);
     assert.strictEqual(Users.isValidDisplayName('a'.repeat(101)), false);
     assert.strictEqual(Users.isValidDisplayName('bad\u0000name'), false);
+    assert.strictEqual(Users.isValidDisplayName('bad\u0085name'), false);
     assert.strictEqual(Users.isValidDisplayName(123), false);
   });
 });

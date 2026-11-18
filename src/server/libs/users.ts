@@ -202,7 +202,7 @@ export class Users {
     }
     for (let i = 0; i < normalized.length; i++) {
       const code = normalized.charCodeAt(i);
-      if (code <= 0x1f || code === 0x7f) {
+      if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) {
         return false;
       }
     }
@@ -430,8 +430,9 @@ export class Users {
     const ref = store
       .collection(Users.collection)
       .doc(<Base64URLString>user.id);
-    // Convert to Firestore format before saving.
-    await ref.set(toFirestoreUser(user));
+    // Convert to Firestore format and merge so omitted fields (such as
+    // `password` stripped from session copies) are never erased.
+    await ref.set(toFirestoreUser(user), {merge: true});
     return user;
   }
 

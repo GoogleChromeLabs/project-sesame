@@ -275,13 +275,18 @@ router.post(
       (!user.approved_clients || !user.approved_clients.includes(rp.client_id))
     ) {
       logger.info('The user is registering to the RP.');
-      // Add the current RP as an approved client to sign in with this account
-      if (!user.approved_clients) {
-        user.approved_clients = [];
-      }
-      if (!user.approved_clients.includes(rp.client_id)) {
-        user.approved_clients.push(rp.client_id);
-        await Users.update(user);
+      const existing = await Users.findById(user.id);
+      const baseUser = existing ?? user;
+      const approvedClients = Array.from(
+        new Set([...(baseUser.approved_clients ?? []), rp.client_id])
+      );
+      await Users.update({
+        ...baseUser,
+        approved_clients: approvedClients,
+      });
+      user.approved_clients = approvedClients;
+      if (req.session?.user) {
+        req.session.user.approved_clients = approvedClients;
       }
     } else {
       logger.info('The user is signing in to the RP.');
@@ -297,7 +302,10 @@ router.post(
         return;
       }
     }
-    if (nonce !== undefined && typeof nonce !== 'string') {
+    if (
+      nonce !== undefined &&
+      (typeof nonce !== 'string' || nonce.length > 512)
+    ) {
       res.status(400).json({error: 'Invalid nonce'});
       return;
     }
@@ -372,7 +380,7 @@ router.post(
         {
           iss: config.origin,
           sub: user.id,
-          aud: rp.origin,
+          aud: rp.client_id,
           nonce,
           exp: Math.floor(getTime(config.id_token_lifetime) / 1000),
           iat: Math.floor(getTime() / 1000),
@@ -464,22 +472,28 @@ router.post(
       return;
     }
 
-    // Ensure approved_clients is an array to prevent runtime errors.
-    if (!user.approved_clients) {
-      user.approved_clients = [];
-    }
+    const existing = await Users.findById(user.id);
+    const baseUser = existing ?? user;
+    const currentApproved = baseUser.approved_clients ?? [];
 
-    if (!user.approved_clients.includes(rp.client_id)) {
+    if (!currentApproved.includes(rp.client_id)) {
       logger.error('The client is not connected.');
       res.status(400).json({error: 'The client is not connected.'});
       return;
     }
 
     // Remove the client ID from the `approved_clients` list.
-    user.approved_clients = user.approved_clients.filter(
+    const updatedClients = currentApproved.filter(
       (_client_id: string) => _client_id !== rp.client_id
     );
-    await Users.update(user);
+    await Users.update({
+      ...baseUser,
+      approved_clients: updatedClients,
+    });
+    user.approved_clients = updatedClients;
+    if (req.session?.user) {
+      req.session.user.approved_clients = updatedClients;
+    }
     res.json({account_id: user.id});
   }
 );

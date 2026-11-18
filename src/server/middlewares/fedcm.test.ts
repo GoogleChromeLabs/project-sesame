@@ -207,6 +207,27 @@ describe('FedCM Middleware JWT timestamps', () => {
     assert.strictEqual(noCsrf.status, 400);
     assert.strictEqual(noCsrf.headers.get('access-control-allow-origin'), null);
 
+    // Same-origin Origin header -> 200
+    const sameOrigin = await fetch(
+      `http://127.0.0.1:${port}/fedcm/createToken`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-Forwarded-Host': 'idp.localhost',
+          'X-Forwarded-Proto': 'https',
+          Origin: 'https://idp.localhost',
+        },
+        body: JSON.stringify({nonce: 'n1', rp_origin: testRp.origin}),
+      }
+    );
+    assert.strictEqual(sameOrigin.status, 200);
+    assert.strictEqual(
+      sameOrigin.headers.get('access-control-allow-origin'),
+      null
+    );
+
     // Cross-origin Origin header -> 403 and no Access-Control-Allow-Origin
     const crossOrigin = await fetch(
       `http://127.0.0.1:${port}/fedcm/createToken`,
@@ -243,10 +264,15 @@ describe('FedCM Middleware JWT timestamps', () => {
     }
   });
 
-  it('POST /fedcm/disconnect validates client_id, Origin, and account_hint and persists approved_clients update', async () => {
+  it('POST /fedcm/disconnect validates client_id, Origin, and account_hint and persists approved_clients update without erasing password', async () => {
     const {Users} = await import('../libs/users.ts');
     const updatedSnapshots: any[] = [];
+    const origFindById = Users.findById;
     const origUpdate = Users.update;
+    Users.findById = async (id: string) =>
+      id === mockUser.id
+        ? ({...mockUser, password: 'StoredPassword123!'} as any)
+        : undefined;
     Users.update = async (user: any) => {
       updatedSnapshots.push(structuredClone(user));
       return user;
@@ -325,7 +351,9 @@ describe('FedCM Middleware JWT timestamps', () => {
       assert.deepStrictEqual(await ok.json(), {account_id: mockUser.id});
       assert.strictEqual(updatedSnapshots.length, 1);
       assert.deepStrictEqual(updatedSnapshots[0].approved_clients, []);
+      assert.strictEqual(updatedSnapshots[0].password, 'StoredPassword123!');
     } finally {
+      Users.findById = origFindById;
       Users.update = origUpdate;
     }
   });
