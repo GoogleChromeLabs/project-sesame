@@ -22,11 +22,13 @@ import express, {Request, Response, NextFunction} from 'express';
 import {
   SettingsService,
   type AuthenticationResponseJSON,
+  type RegistrationResponseJSON,
 } from '@simplewebauthn/server';
 import {webauthn} from './webauthn.ts';
 import {config} from '~project-sesame/server/config.ts';
 import {PublicKeyCredentials} from '~project-sesame/server/libs/public-key-credentials.ts';
-import {Users} from '~project-sesame/server/libs/users.ts';
+import {UserSignInStatus} from '~project-sesame/server/libs/session.ts';
+import {User, Users} from '~project-sesame/server/libs/users.ts';
 import http from 'http';
 
 /**
@@ -85,6 +87,77 @@ class SoftwarePasskey {
         clientDataJSON: clientDataJSON.toString('base64url'),
         authenticatorData: authenticatorData.toString('base64url'),
         signature: signature.toString('base64url'),
+      },
+    };
+  }
+
+  /**
+   * Builds a `RegistrationResponseJSON` with a `"none"` attestation object so
+   * `/webauthn/registerResponse` is exercised end-to-end through
+   * `verifyRegistrationResponse()`.
+   *
+   * @param clientData - The `CollectedClientData` payload to embed.
+   * @param credentialId - Optional credential ID override to simulate replaying
+   *   an already-registered credential ID paired with a different public key.
+   * @returns The registration response in the JSON form posted by the client.
+   */
+  register(
+    clientData: Record<string, unknown>,
+    credentialId: string = this.id
+  ): RegistrationResponseJSON {
+    const clientDataJSON = Buffer.from(JSON.stringify(clientData));
+    const credentialIdBytes = Buffer.from(credentialId, 'base64url');
+    const credentialIdLength = Buffer.alloc(2);
+    credentialIdLength.writeUInt16BE(credentialIdBytes.length, 0);
+    const cosePublicKeyBytes = Buffer.from(this.cosePublicKey, 'base64url');
+
+    const authData = Buffer.concat([
+      crypto.createHash('sha256').update(config.hostname).digest(), // rpIdHash
+      Buffer.from([0x45]), // flags: UP | UV | AT
+      Buffer.alloc(4), // signCount: 0
+      Buffer.alloc(16), // aaguid: zero
+      credentialIdLength,
+      credentialIdBytes,
+      cosePublicKeyBytes,
+    ]);
+
+    // Encode CBOR map(3) { "fmt": "none", "attStmt": {}, "authData": <bstr> }.
+    let bstrHeader: Buffer;
+    if (authData.length < 24) {
+      bstrHeader = Buffer.from([0x40 | authData.length]);
+    } else if (authData.length <= 0xff) {
+      bstrHeader = Buffer.from([0x58, authData.length]);
+    } else {
+      bstrHeader = Buffer.from([
+        0x59,
+        authData.length >> 8,
+        authData.length & 0xff,
+      ]);
+    }
+
+    const attestationObject = Buffer.concat([
+      Buffer.from([0xa3, 0x63]),
+      Buffer.from('fmt'),
+      Buffer.from([0x64]),
+      Buffer.from('none'),
+      Buffer.from([0x67]),
+      Buffer.from('attStmt'),
+      Buffer.from([0xa0, 0x68]),
+      Buffer.from('authData'),
+      bstrHeader,
+      authData,
+    ]);
+
+    return {
+      id: credentialId,
+      rawId: credentialId,
+      type: 'public-key',
+      authenticatorAttachment: 'platform',
+      clientExtensionResults: {},
+      response: {
+        clientDataJSON: clientDataJSON.toString('base64url'),
+        attestationObject: attestationObject.toString('base64url'),
+        transports: ['internal'],
       },
     };
   }
@@ -448,6 +521,260 @@ describe('WebAuthn Middlewares', () => {
       assert.strictEqual(base64Payload.length % 4, 0);
 
       await PublicKeyCredentials.remove(credId);
+    });
+  });
+
+  describe('registerResponse credential ID uniqueness', () => {
+    const victimPasskey = new SoftwarePasskey();
+    const freshPasskey = new SoftwarePasskey();
+    let victimUser: User;
+    let attackerUser: User;
+    const createdCredentialIds: string[] = [victimPasskey.id];
+    const createdUserIds: string[] = [];
+
+    beforeAll(async () => {
+      const victimPasskeyUserId = crypto.randomBytes(16).toString('base64url');
+      victimUser = await Users.create(`testuser-victim-${Date.now()}`, {
+        passkeyUserId: victimPasskeyUserId,
+      });
+      createdUserIds.push(victimUser.id);
+
+      const attackerPasskeyUserId = crypto
+        .randomBytes(16)
+        .toString('base64url');
+      attackerUser = await Users.create(`testuser-attacker-${Date.now()}`, {
+        passkeyUserId: attackerPasskeyUserId,
+      });
+      createdUserIds.push(attackerUser.id);
+
+      await PublicKeyCredentials.create({
+        id: victimPasskey.id,
+        passkeyUserId: victimPasskeyUserId,
+        credentialPublicKey: victimPasskey.cosePublicKey,
+        credentialType: 'public-key',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        userVerified: true,
+        transports: ['internal'],
+        credentialDeviceType: 'multiDevice',
+        credentialBackedUp: true,
+        registeredAt: Date.now(),
+      });
+    });
+
+    afterAll(async () => {
+      await Promise.all(
+        createdCredentialIds.map(id => PublicKeyCredentials.remove(id))
+      );
+      await Promise.all(createdUserIds.map(id => Users.delete(id)));
+    });
+
+    beforeEach(() => {
+      mockSession.challenge = crypto.randomBytes(32).toString('base64url');
+    });
+
+    /**
+     * Posts a passkey registration response to `/webauthn/registerResponse`.
+     */
+    async function postRegisterResponse(
+      body: RegistrationResponseJSON
+    ): Promise<{status: number; body: any}> {
+      const res = await fetch(
+        `http://127.0.0.1:${port}/webauthn/registerResponse`,
+        {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      return {status: res.status, body: await res.json()};
+    }
+
+    test('registers a new passkey when the credential ID is unused', async () => {
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+      createdCredentialIds.push(freshPasskey.id);
+
+      const registration = freshPasskey.register({
+        type: 'webauthn.create',
+        challenge: mockSession.challenge,
+        origin: config.origin,
+      });
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 200, JSON.stringify(body));
+      assert.strictEqual(mockSession.challenge, undefined);
+
+      const stored = await PublicKeyCredentials.findById(freshPasskey.id);
+      assert.ok(stored);
+      assert.strictEqual(stored.passkeyUserId, attackerUser.passkeyUserId);
+      assert.strictEqual(
+        stored.credentialPublicKey,
+        freshPasskey.cosePublicKey
+      );
+    });
+
+    test('rejects an attacker registering an existing credential ID from another user without overwriting it', async () => {
+      const attackerPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+
+      const registration = attackerPasskey.register(
+        {
+          type: 'webauthn.create',
+          challenge: mockSession.challenge,
+          origin: config.origin,
+        },
+        victimPasskey.id
+      );
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 409);
+      assert.strictEqual(body.error, 'Credential ID is already registered.');
+      assert.strictEqual(mockSession.challenge, undefined);
+
+      const victimStored = await PublicKeyCredentials.findById(
+        victimPasskey.id
+      );
+      assert.ok(victimStored);
+      assert.strictEqual(victimStored.passkeyUserId, victimUser.passkeyUserId);
+      assert.strictEqual(
+        victimStored.credentialPublicKey,
+        victimPasskey.cosePublicKey
+      );
+    });
+
+    test('rejects re-registration when the same user submits an existing credential ID', async () => {
+      const replacementPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: victimUser,
+        username: victimUser.username,
+      };
+
+      const registration = replacementPasskey.register(
+        {
+          type: 'webauthn.create',
+          challenge: mockSession.challenge,
+          origin: config.origin,
+        },
+        victimPasskey.id
+      );
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 409);
+      assert.strictEqual(body.error, 'Credential ID is already registered.');
+      assert.strictEqual(mockSession.challenge, undefined);
+
+      const victimStored = await PublicKeyCredentials.findById(
+        victimPasskey.id
+      );
+      assert.ok(victimStored);
+      assert.strictEqual(
+        victimStored.credentialPublicKey,
+        victimPasskey.cosePublicKey
+      );
+    });
+
+    test('rejects collision during SigningUp without creating a user or signing in', async () => {
+      const signupUsername = `testuser-signup-collision-${Date.now()}`;
+      const attackerPasskey = new SoftwarePasskey();
+      mockSession.signup_user = {
+        username: signupUsername,
+        displayName: signupUsername,
+        passkeyUserId: crypto.randomBytes(16).toString('base64url'),
+      };
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SigningUp,
+        username: signupUsername,
+      };
+
+      const registration = attackerPasskey.register(
+        {
+          type: 'webauthn.create',
+          challenge: mockSession.challenge,
+          origin: config.origin,
+        },
+        victimPasskey.id
+      );
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 409);
+      assert.strictEqual(body.error, 'Credential ID is already registered.');
+      assert.strictEqual(mockSession.challenge, undefined);
+      assert.strictEqual(mockSession.user, undefined);
+
+      const createdUser = await Users.findByUsername(signupUsername);
+      assert.strictEqual(createdUser, undefined);
+
+      const victimStored = await PublicKeyCredentials.findById(
+        victimPasskey.id
+      );
+      assert.ok(victimStored);
+      assert.strictEqual(victimStored.passkeyUserId, victimUser.passkeyUserId);
+      assert.strictEqual(
+        victimStored.credentialPublicKey,
+        victimPasskey.cosePublicKey
+      );
+    });
+
+    test('returns 409 when atomic create loses a concurrent write race after findById', async () => {
+      const racingPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+
+      const findByIdSpy = vi
+        .spyOn(PublicKeyCredentials, 'findById')
+        .mockResolvedValueOnce(undefined);
+
+      try {
+        const registration = racingPasskey.register(
+          {
+            type: 'webauthn.create',
+            challenge: mockSession.challenge,
+            origin: config.origin,
+          },
+          victimPasskey.id
+        );
+        const {status, body} = await postRegisterResponse(registration);
+
+        assert.strictEqual(status, 409);
+        assert.strictEqual(body.error, 'Credential ID is already registered.');
+        assert.strictEqual(mockSession.challenge, undefined);
+      } finally {
+        findByIdSpy.mockRestore();
+      }
+    });
+
+    test('returns 400 when registration verification fails for non-collision reasons', async () => {
+      const invalidPasskey = new SoftwarePasskey();
+      mockSession.locals = {
+        signin_status: UserSignInStatus.SignedIn,
+        user: attackerUser,
+        username: attackerUser.username,
+      };
+
+      const registration = invalidPasskey.register({
+        type: 'webauthn.create',
+        challenge: 'wrong-challenge-value',
+        origin: config.origin,
+      });
+      const {status, body} = await postRegisterResponse(registration);
+
+      assert.strictEqual(status, 400);
+      assert.match(body.error, /challenge/i);
+      assert.strictEqual(mockSession.challenge, undefined);
     });
   });
 });

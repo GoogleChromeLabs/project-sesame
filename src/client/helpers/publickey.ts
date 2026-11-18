@@ -79,20 +79,26 @@ export async function verifyPublicKeyCreationResult(
     const result = await post(path, encodedCredential);
     return result;
   } catch (e: any) {
-    // Detect if the credential was not found.
+    // Skip signaling on 409 Conflict so an already-registered credential ID
+    // (for example, when an authenticator ignores `excludeCredentials`) does
+    // not cause the password manager to delete a live passkey.
     // @ts-ignore
-    if (PublicKeyCredential.signalUnknownCredential) {
-      // Send a signal to delete the credential that was just created.
-      // @ts-ignore
-      await PublicKeyCredential.signalUnknownCredential({
-        rpId,
-        credentialId: cred.id,
-      });
-      console.info(
-        'The passkey failed to register has been signaled to the password manager.'
-      );
+    if (e?.status !== 409 && PublicKeyCredential.signalUnknownCredential) {
+      try {
+        // Send a signal to delete the credential that was just created.
+        // @ts-ignore
+        await PublicKeyCredential.signalUnknownCredential({
+          rpId,
+          credentialId: cred.id,
+        });
+        console.info(
+          'The passkey failed to register has been signaled to the password manager.'
+        );
+      } catch (signalError) {
+        console.error(signalError);
+      }
     }
-    throw new Error(e.error);
+    throw new Error(e?.error || e?.message);
   }
 }
 
