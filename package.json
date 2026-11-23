@@ -49,14 +49,23 @@
     "test:run": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run\"",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json"
   },
+  "allowScripts": {
+    "@firebase/util@1.15.3": true,
+    "@parcel/watcher@2.6.0": true,
+    "@radically-straightforward/caddy@2.0.13": true,
+    "@scarf/scarf@1.4.0": true,
+    "esbuild@0.28.2": true,
+    "protobufjs@7.6.6": true,
+    "re2@1.27.2": true
+  },
   "overrides": {
-    "@opentelemetry/core@<2.8.0": "^2.12.1",
-    "glob@>=9.0.0 <=14.0.1": "^14.0.6",
+    "@opentelemetry/core": "^2.12.1",
+    "glob": "^14.0.6",
     "minimatch@>=7.0.0 <11.0.1": "^11.0.9",
     "typedoc": {
       "minimatch": "^10.2.6"
     },
-    "uuid@<11.1.1": "^11.1.1"
+    "uuid": "^11.1.1"
   },
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
@@ -118,14 +127,5 @@
   },
   "engines": {
     "node": ">=24.7.0"
-  },
-  "allowScripts": {
-    "@scarf/scarf@1.4.0": true,
-    "@parcel/watcher@2.6.0": true,
-    "@radically-straightforward/caddy@2.0.13": true,
-    "esbuild@0.28.2": true,
-    "protobufjs@7.6.6": true,
-    "@firebase/util@1.15.3": true,
-    "re2@1.27.0": true
   }
 }
