@@ -44,22 +44,42 @@ export interface SesamePublicKeyCredential {
   registeredAt: number;
 }
 
+function isFirestoreAlreadyExistsError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return false;
+  }
+  const code = (error as {code?: unknown}).code;
+  return code === 6 || code === '6' || code === 'already-exists';
+}
+
+/**
+ * Error thrown when attempting to register a passkey whose credential ID
+ * already exists in Firestore.
+ */
+export class CredentialAlreadyExistsError extends Error {
+  constructor(message = 'Credential ID is already registered.') {
+    super(message);
+    this.name = 'CredentialAlreadyExistsError';
+  }
+}
+
 export class PublicKeyCredentials {
   static collection = 'public_key_credentials';
 
   static async findById(
     credential_id: Base64URLString = ''
   ): Promise<SesamePublicKeyCredential | undefined> {
+    if (!credential_id) {
+      return;
+    }
     const doc = await store
       .collection(PublicKeyCredentials.collection)
       .doc(credential_id)
       .get();
-    if (doc) {
-      const credential = doc.data();
-      return <SesamePublicKeyCredential>credential;
-    } else {
+    if (!doc.exists) {
       return;
     }
+    return <SesamePublicKeyCredential>doc.data();
   }
 
   static async findByPasskeyUserId(
@@ -75,6 +95,42 @@ export class PublicKeyCredentials {
     return results;
   }
 
+  /**
+   * Stores a newly registered passkey credential in Firestore.
+   *
+   * Uses Firestore's atomic `create()` operation so an existing document with
+   * the same `credential.id` can never be overwritten, even under concurrent
+   * registration requests (WebAuthn Section 7.1 step 26).
+   *
+   * @param credential The passkey credential record to store.
+   * @returns The Firestore write result.
+   * @throws {Error} When `credential.id` is empty.
+   * @throws {CredentialAlreadyExistsError} When a credential with the same ID already exists.
+   */
+  static async create(
+    credential: SesamePublicKeyCredential
+  ): Promise<FirebaseFirestore.WriteResult> {
+    if (!credential.id) {
+      throw new Error('Credential ID is required.');
+    }
+    const ref = store
+      .collection(PublicKeyCredentials.collection)
+      .doc(credential.id);
+    try {
+      return await ref.create(credential);
+    } catch (error: unknown) {
+      if (isFirestoreAlreadyExistsError(error)) {
+        throw new CredentialAlreadyExistsError();
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Updates metadata (such as key name or `lastUsedAt`) on an existing
+   * passkey credential record. Do not use this for new registrations; use
+   * {@link PublicKeyCredentials.create} instead so duplicate IDs fail closed.
+   */
   static async update(
     credential: SesamePublicKeyCredential
   ): Promise<FirebaseFirestore.WriteResult> {

@@ -35,6 +35,7 @@ import {
 import {isoBase64URL} from '@simplewebauthn/server/helpers';
 import {config} from '~project-sesame/server/config.ts';
 import {
+  CredentialAlreadyExistsError,
   PublicKeyCredentials,
   SesamePublicKeyCredential,
 } from '~project-sesame/server/libs/public-key-credentials.ts';
@@ -414,6 +415,8 @@ router.post(
  *                   type: string
  *       400:
  *         description: Verification failed
+ *       409:
+ *         description: Credential ID is already registered
  */
 router.post(
   '/registerResponse',
@@ -470,6 +473,20 @@ router.post(
       }
 
       const {credential} = registrationInfo;
+      if (!credential.id) {
+        throw new Error('Credential ID is required.');
+      }
+
+      // Per WebAuthn Section 7.1 step 26, reject registration if the credential ID
+      // is already registered to any user (same user or another user) to prevent
+      // credential overwrite and account takeover.
+      const existingCredential = await PublicKeyCredentials.findById(
+        credential.id
+      );
+      if (existingCredential) {
+        throw new CredentialAlreadyExistsError();
+      }
+
       const {
         aaguid,
         credentialType,
@@ -515,8 +532,8 @@ router.post(
         name = aaguid_item.name;
       }
 
-      // Store the registration result.
-      await PublicKeyCredentials.update({
+      // Store the newly registered credential atomically to prevent race-condition overwrites.
+      await PublicKeyCredentials.create({
         id: credential.id,
         passkeyUserId: passkeyUserId,
         name,
@@ -541,11 +558,14 @@ router.post(
 
       // Respond with the user information.
       res.json(user);
-    } catch (error: any) {
+    } catch (error: unknown) {
       new SessionService(req.session).deleteChallenge();
 
       console.error(error);
-      res.status(400).send({error: error.message});
+      const status = error instanceof CredentialAlreadyExistsError ? 409 : 400;
+      const message =
+        error instanceof Error ? error.message : 'Registration failed.';
+      res.status(status).send({error: message});
     }
   }
 );
