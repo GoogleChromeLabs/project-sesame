@@ -49,56 +49,71 @@
     "test:run": "NODE_ENV=localhost firebase emulators:exec --only firestore \"vitest run\"",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p src/client/tsconfig.json && tsc --noEmit -p src/server/tsconfig.json"
   },
+  "allowScripts": {
+    "@firebase/util@1.15.3": true,
+    "@parcel/watcher@2.6.0": true,
+    "@radically-straightforward/caddy@2.0.13": true,
+    "@scarf/scarf@1.4.0": true,
+    "esbuild@0.28.2": true,
+    "protobufjs@7.6.6": true,
+    "re2@1.27.2": true
+  },
+  "overrides": {
+    "@opentelemetry/core": "^2.12.1",
+    "glob": "^14.0.6",
+    "minimatch@>=7.0.0 <11.0.1": "^11.0.9",
+    "typedoc": {
+      "minimatch": "^10.2.6"
+    },
+    "uuid": "^11.1.1"
+  },
   "dependencies": {
     "@google-cloud/connect-firestore": "3.0.0",
     "@radically-straightforward/caddy": "^2.0.13",
-    "@simplewebauthn/server": "^14.0.3",
-    "concurrently": "^10.0.6",
+    "@simplewebauthn/server": "^14.1.0",
+    "concurrently": "^10.0.7",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
-    "dotenv": "18.0.4",
-    "express": "5.2.1",
-    "express-handlebars": "9.0.1",
+    "express": "5.3.0",
+    "express-handlebars": "9.0.6",
     "express-session": "1.19.0",
     "express-useragent": "2.2.3",
-    "firebase-admin": "^14.5.0",
-    "google-auth-library": "^11.1.0",
+    "firebase-admin": "^14.5.1",
+    "google-auth-library": "^11.3.4",
     "helmet": "^8.3.0",
     "jsonwebtoken": "9.0.3",
-    "marked": "^18.0.14",
+    "marked": "^18.2.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "wait-on": "^9.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@rsbuild/core": "2.2.11",
+    "@rsbuild/core": "2.3.3",
     "@rsbuild/plugin-sass": "^2.0.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
-    "@vitest/coverage-v8": "^5.0.2",
+    "@vitest/coverage-v8": "^5.1.1",
     "esbuild": "0.28.2",
-    "eslint": "^10.11.0",
+    "eslint": "^10.15.0",
     "eslint-plugin-no-unsanitized": "^4.1.5",
-    "eslint-plugin-security": "^4.1.0",
+    "eslint-plugin-security": "^4.2.1",
     "eslint-plugin-sonarjs": "^4.2.2",
-    "firebase-tools": "^15.36.0",
-    "globals": "^17.12.0",
-    "gts": "7.0.0",
+    "firebase-tools": "^15.37.0",
+    "globals": "^17.14.0",
     "lit": "3.3.3",
     "mdui": "^2.1.5",
     "nodemon": "3.1.14",
-    "prettier": "^3.9.9",
-    "prettier-plugin-packagejson": "^3.0.2",
-    "rimraf": "6.1.3",
+    "prettier": "^3.10.1",
+    "prettier-plugin-packagejson": "^3.1.0",
+    "rimraf": "6.1.4",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.0",
-    "ua-parser-js": "^2.0.10",
-    "vite": "^8.3.4",
-    "vitest": "^5.0.2",
+    "typescript-eslint": "^8.73.0",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1",
     "webauthn-polyfills": "^0.1.7"
   },
   "optionalDependencies": {
@@ -106,18 +121,9 @@
     "@types/express-session": "1.19.0",
     "@types/express-useragent": "1.0.5",
     "@types/jsonwebtoken": "9.0.10",
-    "@types/node": "26.6.3"
+    "@types/node": "26.6.6"
   },
   "engines": {
     "node": ">=24.7.0"
-  },
-  "allowScripts": {
-    "@scarf/scarf@1.4.0": true,
-    "@parcel/watcher@2.6.0": true,
-    "@radically-straightforward/caddy@2.0.13": true,
-    "esbuild@0.28.2": true,
-    "protobufjs@7.6.6": true,
-    "@firebase/util@1.15.3": true,
-    "re2@1.27.0": true
   }
 }
