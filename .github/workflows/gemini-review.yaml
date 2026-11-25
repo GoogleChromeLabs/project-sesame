@@ -210,6 +210,9 @@ jobs:
           except Exception as e:
               print(f"Warning: ListModels discovery failed ({e}); using static fallbacks.", file=sys.stderr)
 
+          # Cap candidates so worst-case sequential timeouts (4 * 240s = 16m)
+          # stay comfortably inside the 20-minute job timeout.
+          max_candidate_models = 4
           candidate_models = [m_id for _, m_id in discovered_models]
           for fallback in (
               "gemini-3.8-flash",
@@ -220,8 +223,9 @@ jobs:
           ):
               if fallback and fallback not in candidate_models:
                   candidate_models.append(fallback)
+          candidate_models = candidate_models[:max_candidate_models]
           print(
-              f"Candidate Gemini Flash models (newest first): {candidate_models}",
+              f"Candidate Gemini Flash models (newest first, max {max_candidate_models}): {candidate_models}",
               flush=True,
           )
 
