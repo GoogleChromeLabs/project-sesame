@@ -276,12 +276,16 @@ router.post(
     ) {
       logger.info('The user is registering to the RP.');
       const existing = await Users.findById(user.id);
-      const baseUser = existing ?? user;
+      if (!existing) {
+        logger.error('User not found.');
+        res.status(401).json({error: 'The user needs to be signed in.'});
+        return;
+      }
       const approvedClients = Array.from(
-        new Set([...(baseUser.approved_clients ?? []), rp.client_id])
+        new Set([...(existing.approved_clients ?? []), rp.client_id])
       );
       await Users.update({
-        ...baseUser,
+        ...existing,
         approved_clients: approvedClients,
       });
       user.approved_clients = approvedClients;
@@ -473,8 +477,12 @@ router.post(
     }
 
     const existing = await Users.findById(user.id);
-    const baseUser = existing ?? user;
-    const currentApproved = baseUser.approved_clients ?? [];
+    if (!existing) {
+      logger.error('User not found.');
+      res.status(401).json({error: 'The user needs to be signed in.'});
+      return;
+    }
+    const currentApproved = existing.approved_clients ?? [];
 
     if (!currentApproved.includes(rp.client_id)) {
       logger.error('The client is not connected.');
@@ -487,7 +495,7 @@ router.post(
       (_client_id: string) => _client_id !== rp.client_id
     );
     await Users.update({
-      ...baseUser,
+      ...existing,
       approved_clients: updatedClients,
     });
     user.approved_clients = updatedClients;

@@ -352,6 +352,70 @@ describe('FedCM Middleware JWT timestamps', () => {
       assert.strictEqual(updatedSnapshots.length, 1);
       assert.deepStrictEqual(updatedSnapshots[0].approved_clients, []);
       assert.strictEqual(updatedSnapshots[0].password, 'StoredPassword123!');
+
+      // Deleted user record -> 401 and does not call Users.update
+      Users.findById = async () => undefined;
+      const deletedRes = await fetch(
+        `http://127.0.0.1:${port}/fedcm/disconnect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Sec-Fetch-Dest': 'webidentity',
+            Origin: testRp.origin,
+          },
+          body: JSON.stringify({
+            client_id: testRp.client_id,
+            account_hint: mockUser.id,
+          }),
+        }
+      );
+      assert.strictEqual(deletedRes.status, 401);
+      assert.strictEqual(updatedSnapshots.length, 1);
+    } finally {
+      Users.findById = origFindById;
+      Users.update = origUpdate;
+    }
+  });
+
+  it('POST /fedcm/idtokens returns 401 when registering an RP for a deleted user record', async () => {
+    const {Users} = await import('../libs/users.ts');
+    const secondRp: RelyingParty = {
+      origin: 'https://rp2.example.com',
+      client_id: 'https://rp2.example.com',
+      name: 'Second Test RP',
+      secret: 'second-rp-secret',
+    };
+    config.supported_rps = [testRp, secondRp];
+    RelyingParties.rps = [testRp, secondRp];
+
+    const updatedSnapshots: any[] = [];
+    const origFindById = Users.findById;
+    const origUpdate = Users.update;
+    Users.findById = async () => undefined;
+    Users.update = async (user: any) => {
+      updatedSnapshots.push(structuredClone(user));
+      return user;
+    };
+
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/fedcm/idtokens`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Sec-Fetch-Dest': 'webidentity',
+          Origin: secondRp.origin,
+        },
+        body: JSON.stringify({
+          client_id: secondRp.client_id,
+          account_id: mockUser.id,
+          consent_acquired: 'true',
+          disclosure_text_shown: 'true',
+          params: JSON.stringify({nonce: 'test-nonce-missing-user'}),
+        }),
+      });
+      assert.strictEqual(res.status, 401);
+      assert.strictEqual(updatedSnapshots.length, 0);
     } finally {
       Users.findById = origFindById;
       Users.update = origUpdate;
