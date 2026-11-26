@@ -21,18 +21,19 @@ import {
   FederationMap,
   FederationMappings,
 } from '../libs/federation-mappings.ts';
-import {config} from '../config.ts';
-import {IdentityProviders} from '../libs/identity-providers.ts';
+import {
+  IdentityProvider,
+  IdentityProviders,
+} from '../libs/identity-providers.ts';
 import {OAuth2Client} from 'google-auth-library';
 import {Users} from '../libs/users.ts';
-import {csrfCheck, getTime} from '../middlewares/common.ts';
+import {csrfCheck} from '../middlewares/common.ts';
 import {apiAclCheck, ApiType, setSignedIn} from '../libs/session.ts';
 import {SessionService} from '~project-sesame/server/libs/session.ts';
-import {RelyingParties} from '../libs/relying-parties.ts';
 import {logger} from '../libs/logger.ts';
 
 const router = Router();
-const googleClient = new OAuth2Client();
+export const googleClient = new OAuth2Client();
 
 router.use(csrfCheck);
 
@@ -70,10 +71,22 @@ router.post(
   apiAclCheck(ApiType.NoAuth),
   async (req: Request, res: Response): Promise<void> => {
     const options = {
-      idps: [] as IdentityProviders[],
+      idps: [] as IdentityProvider[],
     };
-    const idps = [];
-    const {urls} = req.body;
+    const idps: IdentityProvider[] = [];
+    const {urls} = req.body ?? {};
+    if (
+      !Array.isArray(urls) ||
+      urls.length > 50 ||
+      !urls.every(u => typeof u === 'string' && u.trim().length > 0)
+    ) {
+      res.status(400).json({error: 'Invalid urls.'});
+      return;
+    }
+    if (urls.length === 0) {
+      res.json(options);
+      return;
+    }
     try {
       for (const _url of urls) {
         const url = new URL(_url);
@@ -193,16 +206,47 @@ router.post(
   '/verifyIdToken',
   apiAclCheck(ApiType.SignIn),
   async (req: Request, res: Response): Promise<void> => {
-    const {token: raw_token, url} = req.body;
+    const {token: raw_token, url} = req.body ?? {};
+
+    if (
+      typeof raw_token !== 'string' ||
+      !raw_token.trim() ||
+      raw_token.length > 16384 ||
+      typeof url !== 'string' ||
+      !url.trim()
+    ) {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+
+    let parsedIdpUrl: URL;
+    try {
+      parsedIdpUrl = new URL(url);
+    } catch {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+    if (
+      parsedIdpUrl.protocol !== 'https:' &&
+      parsedIdpUrl.protocol !== 'http:'
+    ) {
+      res.status(400).json({error: 'Missing or invalid token or url.'});
+      return;
+    }
+
+    const sessionService = new SessionService(req.session);
+    const expected_nonce = sessionService.getChallenge();
+
+    if (!expected_nonce || typeof expected_nonce !== 'string') {
+      logger.error('Invalid nonce:', expected_nonce);
+      res.status(400).json({error: 'Invalid nonce.'});
+      return;
+    }
+
+    // Consume challenge immediately so it cannot be replayed across attempts.
+    sessionService.deleteChallenge();
 
     try {
-      const expected_nonce = new SessionService(req.session).getChallenge();
-
-      if (!expected_nonce || typeof expected_nonce !== 'string') {
-        logger.error('Invalid nonce:', expected_nonce);
-        throw new Error('Invalid nonce.');
-      }
-
       const idp = await IdentityProviders.findByOrigin(url);
 
       if (!idp) {
@@ -218,6 +262,12 @@ router.post(
           audience: idp.clientId,
         });
         payload = ticket.getPayload();
+        if (!payload || payload.nonce !== expected_nonce) {
+          throw new Error('Nonce mismatch in ID token.');
+        }
+        if (payload.email_verified !== true) {
+          throw new Error('Email is not verified.');
+        }
       } else {
         logger.debug('Verifying ID Token', {
           token: raw_token,
@@ -227,6 +277,7 @@ router.post(
           clientId: idp.clientId,
         });
         payload = <FederationMap>jwt.verify(raw_token, idp.secret, {
+          algorithms: ['HS256'],
           issuer: idp.origin,
           nonce: expected_nonce,
           audience: idp.clientId,
@@ -249,14 +300,13 @@ router.post(
         */
       }
 
-      if (!payload?.email) {
-        const message = '`email` is missing in the ID token.';
+      if (!payload?.email || !Users.isValidUsername(payload.email)) {
+        const message = '`email` is missing or invalid in the ID token.';
         logger.error(message);
         throw new Error(message);
       }
 
       // Find a matching user by querying with the email address
-      // TODO: Beware that the email is verified.
       let user = await Users.findByUsername(payload.email);
       if (user && payload.iss) {
         const maps = await FederationMappings.findByIssuer(
@@ -272,10 +322,27 @@ router.post(
         }
       } else {
         // If the user does not exist yet, create a new user.
+        const safeDisplayName = Users.isValidDisplayName(payload.name)
+          ? Users.normalizeDisplayName(payload.name)
+          : undefined;
+        let safePicture: string | undefined;
+        if (
+          typeof payload.picture === 'string' &&
+          payload.picture.length <= 2048
+        ) {
+          try {
+            const picUrl = new URL(payload.picture);
+            if (picUrl.protocol === 'https:') {
+              safePicture = picUrl.toString();
+            }
+          } catch {
+            safePicture = undefined;
+          }
+        }
         user = await Users.create(payload.email, {
           email: payload.email,
-          displayName: payload.name,
-          picture: payload.picture,
+          ...(safeDisplayName ? {displayName: safeDisplayName} : {}),
+          ...(safePicture ? {picture: safePicture} : {}),
         });
         await FederationMappings.create(user.id, payload);
       }

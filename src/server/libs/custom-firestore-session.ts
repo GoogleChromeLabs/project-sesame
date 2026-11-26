@@ -71,16 +71,16 @@ export class CustomFirestoreStore extends FirestoreStore {
       expiresAt = getTime(config.long_session_duration);
     }
 
+    // Replace the session document in full (without `{merge: true}`) so keys
+    // removed via `delete req.session.challenge`, `resetSigningUp()`, or
+    // `resetSigningIn()` are actually deleted in Firestore and cannot be replayed.
     this.db
       .collection(this.kind)
       .doc(sid)
-      .set(
-        {
-          ...sess,
-          expiresAt,
-        },
-        {merge: true}
-      )
+      .set({
+        ...sess,
+        expiresAt,
+      })
       .then(() => {
         if (typeof callback === 'function') {
           callback();

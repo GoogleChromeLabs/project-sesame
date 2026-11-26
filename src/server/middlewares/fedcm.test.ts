@@ -171,6 +171,7 @@ describe('FedCM Middleware JWT timestamps', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
       },
       body: JSON.stringify({
         nonce: 'test-nonce-456',
@@ -194,5 +195,230 @@ describe('FedCM Middleware JWT timestamps', () => {
       Math.abs(payload.exp - payload.iat - expectedLifetimeSec) <= 1,
       `Expected exp - iat (${payload.exp - payload.iat}) to match ${expectedLifetimeSec}s`
     );
+  });
+
+  it('POST /fedcm/createToken enforces csrfCheck, rejects cross-origin callers without CORS headers, and validates nonce', async () => {
+    // Missing X-Requested-With -> 400
+    const noCsrf = await fetch(`http://127.0.0.1:${port}/fedcm/createToken`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({nonce: 'n1', rp_origin: testRp.origin}),
+    });
+    assert.strictEqual(noCsrf.status, 400);
+    assert.strictEqual(noCsrf.headers.get('access-control-allow-origin'), null);
+
+    // Same-origin Origin header -> 200
+    const sameOrigin = await fetch(
+      `http://127.0.0.1:${port}/fedcm/createToken`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-Forwarded-Host': 'idp.localhost',
+          'X-Forwarded-Proto': 'https',
+          Origin: 'https://idp.localhost',
+        },
+        body: JSON.stringify({nonce: 'n1', rp_origin: testRp.origin}),
+      }
+    );
+    assert.strictEqual(sameOrigin.status, 200);
+    assert.strictEqual(
+      sameOrigin.headers.get('access-control-allow-origin'),
+      null
+    );
+
+    // Cross-origin Origin header -> 403 and no Access-Control-Allow-Origin
+    const crossOrigin = await fetch(
+      `http://127.0.0.1:${port}/fedcm/createToken`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          Origin: 'https://evil.example',
+        },
+        body: JSON.stringify({nonce: 'n1', rp_origin: testRp.origin}),
+      }
+    );
+    assert.strictEqual(crossOrigin.status, 403);
+    assert.strictEqual(
+      crossOrigin.headers.get('access-control-allow-origin'),
+      null
+    );
+
+    // Non-string or whitespace-only nonce -> 400
+    for (const badNonce of ['', '   ', 12345, null]) {
+      const badNonceRes = await fetch(
+        `http://127.0.0.1:${port}/fedcm/createToken`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({nonce: badNonce, rp_origin: testRp.origin}),
+        }
+      );
+      assert.strictEqual(badNonceRes.status, 400);
+    }
+  });
+
+  it('POST /fedcm/disconnect validates client_id, Origin, and account_hint and persists approved_clients update without erasing password', async () => {
+    const {Users} = await import('../libs/users.ts');
+    const updatedSnapshots: any[] = [];
+    const origFindById = Users.findById;
+    const origUpdate = Users.update;
+    Users.findById = async (id: string) =>
+      id === mockUser.id
+        ? ({...mockUser, password: 'StoredPassword123!'} as any)
+        : undefined;
+    Users.update = async (user: any) => {
+      updatedSnapshots.push(structuredClone(user));
+      return user;
+    };
+
+    try {
+      // Unregistered client_id -> 400
+      const unregistered = await fetch(
+        `http://127.0.0.1:${port}/fedcm/disconnect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Sec-Fetch-Dest': 'webidentity',
+            Origin: 'https://unregistered.example.com',
+          },
+          body: JSON.stringify({
+            client_id: 'https://unregistered.example.com',
+            account_hint: mockUser.id,
+          }),
+        }
+      );
+      assert.strictEqual(unregistered.status, 400);
+
+      // Registered client_id with mismatched Origin -> 400
+      const wrongOrigin = await fetch(
+        `http://127.0.0.1:${port}/fedcm/disconnect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Sec-Fetch-Dest': 'webidentity',
+            Origin: 'https://evil.example',
+          },
+          body: JSON.stringify({
+            client_id: testRp.client_id,
+            account_hint: mockUser.id,
+          }),
+        }
+      );
+      assert.strictEqual(wrongOrigin.status, 400);
+
+      // Mismatched account_hint -> 401
+      const wrongHint = await fetch(
+        `http://127.0.0.1:${port}/fedcm/disconnect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Sec-Fetch-Dest': 'webidentity',
+            Origin: testRp.origin,
+          },
+          body: JSON.stringify({
+            client_id: testRp.client_id,
+            account_hint: 'other-user-id',
+          }),
+        }
+      );
+      assert.strictEqual(wrongHint.status, 401);
+      assert.strictEqual(updatedSnapshots.length, 0);
+
+      // Valid disconnect -> 200 and awaits Users.update
+      const ok = await fetch(`http://127.0.0.1:${port}/fedcm/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Sec-Fetch-Dest': 'webidentity',
+          Origin: testRp.origin,
+        },
+        body: JSON.stringify({
+          client_id: testRp.client_id,
+          account_hint: mockUser.id,
+        }),
+      });
+      assert.strictEqual(ok.status, 200);
+      assert.deepStrictEqual(await ok.json(), {account_id: mockUser.id});
+      assert.strictEqual(updatedSnapshots.length, 1);
+      assert.deepStrictEqual(updatedSnapshots[0].approved_clients, []);
+      assert.strictEqual(updatedSnapshots[0].password, 'StoredPassword123!');
+
+      // Deleted user record -> 401 and does not call Users.update
+      Users.findById = async () => undefined;
+      const deletedRes = await fetch(
+        `http://127.0.0.1:${port}/fedcm/disconnect`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Sec-Fetch-Dest': 'webidentity',
+            Origin: testRp.origin,
+          },
+          body: JSON.stringify({
+            client_id: testRp.client_id,
+            account_hint: mockUser.id,
+          }),
+        }
+      );
+      assert.strictEqual(deletedRes.status, 401);
+      assert.strictEqual(updatedSnapshots.length, 1);
+    } finally {
+      Users.findById = origFindById;
+      Users.update = origUpdate;
+    }
+  });
+
+  it('POST /fedcm/idtokens returns 401 when registering an RP for a deleted user record', async () => {
+    const {Users} = await import('../libs/users.ts');
+    const secondRp: RelyingParty = {
+      origin: 'https://rp2.example.com',
+      client_id: 'https://rp2.example.com',
+      name: 'Second Test RP',
+      secret: 'second-rp-secret',
+    };
+    config.supported_rps = [testRp, secondRp];
+    RelyingParties.rps = [testRp, secondRp];
+
+    const updatedSnapshots: any[] = [];
+    const origFindById = Users.findById;
+    const origUpdate = Users.update;
+    Users.findById = async () => undefined;
+    Users.update = async (user: any) => {
+      updatedSnapshots.push(structuredClone(user));
+      return user;
+    };
+
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/fedcm/idtokens`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Sec-Fetch-Dest': 'webidentity',
+          Origin: secondRp.origin,
+        },
+        body: JSON.stringify({
+          client_id: secondRp.client_id,
+          account_id: mockUser.id,
+          consent_acquired: 'true',
+          disclosure_text_shown: 'true',
+          params: JSON.stringify({nonce: 'test-nonce-missing-user'}),
+        }),
+      });
+      assert.strictEqual(res.status, 401);
+      assert.strictEqual(updatedSnapshots.length, 0);
+    } finally {
+      Users.findById = origFindById;
+      Users.update = origUpdate;
+    }
   });
 });

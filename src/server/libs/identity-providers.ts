@@ -16,6 +16,7 @@
  */
 
 import {config} from '../config.ts';
+import {compareUrls} from './helpers.ts';
 
 export interface IdentityProvider {
   name: string;
@@ -32,13 +33,22 @@ export class IdentityProviders {
     clientId: idp.clientId || config.origin,
   }));
 
+  /**
+   * Finds a registered Identity Provider by comparing full HTTP(S) origins.
+   *
+   * @param url - The Identity Provider URL or origin to look up.
+   * @returns A cloned `IdentityProvider` record if registered, or `undefined`.
+   */
   static async findByOrigin(
-    url: string
+    url: unknown
   ): Promise<IdentityProvider | undefined> {
-    const idp = IdentityProviders.idps.find(idp => {
-      return idp.origin === new URL(url).origin;
-    });
-    return Promise.resolve(structuredClone(idp));
+    if (typeof url !== 'string' || !url.trim()) {
+      return undefined;
+    }
+    const idp = IdentityProviders.idps.find(idp =>
+      compareUrls(idp.origin, url)
+    );
+    return structuredClone(idp);
   }
 
   static getPrimaryOrigin(): string | undefined {

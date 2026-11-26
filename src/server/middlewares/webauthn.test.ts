@@ -199,6 +199,171 @@ describe('WebAuthn Middlewares', () => {
     mockSession = {};
   });
 
+  describe('removeKey and renameKey validation and ownership', () => {
+    const ownerPasskeyUserId = crypto.randomBytes(16).toString('base64url');
+    const otherPasskeyUserId = crypto.randomBytes(16).toString('base64url');
+    const createdCredIds: string[] = [];
+
+    afterAll(async () => {
+      await Promise.all(
+        createdCredIds.map(id => PublicKeyCredentials.remove(id))
+      );
+    });
+
+    test('removeKey rejects invalid credId, blocks cross-user IDOR deletion, and deletes owned credential', async () => {
+      const credId = `remove-test-${crypto.randomBytes(8).toString('base64url')}`;
+      createdCredIds.push(credId);
+      await PublicKeyCredentials.update({
+        id: credId,
+        passkeyUserId: ownerPasskeyUserId,
+        name: 'Owner Key',
+        credentialPublicKey: 'test-pub-key',
+        credentialType: 'public-key',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        userVerified: true,
+        transports: ['internal'],
+        credentialDeviceType: 'multiDevice',
+        credentialBackedUp: true,
+        registeredAt: Date.now(),
+      });
+
+      // Missing/invalid credId -> 400
+      mockSession.locals = {
+        signin_status: 5, // UserSignInStatus.RecentlySignedIn
+        user: {passkeyUserId: ownerPasskeyUserId},
+      };
+      for (const badQuery of ['', '?credId=', '?credId=bad/slash']) {
+        const badRes = await fetch(
+          `http://127.0.0.1:${port}/webauthn/removeKey${badQuery}`,
+          {
+            method: 'POST',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+          }
+        );
+        assert.strictEqual(badRes.status, 400);
+      }
+
+      // Cross-user IDOR attempt -> 401 and credential remains stored
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: otherPasskeyUserId},
+      };
+      const idorRes = await fetch(
+        `http://127.0.0.1:${port}/webauthn/removeKey?credId=${credId}`,
+        {
+          method: 'POST',
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+        }
+      );
+      assert.strictEqual(idorRes.status, 401);
+      assert.ok(await PublicKeyCredentials.findById(credId));
+
+      // Owner deletion -> 200 and credential removed
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: ownerPasskeyUserId},
+      };
+      const okRes = await fetch(
+        `http://127.0.0.1:${port}/webauthn/removeKey?credId=${credId}`,
+        {
+          method: 'POST',
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+        }
+      );
+      assert.strictEqual(okRes.status, 200);
+      assert.strictEqual(
+        await PublicKeyCredentials.findById(credId),
+        undefined
+      );
+    });
+
+    test('renameKey validates credId and newName and enforces ownership', async () => {
+      const credId = `rename-test-${crypto.randomBytes(8).toString('base64url')}`;
+      createdCredIds.push(credId);
+      await PublicKeyCredentials.update({
+        id: credId,
+        passkeyUserId: ownerPasskeyUserId,
+        name: 'Initial Name',
+        credentialPublicKey: 'test-pub-key',
+        credentialType: 'public-key',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        userVerified: true,
+        transports: ['internal'],
+        credentialDeviceType: 'multiDevice',
+        credentialBackedUp: true,
+        registeredAt: Date.now(),
+      });
+
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: ownerPasskeyUserId},
+      };
+
+      for (const badCredId of ['', 'bad/slash', '__reserved__']) {
+        const badCredRes = await fetch(
+          `http://127.0.0.1:${port}/webauthn/renameKey`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({credId: badCredId, newName: 'Valid Name'}),
+          }
+        );
+        assert.strictEqual(badCredRes.status, 400);
+      }
+
+      const badNameRes = await fetch(
+        `http://127.0.0.1:${port}/webauthn/renameKey`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({credId, newName: '   '}),
+        }
+      );
+      assert.strictEqual(badNameRes.status, 400);
+
+      // Cross-user IDOR rename attempt -> 401
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: otherPasskeyUserId},
+      };
+      const idorRenameRes = await fetch(
+        `http://127.0.0.1:${port}/webauthn/renameKey`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({credId, newName: 'Hijacked Name'}),
+        }
+      );
+      assert.strictEqual(idorRenameRes.status, 401);
+
+      mockSession.locals = {
+        signin_status: 5,
+        user: {passkeyUserId: ownerPasskeyUserId},
+      };
+
+      const okRes = await fetch(`http://127.0.0.1:${port}/webauthn/renameKey`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({credId, newName: '  Work Laptop  '}),
+      });
+      assert.strictEqual(okRes.status, 200);
+      const updated = await okRes.json();
+      assert.strictEqual(updated.name, 'Work Laptop');
+    });
+  });
+
   test('signinRequest preserves existing challenge', async () => {
     mockSession.challenge = 'existing-challenge-123';
 
@@ -361,6 +526,33 @@ describe('WebAuthn Middlewares', () => {
       );
       return {status: res.status, body: await res.json()};
     }
+
+    test('rejects empty or malformed signinResponse bodies with 400 instead of 500', async () => {
+      for (const badBody of [
+        undefined,
+        '{}',
+        JSON.stringify({id: 'bad/slash', response: {}}),
+        JSON.stringify({id: '__reserved__', response: {}}),
+        JSON.stringify({id: passkey.id, response: null}),
+      ]) {
+        mockSession.challenge = crypto.randomBytes(32).toString('base64url');
+        const res = await fetch(
+          `http://127.0.0.1:${port}/webauthn/signinResponse`,
+          {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              ...(badBody !== undefined
+                ? {'Content-Type': 'application/json'}
+                : {}),
+            },
+            ...(badBody !== undefined ? {body: badBody} : {}),
+          }
+        );
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(mockSession.challenge, undefined);
+      }
+    });
 
     test('accepts a same-origin assertion', async () => {
       const {status, body} = await signIn({crossOrigin: false});
